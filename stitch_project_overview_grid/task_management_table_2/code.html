@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Tasks - Municipal Bank</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f8fafc",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e2e8f0",
+                        "text-main": "#0f172a",
+                        "text-secondary": "#64748b"
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "sans": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-background-light text-text-main font-sans antialiased;
+            }
+        }
+        .swipe-action-container {
+            overflow-x: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+<header class="flex-shrink-0 bg-white border-b border-border-light px-4 py-3 sticky top-0 z-50">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<div class="h-8 w-8 rounded bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">account_balance</span>
+</div>
+<h1 class="font-bold text-lg tracking-tight">Tasks</h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-text-secondary hover:bg-slate-100 rounded-full">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="h-8 w-8 rounded-full bg-cover bg-center border border-border-light" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBBWCr-yYjHxJg4j6Y3ZVH_-6nJcuy7hs59X06dQHSj0WOPfrVt4Y4XXa2FKn3Ta__26FRSfZmHw0zPzSu2aU-xxLHkNLEFt2b73syuNpHxX4XtKesriOUKwSugMrCneCwTj61LL9yWPrZY2x4KOVNMjckvVz31AZgySOK27OXjMSHmpuVXCHe9s6-zlCjFVZnpqU-mrGCt0miBe4YMgWnV8NwZog6d8uyFq9gw0tNbjcw_uhjny9E_gfWfBbIoV0-_BX6_r4kW_54');"></button>
+</div>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold whitespace-nowrap">All Tasks</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-border-light text-text-secondary text-xs font-medium whitespace-nowrap">In Progress</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-border-light text-text-secondary text-xs font-medium whitespace-nowrap">Overdue</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-border-light text-text-secondary text-xs font-medium whitespace-nowrap">Completed</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto pb-20">
+<div class="divide-y divide-border-light bg-white">
+<div class="p-4 flex items-center gap-4 active:bg-slate-50 relative group">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3029</span>
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+<span class="text-[10px] font-bold text-text-secondary uppercase">High</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">Review Q3 Financial Statements</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200 text-blue-600 bg-blue-50 uppercase tracking-wide">
+                            In Progress
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Oct 15</span>
+<div class="h-6 w-6 rounded-full border border-white ring-2 ring-white shadow-sm bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEtxRUFhDUva74jUqknRTHhN1d0U_bjgCS0L2wqU3uLoljrBDyaLGx8-LogRrk76oeUZnyaEQt-4DM-HYvxG7zwoqsvBhA0-ymIBcX1VHFnkQdRtjp2T1KJiS8uXjMn5IiANvotWiD8bGJ0THy2Jz9E84P2Z2279w2eF4CgukSUmIwcmE1nBagWK60vKPZFMmUGxHM3-yvp4CAPmubZJ3Jt7tldZ0vp8jNDCUiL-c6hFN8rD3esYDo8MPt7daN4Adku9aflaKMZ5s');"></div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex items-center gap-4 bg-red-50/30 active:bg-red-50 relative">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3030</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-red-500 text-[14px] fill-1">priority_high</span>
+<span class="text-[10px] font-bold text-red-600 uppercase">Critical</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">Update Security Protocols</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-red-200 text-red-600 bg-red-100 uppercase tracking-wide">
+                            Blocked
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-semibold text-red-600">Overdue</span>
+<div class="h-6 w-6 rounded-full border border-white ring-2 ring-white shadow-sm bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGzknaaFjnJlapY8rLZF_jcaRMfs8YYPfa3ENGnB1Wwk6qwOmmvLkoY7igzKOn8Mj5wMI3yHbPeZYCdy5RTNk5ouXaOcKzMKNjEPx3K_sVcyh8wE071DVHdQBa6JdnBPte0z_t5prHNOkTHGtOrTzHMzCJF2Q_HU_bm7tw8Ay03L6GRFd98q7Cvs-PYvm-RE9DeBXOR7uxZ1SPianqJvPMgxUBDVzWXHkpV3uNhG2Yzd7qAysoViJ9t9_lh2pV35iFHFXlfhRnPnc');"></div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex items-center gap-4 active:bg-slate-50 relative">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3031</span>
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-slate-400"></span>
+<span class="text-[10px] font-bold text-text-secondary uppercase">Low</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">Client Onboarding Form</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200 text-emerald-600 bg-emerald-50 uppercase tracking-wide">
+                            Done
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Oct 20</span>
+<div class="h-6 w-6 rounded-full border border-white ring-2 ring-white shadow-sm bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAAwEspkU1s-ZyeMP5et08TU5hkmiBFOcDHMryItOrxbSSmCZad7B8TNY4ZVBzwkzZUE_ywLQAOp5b4S1Cvq-FqtzFBonUgeiMcHw7o9qC9m_w0A6qkWHkHuPAepHnRHk-peV9ZJM-RooHLqWD8ncOsxuZLOVRl52tQWdcWI47nP2vOWcpqjvMGPZzFlNLiKyCASXsXj0q-wpJEv5BNpqigRTY-pJojv9XgYrgio2ipO9nlPByb796yW-w3RAMYffQzSsTEiXuIAQQ');"></div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex items-center gap-4 active:bg-slate-50 relative">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3032</span>
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+<span class="text-[10px] font-bold text-text-secondary uppercase">Medium</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">Annual Risk Assessment</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-slate-200 text-text-secondary bg-slate-50 uppercase tracking-wide">
+                            To Do
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Nov 01</span>
+<div class="h-6 w-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] font-bold border border-purple-200 ring-2 ring-white shadow-sm">JD</div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex items-center gap-4 active:bg-slate-50 relative">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3033</span>
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+<span class="text-[10px] font-bold text-text-secondary uppercase">Medium</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">ATM Upgrade Coordination</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200 text-blue-600 bg-blue-50 uppercase tracking-wide">
+                            In Progress
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Nov 05</span>
+<div class="h-6 w-6 rounded-full border border-white ring-2 ring-white shadow-sm bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8lp26YoYfkE1AOprTOZVyZQc-PZtfADJNTRoBsuZjBopSdmoHSBx1ThoF36GYsKx65P_LTIy5WeB2ZMa6iEG5tJis3zka_8HHzvu7KWPIC-MtRHZ4nDIDhTFO0ZdLE7ARnC3x2JUQjdfmlSwW528I3oFrM57pIqwKPeQkapNv1NriELMrW26WrR6a4F20_tbtlx9zBgNm5J_IsOxhQBNgLSSWoUwTnCIRSHppQQrfh7HUw1yUZI6JVy7TpUVHCC819r2PhQ9qqvE');"></div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex items-center gap-4 active:bg-slate-50 relative">
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[10px] font-mono font-bold text-text-secondary tracking-wider uppercase">TSK-3034</span>
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+<span class="text-[10px] font-bold text-text-secondary uppercase">High</span>
+</div>
+</div>
+<h3 class="text-[15px] font-semibold text-text-main truncate mb-1">Regulatory Reporting Review</h3>
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border border-slate-200 text-text-secondary bg-slate-50 uppercase tracking-wide">
+                            To Do
+                        </div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Nov 12</span>
+<div class="h-6 w-6 rounded-full border border-white ring-2 ring-white shadow-sm bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBHww9NJ2wSPXDuZobFmwVvnppBRlLUlrx-mROjRX8YM2ObS29lvLZMY01WEFHxtckKGdIKJnIrvmG87T3HHQoYtVY_cRtpd7zjuDalqdn_dQ_q8-hgzMxEkwKU3sOWrnaj41qcK9Z3Z9voTaaqwDrddAh95s9gXl-NKr8tF8Mnt6uBq_-mh_89xsx2gHZr_guLCC3mQ7ApeVH2yveiRF_i8O7xwVQsYShuLEbrRN9haXKcwFBm6_z67uzhMmNHQb3-sduPo3OgFlw');"></div>
+</div>
+</div>
+</div>
+<button class="flex-shrink-0 text-text-secondary p-1">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</main>
+<button class="fixed bottom-20 right-4 h-14 w-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center transition-transform active:scale-95 z-50">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+<nav class="flex-shrink-0 bg-white border-t border-border-light h-16 flex items-center justify-around px-2 z-50">
+<button class="flex flex-col items-center gap-1 text-text-secondary px-2">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary px-2">
+<span class="material-symbols-outlined fill-1">check_box</span>
+<span class="text-[10px] font-bold">Tasks</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-secondary px-2">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="text-[10px] font-medium">Projects</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-secondary px-2">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-[10px] font-medium">Team</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-secondary px-2">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</nav>
+
+</body></html>

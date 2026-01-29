@@ -1,0 +1,3180 @@
+# Система за Управление на Проекти и Процеси (Municipal Bank)
+## Модернизирана Архитектура с Bun + Next.js + Convex + Expo
+
+---
+
+## 1. Общ Преглед на Системата
+
+Системата представлява модерно full-stack приложение за управление на проекти, задачи, съгласувателни процедури и отчетност. Тя е изградена с фокус върху производителност, мащабируемост и сигурност, използвайки най-новите технологии за разработка.
+
+### Технологичен Стек
+
+**Frontend (Web):**
+- **Next.js 15** (App Router) - React framework с SSR/SSG/ISR
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Beautifully designed компоненти (базирани на Radix UI)
+- **Recharts** - Визуализация на данни
+- **TypeScript** - Type safety
+
+**Frontend (Mobile):**
+- **Expo (React Native)** - Cross-platform мобилни приложения (iOS/Android)
+- **Expo Router** - File-based навигация
+- **React Native Reanimated** - Перформантни анимации
+
+**Backend & Database:**
+- **Convex** - Serverless backend платформа с real-time database
+  - Real-time subscriptions
+  - Serverless functions
+  - File storage
+  - Full-text search
+  - Scheduled jobs (crons)
+- **Resend** - Modern email API за транзакционни имейли
+  - Email notifications
+  - Password reset emails
+  - Registration confirmations
+  - Team invitations
+
+**Runtime & Tooling:**
+- **Bun** - Бърз JavaScript runtime и package manager
+- **TypeScript** - End-to-end type safety
+
+**Authentication & Security:**
+- **Convex Auth** - Built-in автентикация с multiple providers
+- **OAuth 2.0** - Google, Microsoft, GitHub
+- **Magic Links** - Passwordless login
+- **Session Management** - Secure token-based sessions
+
+---
+
+## 2. Архитектура на Приложението
+
+### 2.1 Монорепо Структура
+
+```
+project-root/
+├── apps/
+│   ├── web/                    # Next.js уеб приложение
+│   │   ├── app/               # App Router структура
+│   │   │   ├── (auth)/        # Auth група маршрути
+│   │   │   ├── (dashboard)/   # Dashboard група маршрути
+│   │   │   ├── projects/      # Проекти
+│   │   │   ├── tasks/         # Задачи
+│   │   │   ├── approvals/     # Съгласувания
+│   │   │   ├── reports/       # Отчети
+│   │   │   └── admin/         # Администрация
+│   │   ├── components/        # React компоненти
+│   │   │   ├── ui/           # shadcn/ui компоненти
+│   │   │   ├── projects/     # Project-specific компоненти
+│   │   │   ├── tasks/        # Task-specific компоненти
+│   │   │   └── shared/       # Споделени компоненти
+│   │   ├── lib/              # Utilities
+│   │   │   └── utils.ts      # shadcn/ui utilities
+│   │   ├── convex/           # Convex клиент конфигурация
+│   │   └── components.json   # shadcn/ui config
+│   │
+│   └── mobile/                # Expo мобилно приложение
+│       ├── app/              # Expo Router структура
+│       ├── components/       # React Native компоненти
+│       └── convex/          # Convex клиент конфигурация
+│
+├── packages/
+│   ├── convex/               # Споделен Convex backend
+│   │   ├── schema.ts        # Database schema
+│   │   ├── functions/       # Convex functions (queries, mutations, actions)
+│   │   │   ├── projects.ts
+│   │   │   ├── tasks.ts
+│   │   │   ├── approvals.ts
+│   │   │   ├── users.ts
+│   │   │   └── teams.ts
+│   │   ├── auth.config.ts   # Auth configuration
+│   │   └── crons.ts         # Scheduled jobs
+│   │
+│   ├── ui/                  # Споделени UI компоненти
+│   ├── types/               # Споделени TypeScript типове
+│   └── utils/               # Споделени utility функции
+│
+├── bun.lockb               # Bun lock file
+└── package.json            # Root package.json
+```
+
+### 2.2 shadcn/ui Setup
+
+**Installation:**
+
+```bash
+# Initialize shadcn/ui in Next.js app
+cd apps/web
+bunx shadcn@latest init
+```
+
+**Configuration (`components.json`):**
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  }
+}
+```
+
+**Adding Components:**
+
+```bash
+# Add commonly used components
+bunx shadcn@latest add button
+bunx shadcn@latest add card
+bunx shadcn@latest add dialog
+bunx shadcn@latest add dropdown-menu
+bunx shadcn@latest add form
+bunx shadcn@latest add input
+bunx shadcn@latest add label
+bunx shadcn@latest add select
+bunx shadcn@latest add table
+bunx shadcn@latest add tabs
+bunx shadcn@latest add toast
+bunx shadcn@latest add avatar
+bunx shadcn@latest add badge
+bunx shadcn@latest add calendar
+bunx shadcn@latest add checkbox
+bunx shadcn@latest add popover
+bunx shadcn@latest add textarea
+bunx shadcn@latest add tooltip
+bunx shadcn@latest add separator
+bunx shadcn@latest add sheet
+bunx shadcn@latest add alert-dialog
+bunx shadcn@latest add command
+```
+
+**Theme Configuration (`app/globals.css`):**
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+```
+
+---
+
+## 3. shadcn/ui Component Examples
+
+### 3.1 Project Card Component
+
+```tsx
+// components/projects/project-card.tsx
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, Calendar, Users } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+interface ProjectCardProps {
+  project: {
+    _id: string;
+    name: string;
+    description?: string;
+    status: string;
+    priority: string;
+    startDate?: number;
+    endDate?: number;
+  };
+}
+
+export function ProjectCard({ project }: ProjectCardProps) {
+  const statusColors = {
+    draft: "bg-gray-500",
+    active: "bg-blue-500",
+    on_hold: "bg-yellow-500",
+    completed: "bg-green-500",
+    archived: "bg-slate-500",
+  };
+
+  const priorityColors = {
+    low: "bg-slate-200 text-slate-700",
+    medium: "bg-blue-200 text-blue-700",
+    high: "bg-orange-200 text-orange-700",
+    critical: "bg-red-200 text-red-700",
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-xl">{project.name}</CardTitle>
+            <CardDescription className="line-clamp-2">
+              {project.description}
+            </CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>Duplicate</DropdownMenuItem>
+              <DropdownMenuItem>Archive</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-2 mb-4">
+          <Badge className={statusColors[project.status as keyof typeof statusColors]}>
+            {project.status.replace("_", " ")}
+          </Badge>
+          <Badge variant="outline" className={priorityColors[project.priority as keyof typeof priorityColors]}>
+            {project.priority}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {project.endDate && (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>Due {formatDistanceToNow(project.endDate, { addSuffix: true })}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1">
+            <Users className="h-4 w-4" />
+            <span>5 members</span>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button className="w-full" variant="outline">
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+```
+
+### 3.2 Create Project Dialog
+
+```tsx
+// components/projects/create-project-dialog.tsx
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Plus } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+const formSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters").max(100),
+  description: z.string().max(5000).optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+}).refine(
+  (data) => !data.endDate || !data.startDate || data.endDate >= data.startDate,
+  { message: "End date must be after start date", path: ["endDate"] }
+);
+
+export function CreateProjectDialog({ teamId }: { teamId: string }) {
+  const [open, setOpen] = useState(false);
+  const createProject = useMutation(api.projects.create);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      priority: "medium",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await createProject({
+        teamId,
+        name: values.name,
+        description: values.description,
+        priority: values.priority,
+        startDate: values.startDate?.getTime(),
+        endDate: values.endDate?.getTime(),
+      });
+      
+      toast.success("Project created successfully!");
+      setOpen(false);
+      form.reset();
+    } catch (error) {
+      toast.error("Failed to create project");
+      console.error(error);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          New Project
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
+            Fill in the details to create a new project
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter project name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your project"
+                      className="resize-none"
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Creating..." : "Create Project"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### 3.3 Task Table with shadcn/ui
+
+```tsx
+// components/tasks/task-table.tsx
+"use client";
+
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+export function TaskTable({ projectId }: { projectId: string }) {
+  const tasks = useQuery(api.tasks.list, { projectId });
+  const updateTask = useMutation(api.tasks.update);
+  const [sorting, setSorting] = useState<{ key: string; order: "asc" | "desc" }>({
+    key: "createdAt",
+    order: "desc",
+  });
+
+  if (tasks === undefined) {
+    return <div>Loading tasks...</div>;
+  }
+
+  const handleStatusToggle = async (taskId: string, currentStatus: string) => {
+    await updateTask({
+      taskId,
+      status: currentStatus === "done" ? "todo" : "done",
+    });
+  };
+
+  const priorityColors = {
+    low: "bg-slate-100 text-slate-700 border-slate-300",
+    medium: "bg-blue-100 text-blue-700 border-blue-300",
+    high: "bg-orange-100 text-orange-700 border-orange-300",
+    critical: "bg-red-100 text-red-700 border-red-300",
+  };
+
+  const statusColors = {
+    todo: "bg-gray-100 text-gray-700 border-gray-300",
+    in_progress: "bg-blue-100 text-blue-700 border-blue-300",
+    in_review: "bg-purple-100 text-purple-700 border-purple-300",
+    done: "bg-green-100 text-green-700 border-green-300",
+    blocked: "bg-red-100 text-red-700 border-red-300",
+  };
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">
+              <Checkbox />
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  setSorting({
+                    key: "title",
+                    order: sorting.order === "asc" ? "desc" : "asc",
+                  })
+                }
+              >
+                Task
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Assignee</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead className="w-12"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tasks.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
+                No tasks found
+              </TableCell>
+            </TableRow>
+          ) : (
+            tasks.map((task) => (
+              <TableRow key={task._id}>
+                <TableCell>
+                  <Checkbox
+                    checked={task.status === "done"}
+                    onCheckedChange={() => handleStatusToggle(task._id, task.status)}
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{task.title}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={statusColors[task.status as keyof typeof statusColors]}
+                  >
+                    {task.status.replace("_", " ")}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={priorityColors[task.priority as keyof typeof priorityColors]}
+                  >
+                    {task.priority}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {task.assigneeId ? (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="/placeholder.jpg" />
+                        <AvatarFallback>JD</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">John Doe</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Unassigned</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {task.dueDate ? (
+                    <span
+                      className={
+                        task.dueDate < Date.now() && task.status !== "done"
+                          ? "text-red-600 font-medium"
+                          : ""
+                      }
+                    >
+                      {formatDistanceToNow(task.dueDate, { addSuffix: true })}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">No due date</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-600">
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+```
+
+### 3.4 Dashboard with Charts
+
+```tsx
+// app/(dashboard)/page.tsx
+"use client";
+
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Activity, TrendingUp, Users, CheckCircle2 } from "lucide-react";
+
+export default function DashboardPage() {
+  const metrics = useQuery(api.analytics.dashboardMetrics, { teamId: "current-team-id" });
+
+  if (!metrics) {
+    return <div>Loading...</div>;
+  }
+
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+  const projectStatusData = Object.entries(metrics.projectsByStatus).map(([key, value]) => ({
+    name: key.replace("_", " "),
+    value,
+  }));
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-muted-foreground">
+          Overview of your projects and tasks
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.totalProjects}</div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.activeProjects} active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.totalTasks}</div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.completedTasks} completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overdue Tasks</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {metrics.overdueTasks}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Needs attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.pendingApprovals}</div>
+            <p className="text-xs text-muted-foreground">
+              Awaiting review
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Projects by Status</CardTitle>
+                <CardDescription>Distribution of project statuses</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={projectStatusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {projectStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Task Completion</CardTitle>
+                <CardDescription>Progress over time</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: "Week 1", completed: 12, pending: 8 },
+                      { name: "Week 2", completed: 15, pending: 12 },
+                      { name: "Week 3", completed: 18, pending: 9 },
+                      { name: "Week 4", completed: 22, pending: 6 },
+                    ]}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="completed" fill="#22c55e" />
+                    <Bar dataKey="pending" fill="#94a3b8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+```
+
+---
+
+## 4. Основни Функционалности
+
+### 4.1 Управление на Проекти (Projects)
+
+**Функционалност:**
+- Създаване, редакция и изтриване на проекти
+- Статуси: Draft, Active, On Hold, Completed, Archived
+- Приоритети: Low, Medium, High, Critical
+- Проектни шаблони за бързо създаване
+- Real-time обновления на данни
+- Търсене и филтриране (full-text search)
+- Прикачване на файлове (с Convex Storage)
+
+**Convex Schema:**
+
+```typescript
+// convex/schema.ts
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  projects: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("active"),
+      v.literal("on_hold"),
+      v.literal("completed"),
+      v.literal("archived")
+    ),
+    priority: v.union(
+      v.literal("low"),
+      v.literal("medium"),
+      v.literal("high"),
+      v.literal("critical")
+    ),
+    startDate: v.optional(v.number()), // Unix timestamp
+    endDate: v.optional(v.number()),
+    teamId: v.id("teams"),
+    ownerId: v.id("users"),
+    templateId: v.optional(v.id("projectTemplates")),
+    metadata: v.optional(v.any()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_team", ["teamId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_status", ["status"])
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["teamId", "status"],
+    }),
+});
+```
+
+**Convex Query Example:**
+
+```typescript
+// convex/functions/projects.ts
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
+
+export const list = query({
+  args: {
+    teamId: v.id("teams"),
+    status: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    let query = ctx.db
+      .query("projects")
+      .withIndex("by_team", (q) => q.eq("teamId", args.teamId));
+
+    if (args.status) {
+      query = query.filter((q) => q.eq(q.field("status"), args.status));
+    }
+
+    return await query.collect();
+  },
+});
+
+export const create = mutation({
+  args: {
+    name: v.string(),
+    description: v.optional(v.string()),
+    teamId: v.id("teams"),
+    priority: v.string(),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    // Verify user is member of team
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_user_team", (q) => 
+        q.eq("userId", user._id).eq("teamId", args.teamId)
+      )
+      .unique();
+
+    if (!membership) throw new Error("Not a team member");
+
+    const now = Date.now();
+    return await ctx.db.insert("projects", {
+      ...args,
+      status: "draft",
+      ownerId: user._id,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+```
+
+### 4.2 Управление на Задачи (Tasks)
+
+**Функционалност:**
+- Създаване на задачи, свързани с проекти
+- Възлагане на отговорници
+- Статуси: To Do, In Progress, In Review, Done, Blocked
+- Приоритизация и крайни срокове
+- Коментари и история на промените
+- Задачни шаблони
+- Real-time нотификации
+
+**Convex Schema:**
+
+```typescript
+tasks: defineTable({
+  title: v.string(),
+  description: v.optional(v.string()),
+  projectId: v.id("projects"),
+  assigneeId: v.optional(v.id("users")),
+  creatorId: v.id("users"),
+  status: v.union(
+    v.literal("todo"),
+    v.literal("in_progress"),
+    v.literal("in_review"),
+    v.literal("done"),
+    v.literal("blocked")
+  ),
+  priority: v.union(
+    v.literal("low"),
+    v.literal("medium"),
+    v.literal("high"),
+    v.literal("critical")
+  ),
+  dueDate: v.optional(v.number()),
+  estimatedHours: v.optional(v.number()),
+  actualHours: v.optional(v.number()),
+  tags: v.optional(v.array(v.string())),
+  parentTaskId: v.optional(v.id("tasks")), // Subtasks
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_project", ["projectId"])
+  .index("by_assignee", ["assigneeId"])
+  .index("by_status", ["status"])
+  .searchIndex("search_title", {
+    searchField: "title",
+    filterFields: ["projectId", "status"],
+  }),
+
+taskComments: defineTable({
+  taskId: v.id("tasks"),
+  userId: v.id("users"),
+  content: v.string(),
+  parentCommentId: v.optional(v.id("taskComments")),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_task", ["taskId"])
+  .index("by_parent", ["parentCommentId"]),
+```
+
+### 4.3 Съгласувателни Процедури (Approvals)
+
+**Функционалност:**
+- Многостъпков workflow за одобрения
+- Дефиниране на одобрители по нива
+- Автоматични известия
+- Статуси: Pending, Approved, Rejected, Cancelled
+- История на одобренията
+- Условна логика (sequential/parallel approvals)
+
+**Convex Schema:**
+
+```typescript
+approvals: defineTable({
+  title: v.string(),
+  description: v.optional(v.string()),
+  projectId: v.optional(v.id("projects")),
+  taskId: v.optional(v.id("tasks")),
+  requesterId: v.id("users"),
+  type: v.union(
+    v.literal("document"),
+    v.literal("decision"),
+    v.literal("budget"),
+    v.literal("other")
+  ),
+  status: v.union(
+    v.literal("pending"),
+    v.literal("approved"),
+    v.literal("rejected"),
+    v.literal("cancelled")
+  ),
+  workflowType: v.union(
+    v.literal("sequential"), // One by one
+    v.literal("parallel")    // All at once
+  ),
+  currentStepIndex: v.number(),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_project", ["projectId"])
+  .index("by_status", ["status"])
+  .index("by_requester", ["requesterId"]),
+
+approvalSteps: defineTable({
+  approvalId: v.id("approvals"),
+  stepNumber: v.number(),
+  approverId: v.id("users"),
+  status: v.union(
+    v.literal("pending"),
+    v.literal("approved"),
+    v.literal("rejected"),
+    v.literal("skipped")
+  ),
+  comments: v.optional(v.string()),
+  decidedAt: v.optional(v.number()),
+  createdAt: v.number(),
+})
+  .index("by_approval", ["approvalId"])
+  .index("by_approver", ["approverId"]),
+```
+
+### 4.4 Отчети и Анализи (Reports & Analytics)
+
+**Функционалност:**
+- Стандартни отчети (проекти, задачи, натовареност)
+- Custom report builder
+- Real-time dashboard с метрики
+- Експорт в PDF/Excel
+- Графики и визуализации
+
+**Convex Implementation:**
+
+```typescript
+// convex/functions/analytics.ts
+export const dashboardMetrics = query({
+  args: { teamId: v.id("teams") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    const [projects, tasks, approvals] = await Promise.all([
+      ctx.db.query("projects")
+        .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+        .collect(),
+      
+      ctx.db.query("tasks")
+        .collect()
+        .then(tasks => tasks.filter(t => 
+          projects.some(p => p._id === t.projectId)
+        )),
+      
+      ctx.db.query("approvals")
+        .collect()
+        .then(approvals => approvals.filter(a => 
+          projects.some(p => p._id === a.projectId)
+        )),
+    ]);
+
+    return {
+      totalProjects: projects.length,
+      activeProjects: projects.filter(p => p.status === "active").length,
+      completedProjects: projects.filter(p => p.status === "completed").length,
+      
+      totalTasks: tasks.length,
+      completedTasks: tasks.filter(t => t.status === "done").length,
+      overdueTasks: tasks.filter(t => 
+        t.dueDate && t.dueDate < Date.now() && t.status !== "done"
+      ).length,
+      
+      pendingApprovals: approvals.filter(a => a.status === "pending").length,
+      
+      projectsByStatus: projects.reduce((acc, p) => {
+        acc[p.status] = (acc[p.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  },
+});
+```
+
+### 4.5 Управление на Екипи и Потребители
+
+**Convex Schema:**
+
+```typescript
+users: defineTable({
+  name: v.string(),
+  email: v.string(),
+  avatar: v.optional(v.string()),
+  tokenIdentifier: v.string(),
+  role: v.union(v.literal("admin"), v.literal("member")),
+  currentTeamId: v.optional(v.id("teams")),
+  preferences: v.optional(v.object({
+    theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
+    notifications: v.boolean(),
+    language: v.string(),
+  })),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_email", ["email"])
+  .index("by_token", ["tokenIdentifier"]),
+
+teams: defineTable({
+  name: v.string(),
+  description: v.optional(v.string()),
+  ownerId: v.id("users"),
+  settings: v.optional(v.any()),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_owner", ["ownerId"]),
+
+teamMembers: defineTable({
+  teamId: v.id("teams"),
+  userId: v.id("users"),
+  role: v.union(
+    v.literal("owner"),
+    v.literal("admin"),
+    v.literal("member")
+  ),
+  invitedBy: v.id("users"),
+  joinedAt: v.number(),
+})
+  .index("by_team", ["teamId"])
+  .index("by_user", ["userId"])
+  .index("by_user_team", ["userId", "teamId"]),
+
+teamInvitations: defineTable({
+  teamId: v.id("teams"),
+  email: v.string(),
+  invitedBy: v.id("users"),
+  status: v.union(
+    v.literal("pending"),
+    v.literal("accepted"),
+    v.literal("declined"),
+    v.literal("expired")
+  ),
+  expiresAt: v.number(),
+  createdAt: v.number(),
+})
+  .index("by_team", ["teamId"])
+  .index("by_email", ["email"]),
+```
+
+---
+
+## 5. Security Guidelines (Насоки за Сигурност)
+
+### 5.1 Authentication & Authorization
+
+**Convex Auth Configuration:**
+
+```typescript
+// convex/auth.config.ts
+import { defineAuth } from "@convex-dev/auth/server";
+import { Password } from "@convex-dev/auth/providers/Password";
+import { Google } from "@convex-dev/auth/providers/Google";
+
+export default defineAuth({
+  providers: [
+    Password({
+      verify: Password.verify({
+        minPasswordLength: 12,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumber: true,
+        requireSpecialChar: true,
+      }),
+    }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  
+  callbacks: {
+    async createOrUpdateUser(ctx, { existingUserId, ...profile }) {
+      if (existingUserId) {
+        await ctx.db.patch(existingUserId, {
+          name: profile.name,
+          email: profile.email,
+          updatedAt: Date.now(),
+        });
+        return existingUserId;
+      }
+      
+      return await ctx.db.insert("users", {
+        name: profile.name!,
+        email: profile.email!,
+        tokenIdentifier: profile.subject,
+        role: "member",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    },
+  },
+});
+```
+
+**Authorization Middleware:**
+
+```typescript
+// convex/functions/_middleware.ts
+import { customCtx } from "convex-helpers/server/customFunctions";
+
+export const requireAuth = customCtx(async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Unauthorized: Please log in");
+  }
+  
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+    .unique();
+  
+  if (!user) {
+    throw new Error("User not found");
+  }
+  
+  return { ...ctx, user };
+});
+
+export const requireTeamMember = customCtx(async (ctx, teamId: string) => {
+  const authCtx = await requireAuth(ctx);
+  
+  const membership = await ctx.db
+    .query("teamMembers")
+    .withIndex("by_user_team", (q) => 
+      q.eq("userId", authCtx.user._id).eq("teamId", teamId)
+    )
+    .unique();
+  
+  if (!membership) {
+    throw new Error("Not a team member");
+  }
+  
+  return { ...authCtx, membership };
+});
+
+export const requireAdmin = customCtx(async (ctx) => {
+  const authCtx = await requireAuth(ctx);
+  
+  if (authCtx.user.role !== "admin") {
+    throw new Error("Admin access required");
+  }
+  
+  return authCtx;
+});
+```
+
+### 5.2 Data Validation & Sanitization
+
+```typescript
+// packages/utils/validation.ts
+import { z } from "zod";
+
+export const ProjectSchema = z.object({
+  name: z.string().min(3).max(100),
+  description: z.string().max(5000).optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  startDate: z.number().optional(),
+  endDate: z.number().optional(),
+}).refine(
+  (data) => !data.endDate || !data.startDate || data.endDate >= data.startDate,
+  { message: "End date must be after start date" }
+);
+
+export const TaskSchema = z.object({
+  title: z.string().min(3).max(200),
+  description: z.string().max(10000).optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  dueDate: z.number().optional(),
+  estimatedHours: z.number().min(0).max(1000).optional(),
+});
+
+// Usage in Convex mutation
+export const createProject = mutation({
+  args: {
+    name: v.string(),
+    description: v.optional(v.string()),
+    priority: v.string(),
+    // ... other args
+  },
+  handler: async (ctx, args) => {
+    // Validate with Zod
+    const validated = ProjectSchema.parse(args);
+    
+    // XSS prevention - sanitize user input
+    const sanitized = {
+      ...validated,
+      name: sanitizeHtml(validated.name),
+      description: validated.description 
+        ? sanitizeHtml(validated.description) 
+        : undefined,
+    };
+    
+    // ... rest of handler
+  },
+});
+```
+
+### 5.3 Rate Limiting
+
+```typescript
+// convex/functions/rateLimit.ts
+import { customMutation } from "convex-helpers/server/customFunctions";
+
+const rateLimitCache = new Map<string, { count: number; resetAt: number }>();
+
+export const rateLimited = customMutation(async (ctx, maxRequests = 100, windowMs = 60000) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthorized");
+  
+  const key = `${identity.tokenIdentifier}:${Date.now()}`;
+  const now = Date.now();
+  
+  const limit = rateLimitCache.get(key) || { count: 0, resetAt: now + windowMs };
+  
+  if (now > limit.resetAt) {
+    limit.count = 0;
+    limit.resetAt = now + windowMs;
+  }
+  
+  limit.count++;
+  
+  if (limit.count > maxRequests) {
+    throw new Error("Rate limit exceeded. Please try again later.");
+  }
+  
+  rateLimitCache.set(key, limit);
+  return ctx;
+});
+```
+
+### 5.4 File Upload Security
+
+```typescript
+// convex/functions/files.ts
+import { mutation } from "./_generated/server";
+import { v } from "convex/values";
+
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const saveFile = mutation({
+  args: {
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+    fileType: v.string(),
+    fileSize: v.number(),
+    projectId: v.optional(v.id("projects")),
+    taskId: v.optional(v.id("tasks")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    // Validate file type
+    if (!ALLOWED_FILE_TYPES.includes(args.fileType)) {
+      throw new Error("File type not allowed");
+    }
+    
+    // Validate file size
+    if (args.fileSize > MAX_FILE_SIZE) {
+      throw new Error("File size exceeds limit");
+    }
+    
+    // Sanitize filename - remove path traversal attempts
+    const sanitizedFileName = args.fileName
+      .replace(/\.\./g, "")
+      .replace(/[/\\]/g, "");
+    
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    
+    if (!user) throw new Error("User not found");
+    
+    return await ctx.db.insert("files", {
+      storageId: args.storageId,
+      fileName: sanitizedFileName,
+      fileType: args.fileType,
+      fileSize: args.fileSize,
+      projectId: args.projectId,
+      taskId: args.taskId,
+      uploadedBy: user._id,
+      createdAt: Date.now(),
+    });
+  },
+});
+```
+
+### 5.5 SQL Injection Prevention
+
+Convex използва type-safe API, което автоматично предотвратява SQL injection атаки. Всички заявки са параметризирани:
+
+```typescript
+// ✅ SAFE - Type-safe queries
+const project = await ctx.db.get(projectId);
+
+const projects = await ctx.db
+  .query("projects")
+  .withIndex("by_team", (q) => q.eq("teamId", teamId))
+  .filter((q) => q.eq(q.field("status"), status))
+  .collect();
+
+// ❌ DANGEROUS - Never use string concatenation (not possible in Convex)
+// This syntax is NOT possible in Convex - showing for comparison only
+```
+
+### 5.6 XSS Prevention
+
+```typescript
+// packages/utils/sanitize.ts
+import DOMPurify from "isomorphic-dompurify";
+
+export function sanitizeHtml(dirty: string): string {
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br"],
+    ALLOWED_ATTR: ["href"],
+  });
+}
+
+export function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+```
+
+### 5.7 CSRF Protection
+
+Next.js и Convex автоматично защитават от CSRF атаки чрез:
+- SameSite cookies
+- Origin header validation
+- Token-based authentication
+
+### 5.8 Environment Variables
+
+```bash
+# .env.local (NEVER commit this file)
+
+# Convex
+CONVEX_DEPLOYMENT=
+NEXT_PUBLIC_CONVEX_URL=
+
+# Authentication
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Email (Resend)
+RESEND_API_KEY=your_resend_api_key_here
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+RESEND_REPLY_TO_EMAIL=support@yourdomain.com
+
+# Application URLs
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_NAME=Municipal Bank Project Manager
+
+# Monitoring (optional)
+SENTRY_DSN=
+```
+
+```typescript
+// lib/env.ts - Type-safe environment variables
+import { z } from "zod";
+
+const envSchema = z.object({
+  CONVEX_DEPLOYMENT: z.string().min(1),
+  NEXT_PUBLIC_CONVEX_URL: z.string().url(),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  RESEND_API_KEY: z.string().min(1),
+  RESEND_FROM_EMAIL: z.string().email(),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+### 5.9 Security Headers (Next.js)
+
+```typescript
+// next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.convex.cloud",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+---
+
+## 5.10 Resend Email Integration
+
+### Overview
+
+Resend предоставя модерен API за изпращане на транзакционни имейли с отличен developer experience. Използва се за:
+- Потвърждаване на регистрации
+- Забравени пароли (password reset)
+- Нотификации за задачи и проекти
+- Покани за екипи
+- Одобрения и съгласувания
+
+### Installation
+
+```bash
+bun add resend
+bun add @react-email/components react-email
+```
+
+### Email Service Setup
+
+```typescript
+// lib/email/resend.ts
+import { Resend } from "resend";
+
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY is not set");
+}
+
+export const resend = new Resend(process.env.RESEND_API_KEY);
+
+export const sendEmail = async ({
+  to,
+  subject,
+  react,
+}: {
+  to: string | string[];
+  subject: string;
+  react: React.ReactElement;
+}) => {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL!,
+      to,
+      subject,
+      react,
+      replyTo: process.env.RESEND_REPLY_TO_EMAIL,
+    });
+
+    if (error) {
+      console.error("Failed to send email:", error);
+      throw new Error(`Email sending failed: ${error.message}`);
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Email service error:", error);
+    return { success: false, error };
+  }
+};
+```
+
+### Email Templates (React Email)
+
+#### 1. Email Verification Template
+
+```tsx
+// lib/email/templates/email-verification.tsx
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Img,
+  Link,
+  Preview,
+  Section,
+  Text,
+} from "@react-email/components";
+
+interface EmailVerificationProps {
+  userName: string;
+  verificationUrl: string;
+}
+
+export default function EmailVerificationTemplate({
+  userName,
+  verificationUrl,
+}: EmailVerificationProps) {
+  return (
+    <Html>
+      <Head />
+      <Preview>Verify your email address to complete registration</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Heading style={h1}>Welcome to Municipal Bank Project Manager!</Heading>
+          <Text style={text}>Hi {userName},</Text>
+          <Text style={text}>
+            Thank you for signing up! Please verify your email address to activate your account
+            and start managing projects.
+          </Text>
+          <Section style={buttonContainer}>
+            <Button style={button} href={verificationUrl}>
+              Verify Email Address
+            </Button>
+          </Section>
+          <Text style={text}>
+            Or copy and paste this link into your browser:
+          </Text>
+          <Link href={verificationUrl} style={link}>
+            {verificationUrl}
+          </Link>
+          <Text style={footer}>
+            This link will expire in 24 hours. If you didn't create an account, you can safely
+            ignore this email.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+const main = {
+  backgroundColor: "#f6f9fc",
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "20px 0 48px",
+  marginBottom: "64px",
+};
+
+const h1 = {
+  color: "#333",
+  fontSize: "24px",
+  fontWeight: "bold",
+  margin: "40px 0",
+  padding: "0",
+  textAlign: "center" as const,
+};
+
+const text = {
+  color: "#333",
+  fontSize: "16px",
+  lineHeight: "26px",
+  textAlign: "left" as const,
+  padding: "0 40px",
+};
+
+const buttonContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+const button = {
+  backgroundColor: "#2563eb",
+  borderRadius: "8px",
+  color: "#fff",
+  fontSize: "16px",
+  fontWeight: "bold",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "block",
+  width: "200px",
+  padding: "12px 0",
+  margin: "0 auto",
+};
+
+const link = {
+  color: "#2563eb",
+  fontSize: "14px",
+  textDecoration: "underline",
+  padding: "0 40px",
+  wordBreak: "break-all" as const,
+};
+
+const footer = {
+  color: "#8898aa",
+  fontSize: "12px",
+  lineHeight: "16px",
+  padding: "0 40px",
+  marginTop: "32px",
+};
+```
+
+#### 2. Password Reset Template
+
+```tsx
+// lib/email/templates/password-reset.tsx
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Section,
+  Text,
+  Link,
+} from "@react-email/components";
+
+interface PasswordResetProps {
+  userName: string;
+  resetUrl: string;
+}
+
+export default function PasswordResetTemplate({
+  userName,
+  resetUrl,
+}: PasswordResetProps) {
+  return (
+    <Html>
+      <Head />
+      <Preview>Reset your password</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Heading style={h1}>Password Reset Request</Heading>
+          <Text style={text}>Hi {userName},</Text>
+          <Text style={text}>
+            We received a request to reset your password for your Municipal Bank Project Manager
+            account. Click the button below to create a new password.
+          </Text>
+          <Section style={buttonContainer}>
+            <Button style={button} href={resetUrl}>
+              Reset Password
+            </Button>
+          </Section>
+          <Text style={text}>
+            Or copy and paste this link into your browser:
+          </Text>
+          <Link href={resetUrl} style={link}>
+            {resetUrl}
+          </Link>
+          <Text style={footer}>
+            This link will expire in 1 hour. If you didn't request a password reset, you can
+            safely ignore this email - your password will not be changed.
+          </Text>
+          <Text style={footer}>
+            For security reasons, this link can only be used once.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+// Reuse styles from email-verification.tsx
+const main = {
+  backgroundColor: "#f6f9fc",
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "20px 0 48px",
+  marginBottom: "64px",
+};
+
+const h1 = {
+  color: "#333",
+  fontSize: "24px",
+  fontWeight: "bold",
+  margin: "40px 0",
+  padding: "0",
+  textAlign: "center" as const,
+};
+
+const text = {
+  color: "#333",
+  fontSize: "16px",
+  lineHeight: "26px",
+  textAlign: "left" as const,
+  padding: "0 40px",
+};
+
+const buttonContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+const button = {
+  backgroundColor: "#dc2626",
+  borderRadius: "8px",
+  color: "#fff",
+  fontSize: "16px",
+  fontWeight: "bold",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "block",
+  width: "200px",
+  padding: "12px 0",
+  margin: "0 auto",
+};
+
+const link = {
+  color: "#2563eb",
+  fontSize: "14px",
+  textDecoration: "underline",
+  padding: "0 40px",
+  wordBreak: "break-all" as const,
+};
+
+const footer = {
+  color: "#8898aa",
+  fontSize: "12px",
+  lineHeight: "16px",
+  padding: "0 40px",
+  marginTop: "32px",
+};
+```
+
+#### 3. Task Assignment Notification
+
+```tsx
+// lib/email/templates/task-assigned.tsx
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Section,
+  Text,
+  Hr,
+} from "@react-email/components";
+
+interface TaskAssignedProps {
+  assigneeName: string;
+  taskTitle: string;
+  taskDescription?: string;
+  projectName: string;
+  assignedBy: string;
+  dueDate?: string;
+  priority: string;
+  taskUrl: string;
+}
+
+export default function TaskAssignedTemplate({
+  assigneeName,
+  taskTitle,
+  taskDescription,
+  projectName,
+  assignedBy,
+  dueDate,
+  priority,
+  taskUrl,
+}: TaskAssignedProps) {
+  const priorityColors: Record<string, string> = {
+    low: "#64748b",
+    medium: "#3b82f6",
+    high: "#f97316",
+    critical: "#dc2626",
+  };
+
+  return (
+    <Html>
+      <Head />
+      <Preview>You've been assigned a new task: {taskTitle}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Heading style={h1}>New Task Assignment</Heading>
+          <Text style={text}>Hi {assigneeName},</Text>
+          <Text style={text}>
+            {assignedBy} has assigned you a new task in the project <strong>{projectName}</strong>.
+          </Text>
+
+          <Section style={taskBox}>
+            <Heading style={taskTitle}>{taskTitle}</Heading>
+            {taskDescription && <Text style={taskDesc}>{taskDescription}</Text>}
+            
+            <Hr style={divider} />
+            
+            <table style={detailsTable}>
+              <tr>
+                <td style={label}>Priority:</td>
+                <td>
+                  <span style={{ ...priorityBadge, backgroundColor: priorityColors[priority] }}>
+                    {priority.toUpperCase()}
+                  </span>
+                </td>
+              </tr>
+              {dueDate && (
+                <tr>
+                  <td style={label}>Due Date:</td>
+                  <td style={value}>{dueDate}</td>
+                </tr>
+              )}
+              <tr>
+                <td style={label}>Project:</td>
+                <td style={value}>{projectName}</td>
+              </tr>
+            </table>
+          </Section>
+
+          <Section style={buttonContainer}>
+            <Button style={button} href={taskUrl}>
+              View Task
+            </Button>
+          </Section>
+
+          <Text style={footer}>
+            You can manage your tasks and update progress in the Municipal Bank Project Manager.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+const main = {
+  backgroundColor: "#f6f9fc",
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "20px 0 48px",
+  marginBottom: "64px",
+};
+
+const h1 = {
+  color: "#333",
+  fontSize: "24px",
+  fontWeight: "bold",
+  margin: "40px 0",
+  padding: "0",
+  textAlign: "center" as const,
+};
+
+const text = {
+  color: "#333",
+  fontSize: "16px",
+  lineHeight: "26px",
+  textAlign: "left" as const,
+  padding: "0 40px",
+};
+
+const taskBox = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  borderRadius: "8px",
+  padding: "24px",
+  margin: "32px 40px",
+};
+
+const taskTitle = {
+  color: "#1e293b",
+  fontSize: "20px",
+  fontWeight: "bold",
+  margin: "0 0 12px 0",
+};
+
+const taskDesc = {
+  color: "#475569",
+  fontSize: "14px",
+  lineHeight: "20px",
+  margin: "0 0 16px 0",
+};
+
+const divider = {
+  borderColor: "#e2e8f0",
+  margin: "16px 0",
+};
+
+const detailsTable = {
+  width: "100%",
+  fontSize: "14px",
+};
+
+const label = {
+  color: "#64748b",
+  paddingRight: "16px",
+  paddingBottom: "8px",
+  fontWeight: "500" as const,
+};
+
+const value = {
+  color: "#1e293b",
+  paddingBottom: "8px",
+};
+
+const priorityBadge = {
+  color: "#ffffff",
+  padding: "4px 12px",
+  borderRadius: "4px",
+  fontSize: "12px",
+  fontWeight: "bold" as const,
+};
+
+const buttonContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+const button = {
+  backgroundColor: "#2563eb",
+  borderRadius: "8px",
+  color: "#fff",
+  fontSize: "16px",
+  fontWeight: "bold",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "block",
+  width: "200px",
+  padding: "12px 0",
+  margin: "0 auto",
+};
+
+const footer = {
+  color: "#8898aa",
+  fontSize: "12px",
+  lineHeight: "16px",
+  padding: "0 40px",
+  marginTop: "32px",
+};
+```
+
+#### 4. Team Invitation Template
+
+```tsx
+// lib/email/templates/team-invitation.tsx
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Section,
+  Text,
+} from "@react-email/components";
+
+interface TeamInvitationProps {
+  inviteeName: string;
+  inviterName: string;
+  teamName: string;
+  inviteUrl: string;
+}
+
+export default function TeamInvitationTemplate({
+  inviteeName,
+  inviterName,
+  teamName,
+  inviteUrl,
+}: TeamInvitationProps) {
+  return (
+    <Html>
+      <Head />
+      <Preview>You've been invited to join {teamName}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Heading style={h1}>Team Invitation</Heading>
+          <Text style={text}>Hi {inviteeName},</Text>
+          <Text style={text}>
+            <strong>{inviterName}</strong> has invited you to join the team{" "}
+            <strong>{teamName}</strong> on Municipal Bank Project Manager.
+          </Text>
+          <Text style={text}>
+            Accept this invitation to collaborate on projects, manage tasks, and stay connected
+            with your team.
+          </Text>
+          <Section style={buttonContainer}>
+            <Button style={button} href={inviteUrl}>
+              Accept Invitation
+            </Button>
+          </Section>
+          <Text style={footer}>
+            This invitation will expire in 7 days. If you don't want to join this team, you can
+            safely ignore this email.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+const main = {
+  backgroundColor: "#f6f9fc",
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+};
+
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "20px 0 48px",
+  marginBottom: "64px",
+};
+
+const h1 = {
+  color: "#333",
+  fontSize: "24px",
+  fontWeight: "bold",
+  margin: "40px 0",
+  padding: "0",
+  textAlign: "center" as const,
+};
+
+const text = {
+  color: "#333",
+  fontSize: "16px",
+  lineHeight: "26px",
+  textAlign: "left" as const,
+  padding: "0 40px",
+};
+
+const buttonContainer = {
+  textAlign: "center" as const,
+  margin: "32px 0",
+};
+
+const button = {
+  backgroundColor: "#16a34a",
+  borderRadius: "8px",
+  color: "#fff",
+  fontSize: "16px",
+  fontWeight: "bold",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "block",
+  width: "200px",
+  padding: "12px 0",
+  margin: "0 auto",
+};
+
+const footer = {
+  color: "#8898aa",
+  fontSize: "12px",
+  lineHeight: "16px",
+  padding: "0 40px",
+  marginTop: "32px",
+};
+```
+
+### Convex Integration
+
+#### Email Verification Flow
+
+```typescript
+// convex/functions/auth.ts
+import { v } from "convex/values";
+import { mutation, action } from "./_generated/server";
+import { api } from "./_generated/api";
+import crypto from "crypto";
+
+// Generate verification token
+export const createVerificationToken = mutation({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+    await ctx.db.insert("verificationTokens", {
+      userId: args.userId,
+      email: args.email,
+      token,
+      expiresAt,
+      createdAt: Date.now(),
+    });
+
+    return token;
+  },
+});
+
+// Send verification email (action)
+export const sendVerificationEmail = action({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    userName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Generate token
+    const token = await ctx.runMutation(api.auth.createVerificationToken, {
+      userId: args.userId,
+      email: args.email,
+    });
+
+    // Construct verification URL
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
+
+    // Send email via Resend
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL,
+        to: args.email,
+        subject: "Verify your email address",
+        html: `
+          <h1>Welcome to Municipal Bank Project Manager!</h1>
+          <p>Hi ${args.userName},</p>
+          <p>Please verify your email address by clicking the link below:</p>
+          <a href="${verificationUrl}">Verify Email Address</a>
+          <p>This link will expire in 24 hours.</p>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send verification email");
+    }
+
+    return { success: true };
+  },
+});
+
+// Verify email token
+export const verifyEmail = mutation({
+  args: {
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const verificationToken = await ctx.db
+      .query("verificationTokens")
+      .filter((q) => q.eq(q.field("token"), args.token))
+      .first();
+
+    if (!verificationToken) {
+      throw new Error("Invalid verification token");
+    }
+
+    if (verificationToken.expiresAt < Date.now()) {
+      throw new Error("Verification token has expired");
+    }
+
+    // Update user as verified
+    await ctx.db.patch(verificationToken.userId, {
+      emailVerified: true,
+      updatedAt: Date.now(),
+    });
+
+    // Delete the token
+    await ctx.db.delete(verificationToken._id);
+
+    return { success: true };
+  },
+});
+```
+
+#### Password Reset Flow
+
+```typescript
+// convex/functions/auth.ts (continued)
+
+// Request password reset
+export const requestPasswordReset = action({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find user by email
+    const user = await ctx.runQuery(api.users.getByEmail, {
+      email: args.email,
+    });
+
+    if (!user) {
+      // Don't reveal if user exists - return success anyway
+      return { success: true };
+    }
+
+    // Generate reset token
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+
+    await ctx.runMutation(api.auth.createPasswordResetToken, {
+      userId: user._id,
+      email: args.email,
+      token,
+      expiresAt,
+    });
+
+    // Construct reset URL
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+
+    // Send email via Resend
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL,
+        to: args.email,
+        subject: "Reset your password",
+        html: `
+          <h1>Password Reset Request</h1>
+          <p>Hi ${user.name},</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}">Reset Password</a>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send password reset email");
+    }
+
+    return { success: true };
+  },
+});
+
+export const createPasswordResetToken = mutation({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    token: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Delete any existing tokens for this user
+    const existingTokens = await ctx.db
+      .query("passwordResetTokens")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+
+    for (const token of existingTokens) {
+      await ctx.db.delete(token._id);
+    }
+
+    // Create new token
+    await ctx.db.insert("passwordResetTokens", {
+      userId: args.userId,
+      email: args.email,
+      token: args.token,
+      expiresAt: args.expiresAt,
+      used: false,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+// Reset password
+export const resetPassword = mutation({
+  args: {
+    token: v.string(),
+    newPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const resetToken = await ctx.db
+      .query("passwordResetTokens")
+      .filter((q) => q.eq(q.field("token"), args.token))
+      .first();
+
+    if (!resetToken) {
+      throw new Error("Invalid reset token");
+    }
+
+    if (resetToken.used) {
+      throw new Error("Reset token has already been used");
+    }
+
+    if (resetToken.expiresAt < Date.now()) {
+      throw new Error("Reset token has expired");
+    }
+
+    // Hash the new password (implement your password hashing logic)
+    // const hashedPassword = await hashPassword(args.newPassword);
+
+    // Update user password
+    await ctx.db.patch(resetToken.userId, {
+      // password: hashedPassword,
+      updatedAt: Date.now(),
+    });
+
+    // Mark token as used
+    await ctx.db.patch(resetToken._id, {
+      used: true,
+    });
+
+    return { success: true };
+  },
+});
+```
+
+#### Notification System
+
+```typescript
+// convex/functions/notifications.ts
+import { v } from "convex/values";
+import { mutation, action } from "./_generated/server";
+import { api } from "./_generated/api";
+
+// Create notification
+export const create = mutation({
+  args: {
+    userId: v.id("users"),
+    type: v.union(
+      v.literal("task_assigned"),
+      v.literal("task_completed"),
+      v.literal("approval_request"),
+      v.literal("approval_approved"),
+      v.literal("approval_rejected"),
+      v.literal("comment_added"),
+      v.literal("team_invitation")
+    ),
+    title: v.string(),
+    message: v.string(),
+    entityId: v.optional(v.string()), // Task, Project, or Approval ID
+    entityType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const notificationId = await ctx.db.insert("notifications", {
+      ...args,
+      read: false,
+      createdAt: Date.now(),
+    });
+
+    // Get user preferences
+    const user = await ctx.db.get(args.userId);
+    if (!user) return notificationId;
+
+    // Check if user wants email notifications
+    if (user.preferences?.notifications !== false) {
+      // Schedule email notification
+      await ctx.scheduler.runAfter(0, api.notifications.sendEmailNotification, {
+        notificationId,
+      });
+    }
+
+    return notificationId;
+  },
+});
+
+// Send email notification
+export const sendEmailNotification = action({
+  args: {
+    notificationId: v.id("notifications"),
+  },
+  handler: async (ctx, args) => {
+    const notification = await ctx.runQuery(api.notifications.get, {
+      notificationId: args.notificationId,
+    });
+
+    if (!notification) return;
+
+    const user = await ctx.runQuery(api.users.get, {
+      userId: notification.userId,
+    });
+
+    if (!user) return;
+
+    // Construct appropriate email based on notification type
+    let emailSubject = notification.title;
+    let emailHtml = `
+      <h2>${notification.title}</h2>
+      <p>${notification.message}</p>
+    `;
+
+    // Add action link if applicable
+    if (notification.entityId) {
+      const actionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${notification.entityType}s/${notification.entityId}`;
+      emailHtml += `
+        <p><a href="${actionUrl}">View Details</a></p>
+      `;
+    }
+
+    // Send email via Resend
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL,
+        to: user.email,
+        subject: emailSubject,
+        html: emailHtml,
+      }),
+    });
+  },
+});
+```
+
+### Schema Updates
+
+```typescript
+// convex/schema.ts (add these tables)
+
+verificationTokens: defineTable({
+  userId: v.id("users"),
+  email: v.string(),
+  token: v.string(),
+  expiresAt: v.number(),
+  createdAt: v.number(),
+})
+  .index("by_token", ["token"])
+  .index("by_user", ["userId"]),
+
+passwordResetTokens: defineTable({
+  userId: v.id("users"),
+  email: v.string(),
+  token: v.string(),
+  expiresAt: v.number(),
+  used: v.boolean(),
+  createdAt: v.number(),
+})
+  .index("by_token", ["token"])
+  .index("by_user", ["userId"]),
+
+notifications: defineTable({
+  userId: v.id("users"),
+  type: v.string(),
+  title: v.string(),
+  message: v.string(),
+  entityId: v.optional(v.string()),
+  entityType: v.optional(v.string()),
+  read: v.boolean(),
+  createdAt: v.number(),
+})
+  .index("by_user", ["userId"])
+  .index("by_user_read", ["userId", "read"]),
+```
+
+### Usage Examples
+
+#### Register User with Email Verification
+
+```tsx
+// app/(auth)/register/page.tsx
+"use client";
+
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+
+export default function RegisterPage() {
+  const register = useMutation(api.auth.register);
+  const sendVerification = useMutation(api.auth.sendVerificationEmail);
+
+  async function handleRegister(values: RegisterFormValues) {
+    try {
+      const userId = await register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
+
+      // Send verification email
+      await sendVerification({
+        userId,
+        email: values.email,
+        userName: values.name,
+      });
+
+      toast.success("Registration successful! Please check your email to verify your account.");
+    } catch (error) {
+      toast.error("Registration failed");
+    }
+  }
+
+  // ... rest of component
+}
+```
+
+#### Forgot Password Flow
+
+```tsx
+// app/(auth)/forgot-password/page.tsx
+"use client";
+
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+
+export default function ForgotPasswordPage() {
+  const requestReset = useAction(api.auth.requestPasswordReset);
+
+  async function handleSubmit(values: { email: string }) {
+    try {
+      await requestReset({ email: values.email });
+      toast.success("If an account exists with this email, you will receive a password reset link.");
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  }
+
+  // ... rest of component
+}
+```
+
+### Best Practices
+
+1. **Rate Limiting**: Implement rate limiting for email sending to prevent abuse
+2. **Token Expiry**: Always set expiration times for verification and reset tokens
+3. **Secure Tokens**: Use cryptographically secure random tokens
+4. **Don't Leak Info**: Don't reveal if email exists in password reset flow
+5. **One-Time Use**: Mark tokens as used after successful verification/reset
+6. **Email Deliverability**: Use verified domain in Resend for better deliverability
+7. **Unsubscribe Links**: Include unsubscribe options in notification emails
+8. **Error Handling**: Handle Resend API errors gracefully
+9. **Logging**: Log email sending for debugging and monitoring
+10. **Testing**: Test emails in development with Resend's test mode
+
+---
+
+## 6. Deployment & Infrastructure
+
+### 6.1 Development Workflow
+
+```bash
+# Install dependencies
+bun install
+
+# Start Convex dev server
+bun convex dev
+
+# Start Next.js dev server
+bun dev
+
+# Start Expo dev server
+cd apps/mobile && bun expo start
+```
+
+### 6.2 Production Deployment
+
+**Convex:**
+- Автоматичен deployment при push
+- Zero-downtime updates
+- Automatic scaling
+- Built-in monitoring
+
+**Next.js (Vercel):**
+- Vercel deployment (optimal for Next.js)
+- Automatic previews
+- Edge functions support
+- CDN caching
+
+**Expo (Mobile):**
+- EAS Build for iOS/Android
+- OTA updates with Expo Updates
+- App Store / Play Store deployment
+
+```bash
+# Deploy Convex
+bunx convex deploy
+
+# Deploy Next.js to Vercel
+vercel --prod
+
+# Build mobile apps
+cd apps/mobile
+eas build --platform all
+```
+
+### 6.3 Monitoring & Logging
+
+```typescript
+// convex/functions/_monitoring.ts
+import { customAction } from "convex-helpers/server/customFunctions";
+
+export const logActivity = customAction(async (ctx, activity: {
+  userId: string;
+  action: string;
+  resource: string;
+  metadata?: any;
+}) => {
+  await ctx.db.insert("activityLogs", {
+    ...activity,
+    timestamp: Date.now(),
+  });
+  
+  // Optional: Send to external monitoring (Sentry, DataDog, etc.)
+  if (process.env.SENTRY_DSN) {
+    // Report to Sentry
+  }
+});
+```
+
+---
+
+## 7. Performance Optimizations
+
+### 7.1 Real-time Subscriptions
+
+```typescript
+// Efficient real-time updates with Convex
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
+function ProjectsList({ teamId }: { teamId: string }) {
+  // Automatically subscribes to real-time updates
+  const projects = useQuery(api.projects.list, { teamId });
+  
+  if (projects === undefined) return <Loading />;
+  
+  return (
+    <div>
+      {projects.map((project) => (
+        <ProjectCard key={project._id} project={project} />
+      ))}
+    </div>
+  );
+}
+```
+
+### 7.2 Optimistic Updates
+
+```typescript
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
+function TaskCheckbox({ task }) {
+  const updateTask = useMutation(api.tasks.update);
+  
+  const handleToggle = async () => {
+    // Optimistic update - UI updates immediately
+    await updateTask({
+      taskId: task._id,
+      status: task.status === "done" ? "todo" : "done",
+    });
+  };
+  
+  return (
+    <input
+      type="checkbox"
+      checked={task.status === "done"}
+      onChange={handleToggle}
+    />
+  );
+}
+```
+
+### 7.3 Pagination
+
+```typescript
+// convex/functions/tasks.ts
+export const paginated = query({
+  args: {
+    projectId: v.id("projects"),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("tasks")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+```
+
+### 7.4 Caching Strategy
+
+```typescript
+// Next.js app router caching
+export const revalidate = 60; // Revalidate every 60 seconds
+
+export default async function ProjectsPage() {
+  // Server-side rendering with caching
+  const projects = await fetchProjects();
+  
+  return <ProjectsList projects={projects} />;
+}
+```
+
+---
+
+## 8. Testing Strategy
+
+### 8.1 Unit Tests (Vitest)
+
+```typescript
+// tests/utils/validation.test.ts
+import { describe, it, expect } from "vitest";
+import { ProjectSchema } from "@/utils/validation";
+
+describe("ProjectSchema", () => {
+  it("validates correct project data", () => {
+    const data = {
+      name: "New Project",
+      priority: "high",
+    };
+    
+    expect(() => ProjectSchema.parse(data)).not.toThrow();
+  });
+  
+  it("rejects invalid priority", () => {
+    const data = {
+      name: "New Project",
+      priority: "invalid",
+    };
+    
+    expect(() => ProjectSchema.parse(data)).toThrow();
+  });
+});
+```
+
+### 8.2 Integration Tests (Convex)
+
+```typescript
+// convex/functions/projects.test.ts
+import { convexTest } from "convex-test";
+import { expect, test } from "vitest";
+import schema from "./schema";
+import { api } from "./_generated/api";
+
+test("creating a project", async () => {
+  const t = convexTest(schema);
+  
+  const projectId = await t.mutation(api.projects.create, {
+    name: "Test Project",
+    teamId: t.id("teams"),
+    priority: "high",
+  });
+  
+  const project = await t.query(api.projects.get, { projectId });
+  
+  expect(project?.name).toBe("Test Project");
+  expect(project?.priority).toBe("high");
+});
+```
+
+### 8.3 E2E Tests (Playwright)
+
+```typescript
+// e2e/projects.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("create new project", async ({ page }) => {
+  await page.goto("/projects");
+  
+  await page.click('[data-testid="create-project-btn"]');
+  await page.fill('[name="name"]', "E2E Test Project");
+  await page.selectOption('[name="priority"]', "high");
+  await page.click('[type="submit"]');
+  
+  await expect(page.locator("text=E2E Test Project")).toBeVisible();
+});
+```
+
+---
+
+## 9. Миграция от Firebase
+
+### 9.1 Data Migration Plan
+
+```typescript
+// scripts/migrate-from-firebase.ts
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { ConvexClient } from "convex/browser";
+
+async function migrateProjects() {
+  const firestore = getFirestore();
+  const convex = new ConvexClient(process.env.CONVEX_URL!);
+  
+  const projectsSnapshot = await firestore.collection("projects").get();
+  
+  for (const doc of projectsSnapshot.docs) {
+    const data = doc.data();
+    
+    await convex.mutation(api.projects.create, {
+      name: data.name,
+      description: data.description,
+      status: data.status,
+      priority: data.priority,
+      teamId: data.teamId,
+      // ... map other fields
+    });
+  }
+  
+  console.log(`Migrated ${projectsSnapshot.size} projects`);
+}
+```
+
+### 9.2 Feature Comparison
+
+| Feature | Firebase | Convex |
+|---------|----------|--------|
+| Real-time updates | ✅ | ✅ (Faster) |
+| Offline support | ✅ | ✅ |
+| Type safety | ❌ | ✅ (Native TypeScript) |
+| Query complexity | Limited | Advanced |
+| Serverless functions | Cloud Functions | Built-in actions |
+| File storage | Storage | Built-in storage |
+| Full-text search | ❌ (Extension) | ✅ (Native) |
+| Pricing | Pay-per-use | Generous free tier |
+| DX (Developer Experience) | Good | Excellent |
+
+---
+
+## 10. Обобщение и Предимства
+
+### Предимства на новия стек:
+
+**Bun:**
+- 3x по-бързо от npm/yarn
+- Built-in TypeScript support
+- Минимална конфигурация
+
+**Next.js 15:**
+- React Server Components
+- Streaming SSR
+- Оптимизирана производителност
+- SEO advantages
+
+**Convex:**
+- Real-time по подразбиране
+- Type-safe end-to-end
+- Zero configuration
+- Автоматично scaling
+- Built-in authentication
+- Transactional consistency
+
+**Expo:**
+- Cross-platform mobile (iOS/Android)
+- Споделен код с web
+- OTA updates
+- Native capabilities
+
+### Сигурност:
+
+- ✅ Built-in authentication & authorization
+- ✅ Type-safe database queries (no SQL injection)
+- ✅ Input validation & sanitization
+- ✅ Rate limiting
+- ✅ File upload restrictions
+- ✅ HTTPS everywhere
+- ✅ Security headers
+- ✅ Environment variable management
+- ✅ Audit logging
+- ✅ GDPR compliance ready
+
+### Мащабируемост:
+
+- Automatic scaling на Convex
+- Edge functions support
+- CDN caching
+- Optimistic updates
+- Pagination support
+- Real-time subscriptions
+
+---
+
+**Заключение:**
+
+Модернизираната архитектура с Bun + Next.js + Convex + Expo предоставя robust, secure и scalable решение за управление на проекти и процеси. Системата е оптимизирана за performance, developer experience и security, като същевременно поддържа всички функционалности на оригиналната система.

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Custom Report Builder - Municipal Bank Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-size: 20px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111318] dark:text-gray-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e5e7eb] dark:border-gray-800 bg-white dark:bg-gray-900 px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Municipal Bank Management</h2>
+</div>
+<nav class="flex items-center gap-9">
+<a class="text-[#111318] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-[#111318] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Projects</a>
+<a class="text-[#111318] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Approvals</a>
+<a class="text-primary text-sm font-bold leading-normal" href="#">Reports</a>
+<a class="text-[#111318] dark:text-gray-300 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-8">
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#616e89] flex border-none bg-[#f0f1f4] dark:bg-gray-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111318] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f0f1f4] dark:bg-gray-800 focus:border-none h-full placeholder:text-[#616e89] px-4 rounded-l-none border-l-0 pl-2 text-sm" placeholder="Global Search" value=""/>
+</div>
+</label>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDehVBDOmsG7tmObnFy6fXaVMmsw4jtpm0ankAz1byzyo3ImWdn_X6r-nqgiJ8Obn6a5f1GfF2MoEgkFHTyXD6l9SEAThdwjicyMmLDsNzYa9tR2WdcuMGlTrAwSuzNhvZTMr40VcOG1XaHNvaUHO2uiQOCdrukRJipOf68dVld9Me-uu2jvytf7LGvNUUZ-JxTt4arhv7quIVmpQvX4kgOuN6FsS9-TIHros-PaNWa8sbsKBLGRsN3wvJVsC0k1RUNzNsHRl84vHg");'></div>
+</div>
+</header>
+<main class="flex-1 flex overflow-hidden">
+<!-- Configuration Sidebar -->
+<aside class="w-[320px] bg-white dark:bg-gray-900 border-r border-[#e5e7eb] dark:border-gray-800 flex flex-col h-[calc(100vh-124px)] overflow-y-auto">
+<div class="p-6 flex flex-col gap-8">
+<div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold uppercase tracking-wider mb-4">1. Data Source</h3>
+<div class="flex flex-col gap-2">
+<button class="flex items-center justify-between px-3 py-3 rounded-lg bg-primary/10 border border-primary text-primary">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-sm font-semibold">Projects</span>
+</div>
+<span class="material-symbols-outlined">check_circle</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-3 rounded-lg border border-transparent hover:bg-[#f0f1f4] dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-[#616e89]">assignment</span>
+<span class="text-sm font-medium text-[#111318] dark:text-gray-300">Tasks</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-3 rounded-lg border border-transparent hover:bg-[#f0f1f4] dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-[#616e89]">verified</span>
+<span class="text-sm font-medium text-[#111318] dark:text-gray-300">Approvals</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold uppercase tracking-wider mb-4">2. Metrics</h3>
+<div class="flex flex-col gap-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm text-[#111318] dark:text-gray-300 font-medium">Project Cost</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm text-[#111318] dark:text-gray-300 font-medium">Timeline Status</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm text-[#111318] dark:text-gray-300 font-medium">Task Count</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm text-[#111318] dark:text-gray-300 font-medium">Completion Rate</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold uppercase tracking-wider mb-4">3. Visualization Type</h3>
+<div class="grid grid-cols-2 gap-2">
+<button class="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-primary bg-primary/5 text-primary">
+<span class="material-symbols-outlined">table_chart</span>
+<span class="text-xs font-bold">Table</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-transparent hover:border-[#e5e7eb] dark:hover:border-gray-700 bg-[#f0f1f4] dark:bg-gray-800 text-[#616e89]">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-xs font-bold">Bar</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-transparent hover:border-[#e5e7eb] dark:hover:border-gray-700 bg-[#f0f1f4] dark:bg-gray-800 text-[#616e89]">
+<span class="material-symbols-outlined">pie_chart</span>
+<span class="text-xs font-bold">Pie</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-transparent hover:border-[#e5e7eb] dark:hover:border-gray-700 bg-[#f0f1f4] dark:bg-gray-800 text-[#616e89]">
+<span class="material-symbols-outlined">show_chart</span>
+<span class="text-xs font-bold">Line</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold uppercase tracking-wider mb-4">4. Filters</h3>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-semibold text-[#616e89]">Date Range</label>
+<select class="form-select text-sm rounded-lg border-[#e5e7eb] dark:border-gray-700 dark:bg-gray-800">
+<option>Last 30 Days</option>
+<option>Q4 Performance</option>
+<option>Fiscal Year 2024</option>
+<option>Custom Range</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-semibold text-[#616e89]">Department</label>
+<select class="form-select text-sm rounded-lg border-[#e5e7eb] dark:border-gray-700 dark:bg-gray-800">
+<option>All Departments</option>
+<option>Infrastructure</option>
+<option>Public Safety</option>
+<option>Urban Development</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Center Canvas -->
+<section class="flex-1 flex flex-col bg-background-light dark:bg-background-dark p-8 overflow-y-auto pb-24">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 mb-4">
+<a class="text-[#616e89] text-sm font-medium hover:text-primary" href="#">Reports</a>
+<span class="text-[#616e89] text-sm">/</span>
+<span class="text-[#111318] dark:text-gray-100 text-sm font-medium">Custom Report Builder</span>
+</div>
+<!-- Page Heading -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-[#111318] dark:text-white text-3xl font-black tracking-tight mb-2">Q4 Municipal Performance Summary</h1>
+<p class="text-[#616e89] text-base">Real-time visualization of infrastructure and development projects across all sectors.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 h-10 px-4 rounded-lg bg-white dark:bg-gray-800 border border-[#e5e7eb] dark:border-gray-700 text-[#111318] dark:text-white text-sm font-bold">
+<span class="material-symbols-outlined">save</span>
+                        Save Template
+                    </button>
+<button class="flex items-center gap-2 h-10 px-4 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">refresh</span>
+                        Refresh Data
+                    </button>
+</div>
+</div>
+<!-- Dashboard Stats Preview -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+<div class="bg-white dark:bg-gray-900 p-5 rounded-xl border border-[#e5e7eb] dark:border-gray-800 shadow-sm">
+<p class="text-xs font-bold text-[#616e89] uppercase tracking-wide mb-1">Active Projects</p>
+<p class="text-2xl font-black text-[#111318] dark:text-white">142</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-5 rounded-xl border border-[#e5e7eb] dark:border-gray-800 shadow-sm">
+<p class="text-xs font-bold text-[#616e89] uppercase tracking-wide mb-1">Total Budget</p>
+<p class="text-2xl font-black text-[#111318] dark:text-white">$12.4M</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-5 rounded-xl border border-[#e5e7eb] dark:border-gray-800 shadow-sm">
+<p class="text-xs font-bold text-[#616e89] uppercase tracking-wide mb-1">Avg. Progress</p>
+<p class="text-2xl font-black text-[#111318] dark:text-white">68.2%</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-5 rounded-xl border border-[#e5e7eb] dark:border-gray-800 shadow-sm border-l-4 border-l-primary">
+<p class="text-xs font-bold text-[#616e89] uppercase tracking-wide mb-1">Last Updated</p>
+<p class="text-sm font-bold text-[#111318] dark:text-white mt-1">Today, 10:45 AM</p>
+</div>
+</div>
+<!-- Main Preview Area -->
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-[#e5e7eb] dark:border-gray-800 shadow-sm flex flex-col min-h-[500px]">
+<div class="border-b border-[#e5e7eb] dark:border-gray-800 px-6 py-4 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
+<h3 class="text-sm font-bold text-[#111318] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">visibility</span>
+                        Live Preview: Project Table
+                    </h3>
+<div class="flex items-center gap-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                            Live Connection
+                        </span>
+<div class="text-[#616e89] text-sm">Showing 10 of 142 records</div>
+</div>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-[#e5e7eb] dark:border-gray-800 bg-[#f9fafb] dark:bg-gray-800/50">
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider">Project ID</th>
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider">Project Name</th>
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider">Department</th>
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider">Cost</th>
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-[#616e89] uppercase tracking-wider text-right">Progress</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#e5e7eb] dark:divide-gray-800">
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-[#616e89]">#MB-2024-001</td>
+<td class="px-6 py-4 text-sm font-bold text-[#111318] dark:text-white">Main St. Bridge Repair</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">Infrastructure</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">$1,450,000</td>
+<td class="px-6 py-4 text-sm">
+<span class="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-bold uppercase">In Progress</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 max-w-[100px] ml-auto">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+<span class="text-[10px] text-[#616e89] mt-1 block">65%</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-[#616e89]">#MB-2024-045</td>
+<td class="px-6 py-4 text-sm font-bold text-[#111318] dark:text-white">Westside Community Center</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">Public Works</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">$2,100,000</td>
+<td class="px-6 py-4 text-sm">
+<span class="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-bold uppercase">Completed</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 max-w-[100px] ml-auto">
+<div class="bg-primary h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<span class="text-[10px] text-[#616e89] mt-1 block">100%</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-[#616e89]">#MB-2024-089</td>
+<td class="px-6 py-4 text-sm font-bold text-[#111318] dark:text-white">Smart Traffic Control System</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">Transportation</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">$890,000</td>
+<td class="px-6 py-4 text-sm">
+<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-bold uppercase">Planning</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 max-w-[100px] ml-auto">
+<div class="bg-primary h-1.5 rounded-full" style="width: 15%"></div>
+</div>
+<span class="text-[10px] text-[#616e89] mt-1 block">15%</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-[#616e89]">#MB-2024-112</td>
+<td class="px-6 py-4 text-sm font-bold text-[#111318] dark:text-white">Park Rejuvenation Phase 1</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">Urban Planning</td>
+<td class="px-6 py-4 text-sm text-[#111318] dark:text-gray-300">$340,000</td>
+<td class="px-6 py-4 text-sm">
+<span class="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-bold uppercase">In Progress</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 max-w-[100px] ml-auto">
+<div class="bg-primary h-1.5 rounded-full" style="width: 42%"></div>
+</div>
+<span class="text-[10px] text-[#616e89] mt-1 block">42%</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 border-t border-[#e5e7eb] dark:border-gray-800 flex items-center justify-between text-sm text-[#616e89] font-medium">
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chevron_left</span> Previous
+                    </button>
+<div class="flex gap-2">
+<span class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white">1</span>
+<span class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800">2</span>
+<span class="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800">3</span>
+</div>
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+                        Next <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-[#e5e7eb] dark:border-gray-800 px-10 py-4 flex items-center justify-between z-50">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-[#616e89] uppercase">Configuration Draft</span>
+<span class="text-sm font-bold text-primary">Q4 Performance Summary - Draft v2</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 h-11 px-6 rounded-lg bg-gray-100 dark:bg-gray-800 text-[#111318] dark:text-white text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                Export as PDF
+            </button>
+<button class="flex items-center gap-2 h-11 px-6 rounded-lg bg-gray-100 dark:bg-gray-800 text-[#111318] dark:text-white text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">table_view</span>
+                Export as Excel
+            </button>
+<div class="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-2"></div>
+<button class="flex items-center gap-2 h-11 px-8 rounded-lg bg-primary text-white text-sm font-bold shadow-xl shadow-primary/25 hover:bg-primary/90 transition-all transform active:scale-95">
+<span class="material-symbols-outlined">calendar_month</span>
+                Schedule Report
+            </button>
+</div>
+</footer>
+</body></html>

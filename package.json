@@ -1,0 +1,19 @@
+{
+  "name": "projects",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "lint": "bun run --filter '*' lint"
+  },
+  "devDependencies": {
+    "@auth/core": "^0.32.0",
+    "@convex-dev/auth": "^0.0.86",
+    "convex": "^1.17.4",
+    "google-auth-library": "^10.5.0"
+  }
+}

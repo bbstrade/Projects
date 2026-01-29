@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Management - Municipal Bank</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111318",
+                        "surface-dark": "#1c1f27",
+                        "border-dark": "#2d313a",
+                        "text-secondary": "#9da6b9"
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "sans": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Public Sans", sans-serif;
+        }
+        /* Custom Scrollbar for high-density tables */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111318; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d313a; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4354; 
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white overflow-hidden h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 flex-shrink-0 flex flex-col border-r border-border-dark bg-[#111318]">
+<div class="p-4 flex items-center gap-3 border-b border-border-dark/50">
+<div class="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">account_balance</span>
+</div>
+<div>
+<h1 class="text-white text-sm font-bold leading-tight">Municipal Bank</h1>
+<p class="text-text-secondary text-xs">Project Manager</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="text-sm font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined fill-1">check_box</span>
+<span class="text-sm font-medium">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium">Team</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+</nav>
+<div class="p-4 border-t border-border-dark">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-3">
+<div class="h-8 w-8 rounded-full bg-cover bg-center" data-alt="User profile avatar of a smiling man" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBBWCr-yYjHxJg4j6Y3ZVH_-6nJcuy7hs59X06dQHSj0WOPfrVt4Y4XXa2FKn3Ta__26FRSfZmHw0zPzSu2aU-xxLHkNLEFt2b73syuNpHxX4XtKesriOUKwSugMrCneCwTj61LL9yWPrZY2x4KOVNMjckvVz31AZgySOK27OXjMSHmpuVXCHe9s6-zlCjFVZnpqU-mrGCt0miBe4YMgWnV8NwZog6d8uyFq9gw0tNbjcw_uhjny9E_gfWfBbIoV0-_BX6_r4kW_54');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white">Alex Morgan</span>
+<span class="text-xs text-text-secondary">Logout</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-dark relative">
+<!-- Header -->
+<header class="flex-shrink-0 px-8 py-6 flex items-center justify-between border-b border-border-dark bg-[#111318]">
+<div class="flex flex-col gap-1">
+<h2 class="text-2xl font-bold tracking-tight text-white">All Tasks</h2>
+<p class="text-text-secondary text-sm">Manage and track project deliverables across the organization.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border-dark hover:bg-surface-dark text-white text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-[20px]">file_upload</span>
+                    Import
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    New Task
+                </button>
+</div>
+</header>
+<!-- Toolbar -->
+<div class="flex-shrink-0 px-8 py-4 flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#111318]">
+<!-- Search -->
+<div class="relative w-full max-w-sm">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-border-dark rounded-lg leading-5 bg-surface-dark text-white placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm" placeholder="Search tasks by name, ID, or tag..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-text-secondary/50 text-white hover:bg-surface-dark text-sm font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    Status
+                </button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-text-secondary/50 text-white hover:bg-surface-dark text-sm font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    Priority
+                </button>
+<div class="h-4 w-px bg-border-dark mx-1"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark text-white text-sm font-medium whitespace-nowrap hover:bg-border-dark">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                    More Filters
+                </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="flex-1 overflow-auto px-8 pb-4">
+<div class="border border-border-dark rounded-lg overflow-hidden bg-surface-dark shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead class="bg-[#16181d] border-b border-border-dark sticky top-0 z-10">
+<tr>
+<th class="py-3 pl-4 pr-3 w-[40px]">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[100px]">Task ID</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Task Name</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[140px]">Status</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[120px]">Priority</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[200px]">Assignee</th>
+<th class="py-3 px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider w-[140px] text-right">Due Date</th>
+<th class="py-3 px-3 w-[50px]"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<!-- Row 1 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3029</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Review Q3 Financial Statements</span>
+<span class="text-xs text-text-secondary">Audit Compliance</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-blue-500/30 text-blue-400 bg-blue-500/10">
+                                    In Progress
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+<span class="text-sm text-white">High</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center" data-alt="Avatar of Alice" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEtxRUFhDUva74jUqknRTHhN1d0U_bjgCS0L2wqU3uLoljrBDyaLGx8-LogRrk76oeUZnyaEQt-4DM-HYvxG7zwoqsvBhA0-ymIBcX1VHFnkQdRtjp2T1KJiS8uXjMn5IiANvotWiD8bGJ0THy2Jz9E84P2Z2279w2eF4CgukSUmIwcmE1nBagWK60vKPZFMmUGxHM3-yvp4CAPmubZJ3Jt7tldZ0vp8jNDCUiL-c6hFN8rD3esYDo8MPt7daN4Adku9aflaKMZ5s');"></div>
+<span class="text-sm text-white">Alice M.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-sm text-white">Oct 15, 2023</span>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3030</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Update Security Protocols</span>
+<span class="text-xs text-text-secondary">IT Security</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-red-500/30 text-red-400 bg-red-500/10">
+                                    Blocked
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-red-500 text-[16px]">priority_high</span>
+<span class="text-sm text-white font-semibold">Critical</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center" data-alt="Avatar of Bob" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGzknaaFjnJlapY8rLZF_jcaRMfs8YYPfa3ENGnB1Wwk6qwOmmvLkoY7igzKOn8Mj5wMI3yHbPeZYCdy5RTNk5ouXaOcKzMKNjEPx3K_sVcyh8wE071DVHdQBa6JdnBPte0z_t5prHNOkTHGtOrTzHMzCJF2Q_HU_bm7tw8Ay03L6GRFd98q7Cvs-PYvm-RE9DeBXOR7uxZ1SPianqJvPMgxUBDVzWXHkpV3uNhG2Yzd7qAysoViJ9t9_lh2pV35iFHFXlfhRnPnc');"></div>
+<span class="text-sm text-white">Bob D.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<div class="flex items-center justify-end gap-1 text-red-400">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span class="text-sm font-medium">Oct 10 (Overdue)</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3031</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Client Onboarding Form</span>
+<span class="text-xs text-text-secondary">Customer Success</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+                                    Done
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-slate-500"></span>
+<span class="text-sm text-white">Low</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center" data-alt="Avatar of Sarah" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAAwEspkU1s-ZyeMP5et08TU5hkmiBFOcDHMryItOrxbSSmCZad7B8TNY4ZVBzwkzZUE_ywLQAOp5b4S1Cvq-FqtzFBonUgeiMcHw7o9qC9m_w0A6qkWHkHuPAepHnRHk-peV9ZJM-RooHLqWD8ncOsxuZLOVRl52tQWdcWI47nP2vOWcpqjvMGPZzFlNLiKyCASXsXj0q-wpJEv5BNpqigRTY-pJojv9XgYrgio2ipO9nlPByb796yW-w3RAMYffQzSsTEiXuIAQQ');"></div>
+<span class="text-sm text-white">Sarah J.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-sm text-white">Oct 20, 2023</span>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3032</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Annual Risk Assessment</span>
+<span class="text-xs text-text-secondary">Risk Management</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-text-secondary/30 text-text-secondary bg-surface-dark">
+                                    To Do
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+<span class="text-sm text-white">Medium</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold border border-purple-500/30">JD</div>
+<span class="text-sm text-white">John D.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-sm text-white">Nov 01, 2023</span>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3033</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Branch ATM Upgrade Coordination</span>
+<span class="text-xs text-text-secondary">Operations</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-blue-500/30 text-blue-400 bg-blue-500/10">
+                                    In Progress
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+<span class="text-sm text-white">Medium</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center" data-alt="Avatar of Emily" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8lp26YoYfkE1AOprTOZVyZQc-PZtfADJNTRoBsuZjBopSdmoHSBx1ThoF36GYsKx65P_LTIy5WeB2ZMa6iEG5tJis3zka_8HHzvu7KWPIC-MtRHZ4nDIDhTFO0ZdLE7ARnC3x2JUQjdfmlSwW528I3oFrM57pIqwKPeQkapNv1NriELMrW26WrR6a4F20_tbtlx9zBgNm5J_IsOxhQBNgLSSWoUwTnCIRSHppQQrfh7HUw1yUZI6JVy7TpUVHCC819r2PhQ9qqvE');"></div>
+<span class="text-sm text-white">Emily W.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-sm text-white">Nov 05, 2023</span>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="group hover:bg-[#282d39]/50 transition-colors">
+<td class="py-3 pl-4 pr-3">
+<input class="rounded border-border-dark bg-[#282d39] text-primary focus:ring-offset-0 focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="py-3 px-3 text-sm text-text-secondary font-mono">TSK-3034</td>
+<td class="py-3 px-3">
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover:text-primary transition-colors cursor-pointer">Regulatory Reporting Review</span>
+<span class="text-xs text-text-secondary">Compliance</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-text-secondary/30 text-text-secondary bg-surface-dark">
+                                    To Do
+                                </div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+<span class="text-sm text-white">High</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="h-6 w-6 rounded-full bg-cover bg-center" data-alt="Avatar of Michael" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBHww9NJ2wSPXDuZobFmwVvnppBRlLUlrx-mROjRX8YM2ObS29lvLZMY01WEFHxtckKGdIKJnIrvmG87T3HHQoYtVY_cRtpd7zjuDalqdn_dQ_q8-hgzMxEkwKU3sOWrnaj41qcK9Z3Z9voTaaqwDrddAh95s9gXl-NKr8tF8Mnt6uBq_-mh_89xsx2gHZr_guLCC3mQ7ApeVH2yveiRF_i8O7xwVQsYShuLEbrRN9haXKcwFBm6_z67uzhMmNHQb3-sduPo3OgFlw');"></div>
+<span class="text-sm text-white">Michael B.</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="text-sm text-white">Nov 12, 2023</span>
+</td>
+<td class="py-3 px-3 text-center">
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-[#282d39]">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between px-2 py-4">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span>Rows per page</span>
+<select class="bg-surface-dark border border-border-dark rounded text-xs py-1 px-2 focus:ring-primary focus:border-primary">
+<option>10</option>
+<option>20</option>
+<option>50</option>
+</select>
+</div>
+<div class="flex items-center gap-6 text-sm text-text-secondary">
+<span>Page 1 of 5</span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-dark disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-dark text-white">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

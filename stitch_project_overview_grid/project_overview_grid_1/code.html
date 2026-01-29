@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Overview Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "card-dark": "#1c1f27",
+                        "border-dark": "#282d39",
+                        "text-secondary": "#9da6b9",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "Noto Sans", "sans-serif"],
+                        "body": ["Public Sans", "Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better aesthetic in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111621; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282d39; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4354; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-white">
+<!-- Sidebar Navigation -->
+<aside class="hidden lg:flex w-72 flex-col bg-[#111318] border-r border-border-dark flex-shrink-0 transition-all duration-300">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-4">
+<!-- User Profile Header -->
+<div class="flex gap-3 items-center pb-4 border-b border-border-dark mb-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-12 border-2 border-primary/20" data-alt="Profile picture of project manager" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDRw3mOCdsG2f0CQGFwRXmGhK5_IoAY5-4hhhvji3CLR6UClo4KtqMmLqRF5EnO-jLxgQr_cfc6A2zM2VGDLW44ghkkH4WBXKuzDnngc0vXCcMsEDng2KNn0uZJqh8o_oa_HppnYTZWl5ozb2reCCcxsGQOxYeLFWM2d0spXs9v2z_aqIKfHUkenO6jb2eIBxigzYNYbc40uHHVgXy2dxaO34hid8Q6iHeqiJxMg4WJHIHFT5YDr1aovoVl8SuWJOYAIdknaXEen3k");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-normal">Municipal Bank</h1>
+<p class="text-text-secondary text-xs font-normal leading-normal">Project Manager</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white" style="font-size: 24px;">grid_view</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-primary" style="font-size: 24px; font-variation-settings: 'FILL' 1;">folder</span>
+<p class="text-sm font-bold leading-normal">Projects</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white" style="font-size: 24px;">check_box</span>
+<p class="text-sm font-medium leading-normal">Tasks</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white" style="font-size: 24px;">group</span>
+<p class="text-sm font-medium leading-normal">Team</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-white" style="font-size: 24px;">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+</div>
+</div>
+<!-- Footer / Help -->
+<div class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:text-white cursor-pointer">
+<span class="material-symbols-outlined" style="font-size: 20px;">help</span>
+<p class="text-sm font-medium">Help &amp; Center</p>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Top Header & Toolbar -->
+<header class="w-full bg-[#111318]/95 backdrop-blur-sm border-b border-border-dark z-10 sticky top-0">
+<div class="max-w-[1600px] mx-auto px-6 py-5 flex flex-col gap-6">
+<!-- Title Row -->
+<div class="flex justify-between items-center">
+<div>
+<h1 class="text-white text-3xl font-black tracking-tight">Projects</h1>
+<p class="text-text-secondary text-sm mt-1">Manage and track your active initiatives.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-95 group">
+<span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+<span class="text-sm font-bold">New Project</span>
+</button>
+</div>
+<!-- Filter Toolbar -->
+<div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+<div class="flex flex-1 w-full md:max-w-xl gap-3">
+<!-- Search -->
+<div class="relative flex-1 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" style="font-size: 20px;">search</span>
+<input class="w-full bg-card-dark border border-border-dark text-white text-sm rounded-lg focus:ring-1 focus:ring-primary focus:border-primary block pl-10 p-2.5 placeholder-text-secondary transition-all shadow-sm" placeholder="Search projects..." type="text"/>
+</div>
+<!-- Status Filter -->
+<div class="relative min-w-[140px]">
+<select class="w-full bg-card-dark border border-border-dark text-white text-sm rounded-lg focus:ring-1 focus:ring-primary focus:border-primary block p-2.5 appearance-none cursor-pointer">
+<option>All Statuses</option>
+<option>Active</option>
+<option>Draft</option>
+<option>Completed</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" style="font-size: 20px;">expand_more</span>
+</div>
+<!-- Priority Filter -->
+<div class="relative min-w-[140px] hidden sm:block">
+<select class="w-full bg-card-dark border border-border-dark text-white text-sm rounded-lg focus:ring-1 focus:ring-primary focus:border-primary block p-2.5 appearance-none cursor-pointer">
+<option>All Priorities</option>
+<option>High</option>
+<option>Medium</option>
+<option>Low</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" style="font-size: 20px;">expand_more</span>
+</div>
+</div>
+<!-- View Toggle -->
+<div class="flex bg-card-dark p-1 rounded-lg border border-border-dark">
+<button class="p-1.5 rounded bg-[#282d39] text-white shadow-sm">
+<span class="material-symbols-outlined block" style="font-size: 20px;">grid_view</span>
+</button>
+<button class="p-1.5 rounded text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined block" style="font-size: 20px;">view_list</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content Grid -->
+<div class="flex-1 overflow-y-auto p-6 bg-[#111318]">
+<div class="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+<!-- Card 1: Active High -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-500">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Q3 Financial Audit</h3>
+<p class="text-text-secondary text-xs mt-0.5">Finance Dept</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">Comprehensive audit of Q3 financial statements, compliance checks, and reconciliation of all ledger accounts.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            Active
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">
+                            High Priority
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5" title="Due Date">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">Oct 12, 2024</span>
+</div>
+<div class="flex items-center gap-1.5" title="Team Members">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">5</span>
+</div>
+</div>
+<!-- Simple Progress Indicator -->
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">75%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2: In Progress Medium -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-500">
+<span class="material-symbols-outlined">smartphone</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Mobile App Redesign</h3>
+<p class="text-text-secondary text-xs mt-0.5">Product Team</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">Overhaul of the customer banking application UI/UX to improve accessibility and modernize the design system.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                            In Progress
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            Medium
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 01, 2024</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">8</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">40%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 40%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: Draft Low -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-slate-500/10 flex items-center justify-center border border-slate-500/20 text-slate-400">
+<span class="material-symbols-outlined">dns</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Server Migration</h3>
+<p class="text-text-secondary text-xs mt-0.5">IT Operations</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">Planning phase for migrating on-premise legacy servers to the cloud infrastructure.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-700/30 text-slate-400 border border-slate-600/30">
+                            Draft
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-700/30 text-slate-400 border border-slate-600/30">
+                            Low
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">TBD</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">2</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">0%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-slate-600 rounded-full" style="width: 5%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 4: Marketing -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-pink-500/10 flex items-center justify-center border border-pink-500/20 text-pink-500">
+<span class="material-symbols-outlined">campaign</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Q4 Marketing Campaign</h3>
+<p class="text-text-secondary text-xs mt-0.5">Marketing</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">End of year customer acquisition campaign focusing on new high-yield savings accounts.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            Active
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">
+                            High
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">Dec 15, 2024</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">12</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">20%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 5: Internal Tool -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-500">
+<span class="material-symbols-outlined">web</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Employee Portal Update</h3>
+<p class="text-text-secondary text-xs mt-0.5">HR &amp; IT</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">Updating the internal employee self-service portal to include new benefits dashboard.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            Review
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            Medium
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">Oct 30, 2024</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">4</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">90%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-purple-500 rounded-full" style="width: 90%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 6: Security -->
+<article class="flex flex-col bg-card-dark border border-border-dark rounded-xl p-5 hover:border-[#3b4354] transition-all hover:shadow-lg hover:shadow-black/20 group">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div>
+<h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors cursor-pointer">Security Compliance</h3>
+<p class="text-text-secondary text-xs mt-0.5">Security Team</p>
+</div>
+</div>
+<button class="text-text-secondary hover:text-white p-1 rounded-md hover:bg-[#282d39]">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<p class="text-text-secondary text-sm mb-5 line-clamp-2">Implementation of new multi-factor authentication protocols across all internal systems.</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            Active
+                        </span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">
+                            Critical
+                        </span>
+</div>
+<div class="mt-auto pt-4 border-t border-border-dark flex items-center justify-between text-sm text-text-secondary">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 15, 2024</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+<span class="text-xs font-medium">3</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-white">65%</span>
+<div class="w-16 h-1.5 bg-[#282d39] rounded-full overflow-hidden">
+<div class="h-full bg-red-500 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</article>
+</div>
+</div>
+</main>
+</body></html>

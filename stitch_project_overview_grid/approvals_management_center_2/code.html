@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Approvals Management Center - Municipal Bank</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111318] dark:text-white transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-[#dbdee6] dark:border-gray-800 bg-white dark:bg-background-dark flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary size-10 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-base font-bold leading-tight">Municipal Bank</h1>
+<p class="text-[#616e89] text-xs font-normal">Project Management</p>
+</div>
+</div>
+<nav class="flex-1 px-4 flex flex-col gap-2">
+<div class="flex items-center gap-3 px-3 py-2.5 text-[#616e89] hover:bg-[#f0f1f4] dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 text-[#616e89] hover:bg-[#f0f1f4] dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="text-sm font-medium">Projects</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">check_circle</span>
+<span class="text-sm font-bold">Approvals</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 text-[#616e89] hover:bg-[#f0f1f4] dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Reporting</span>
+</div>
+</nav>
+<div class="p-4 border-t border-[#dbdee6] dark:border-gray-800">
+<div class="flex items-center gap-3 px-3 py-2.5 text-[#616e89] hover:bg-[#f0f1f4] dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</div>
+<div class="mt-4 flex items-center gap-3 px-2">
+<div class="size-8 rounded-full bg-cover" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDzrRLWX7JPGoUPn2owu56WfkjiD4MF0i6zXy5F87Ca_V6XgGK-wD-oLF7LgfTIhG2bwtsO9wi9i7vMfjKXOR6fjNa6HMfYKUMRV4ZC0Llb-mgmpnM4QcK11Do7BUL1g0_Jt2bHhG-NfnYVMQiGvrti9wo4GVba42rKLCPBSe6VsPFKmj7GN8TVc6ipU8YcDhk08YEzMnwoPqpWxi-OMduOhEgSrx8Q-74eJOmQike8Eq-b3Bnc4t_VTlfz3VkSvU7y50ITXG0GqkE");'></div>
+<div class="flex flex-col">
+<span class="text-xs font-bold leading-none">Alex Rivera</span>
+<span class="text-[10px] text-[#616e89]">Administrator</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- Page Heading -->
+<header class="bg-white dark:bg-background-dark border-b border-[#dbdee6] dark:border-gray-800 px-8 py-6">
+<div class="flex items-center justify-between gap-4">
+<div>
+<h2 class="text-3xl font-black tracking-tight">Approvals</h2>
+<p class="text-[#616e89] dark:text-gray-400 text-sm mt-1">Manage and monitor project approval workflows across departments.</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-white dark:bg-gray-800 border border-[#dbdee6] dark:border-gray-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">filter_list</span> Filters
+                        </button>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span> New Request
+                        </button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="mt-6">
+<div class="flex border-b border-[#dbdee6] dark:border-gray-800 gap-8">
+<a class="flex items-center justify-center border-b-[3px] border-primary text-primary pb-3 pt-2" href="#">
+<span class="text-sm font-bold tracking-wide">Pending</span>
+<span class="ml-2 bg-primary/10 px-2 py-0.5 rounded-full text-[10px]">12</span>
+</a>
+<a class="flex items-center justify-center border-b-[3px] border-transparent text-[#616e89] pb-3 pt-2 hover:text-[#111318] dark:hover:text-white" href="#">
+<span class="text-sm font-bold tracking-wide">Actioned</span>
+</a>
+<a class="flex items-center justify-center border-b-[3px] border-transparent text-[#616e89] pb-3 pt-2 hover:text-[#111318] dark:hover:text-white" href="#">
+<span class="text-sm font-bold tracking-wide">Configuration</span>
+</a>
+</div>
+</div>
+</header>
+<!-- Dashboard Split View -->
+<div class="flex-1 flex overflow-hidden">
+<!-- List Section -->
+<section class="w-[420px] bg-white dark:bg-background-dark border-r border-[#dbdee6] dark:border-gray-800 flex flex-col">
+<div class="p-4">
+<label class="flex flex-col w-full">
+<div class="flex w-full items-stretch rounded-lg h-10 border border-[#dbdee6] dark:border-gray-700 bg-[#f6f6f8] dark:bg-gray-900/50 overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<div class="text-[#616e89] flex items-center justify-center pl-3">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent focus:ring-0 text-sm placeholder:text-[#616e89] px-3" placeholder="Search requests..."/>
+</div>
+</label>
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar pb-10">
+<!-- Active Item -->
+<div class="px-4 py-4 bg-primary/5 border-l-4 border-primary cursor-pointer">
+<div class="flex gap-4">
+<div class="bg-primary/10 size-12 rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 rounded">Budget</span>
+<span class="text-[10px] text-[#616e89]">3h ago</span>
+</div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold truncate">Project X: Annual Budget Approval</h3>
+<p class="text-[#616e89] text-xs font-normal mt-1">Requested by: <span class="font-medium text-[#111318] dark:text-gray-300">Sarah Jenkins</span></p>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="px-4 py-4 border-b border-[#dbdee6] dark:border-gray-800 hover:bg-[#f6f6f8] dark:hover:bg-gray-900/50 cursor-pointer transition-colors">
+<div class="flex gap-4">
+<div class="bg-amber-100 dark:bg-amber-900/30 size-12 rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-amber-600">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 rounded">Document</span>
+<span class="text-[10px] text-[#616e89]">1d ago</span>
+</div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold truncate">Q3 Audit Compliance Report</h3>
+<p class="text-[#616e89] text-xs font-normal mt-1">Requested by: <span class="font-medium text-[#111318] dark:text-gray-300">Michael Ross</span></p>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="px-4 py-4 border-b border-[#dbdee6] dark:border-gray-800 hover:bg-[#f6f6f8] dark:hover:bg-gray-900/50 cursor-pointer transition-colors">
+<div class="flex gap-4">
+<div class="bg-purple-100 dark:bg-purple-900/30 size-12 rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-purple-600">shield_person</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<span class="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-1.5 rounded">Policy</span>
+<span class="text-[10px] text-[#616e89]">2d ago</span>
+</div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold truncate">New Data Privacy Guidelines</h3>
+<p class="text-[#616e89] text-xs font-normal mt-1">Requested by: <span class="font-medium text-[#111318] dark:text-gray-300">Linda Zhao</span></p>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="px-4 py-4 border-b border-[#dbdee6] dark:border-gray-800 hover:bg-[#f6f6f8] dark:hover:bg-gray-900/50 cursor-pointer transition-colors">
+<div class="flex gap-4">
+<div class="bg-primary/10 size-12 rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 rounded">Budget</span>
+<span class="text-[10px] text-[#616e89]">4d ago</span>
+</div>
+<h3 class="text-[#111318] dark:text-white text-sm font-bold truncate">Infrastructure Upgrade Phase 2</h3>
+<p class="text-[#616e89] text-xs font-normal mt-1">Requested by: <span class="font-medium text-[#111318] dark:text-gray-300">David G.</span></p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Details Section -->
+<section class="flex-1 bg-[#f6f6f8] dark:bg-gray-900/40 p-8 overflow-y-auto">
+<div class="max-w-4xl mx-auto space-y-6">
+<!-- Main Card -->
+<div class="bg-white dark:bg-background-dark rounded-xl border border-[#dbdee6] dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="p-8">
+<div class="flex justify-between items-start">
+<div class="flex gap-4 items-center">
+<div class="size-14 rounded-full bg-cover" data-alt="Portrait of Sarah Jenkins" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB78OWMt0Kd4rSS5-mM1Se6SPLDWoSdHkuRL6DWfeXwJQKstDIxAu-qiBFRmhXbYaDyQCCW4b1HCa-oiimEy03pepAZk5UNzrW2JDW8pG0iIV1I8CafYQBGEBN2C5M99amrgl3kx3eqXTGHdYu6baxKHXOA8nBY6AyXHueQm-8-1N_-FyytvfU_Ir0LQvsG03n9pwbdQEvNiPQH0vFWYlSABlDSvOmADEsZX9q0dlvolB8DMdVDxsAYJoRWvckkoAHgqIOAh2eyN7M");'></div>
+<div>
+<h3 class="text-xl font-bold">Project X: Annual Budget Approval</h3>
+<p class="text-[#616e89] text-sm flex items-center gap-1.5 mt-1">
+                                                Sarah Jenkins • Finance Department • Submitted Oct 24, 2023
+                                            </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="bg-primary/10 text-primary px-4 py-2 rounded-lg text-sm font-bold">In Progress</button>
+<button class="bg-white dark:bg-gray-800 border border-[#dbdee6] dark:border-gray-700 p-2 rounded-lg hover:bg-gray-50">
+<span class="material-symbols-outlined text-xl leading-none">more_vert</span>
+</button>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-3 gap-6">
+<div class="p-4 bg-[#f6f6f8] dark:bg-gray-900/50 rounded-lg">
+<p class="text-[#616e89] text-[10px] uppercase font-bold tracking-widest">Total Amount</p>
+<p class="text-xl font-black mt-1">$450,000.00</p>
+</div>
+<div class="p-4 bg-[#f6f6f8] dark:bg-gray-900/50 rounded-lg">
+<p class="text-[#616e89] text-[10px] uppercase font-bold tracking-widest">Priority</p>
+<div class="flex items-center gap-1.5 mt-1 text-red-600">
+<span class="material-symbols-outlined text-sm">priority_high</span>
+<p class="text-sm font-bold uppercase">High</p>
+</div>
+</div>
+<div class="p-4 bg-[#f6f6f8] dark:bg-gray-900/50 rounded-lg">
+<p class="text-[#616e89] text-[10px] uppercase font-bold tracking-widest">Due Date</p>
+<p class="text-sm font-bold mt-1">Nov 12, 2023</p>
+</div>
+</div>
+<div class="mt-8">
+<h4 class="text-sm font-bold mb-3">Workflow Status</h4>
+<!-- Stepper -->
+<div class="flex items-center gap-0">
+<!-- Step 1 Done -->
+<div class="flex items-center">
+<div class="size-8 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<div class="ml-3">
+<p class="text-xs font-bold leading-none">Manager</p>
+<p class="text-[10px] text-green-600 font-medium">Approved</p>
+</div>
+</div>
+<div class="flex-1 h-0.5 bg-green-500 mx-4 min-w-[40px]"></div>
+<!-- Step 2 Current -->
+<div class="flex items-center">
+<div class="size-8 rounded-full border-2 border-primary bg-white dark:bg-background-dark flex items-center justify-center text-primary shrink-0">
+<div class="size-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+<div class="ml-3">
+<p class="text-xs font-bold leading-none">Finance Head</p>
+<p class="text-[10px] text-primary font-medium italic">Pending Review</p>
+</div>
+</div>
+<div class="flex-1 h-0.5 bg-[#dbdee6] dark:bg-gray-700 mx-4 min-w-[40px]"></div>
+<!-- Step 3 Future -->
+<div class="flex items-center">
+<div class="size-8 rounded-full border-2 border-[#dbdee6] dark:border-gray-700 bg-white dark:bg-background-dark flex items-center justify-center text-[#616e89] shrink-0">
+<span class="text-xs font-bold">3</span>
+</div>
+<div class="ml-3 opacity-50">
+<p class="text-xs font-bold leading-none">Director</p>
+<p class="text-[10px] font-medium">Upcoming</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-10 pt-8 border-t border-[#dbdee6] dark:border-gray-800">
+<h4 class="text-sm font-bold mb-4">Request Description</h4>
+<p class="text-[#616e89] text-sm leading-relaxed">
+                                        This budget covers the initial hardware procurement and licensing fees for the upcoming "Project X" digital infrastructure initiative. The project aims to modernize the core banking systems and ensure compliance with the latest security standards. Detailed breakdown is provided in the attached PDF.
+                                    </p>
+</div>
+<div class="mt-8 flex gap-3">
+<div class="flex-1 border border-[#dbdee6] dark:border-gray-700 rounded-lg p-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+<div>
+<p class="text-xs font-bold">Budget_Breakdown_v2.pdf</p>
+<p class="text-[10px] text-[#616e89]">1.2 MB</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#616e89]">download</span>
+</div>
+<div class="flex-1 border border-[#dbdee6] dark:border-gray-700 rounded-lg p-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-600">table_chart</span>
+<div>
+<p class="text-xs font-bold">Financial_Projections.xlsx</p>
+<p class="text-[10px] text-[#616e89]">450 KB</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#616e89]">download</span>
+</div>
+</div>
+</div>
+<div class="bg-[#f0f1f4] dark:bg-gray-900 px-8 py-5 flex justify-end gap-3">
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold border border-[#dbdee6] dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 transition-colors">
+                                    Request Changes
+                                </button>
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-colors">
+                                    Reject
+                                </button>
+<button class="px-8 py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                                    Approve Request
+                                </button>
+</div>
+</div>
+<!-- Audit Log -->
+<div class="bg-white dark:bg-background-dark rounded-xl border border-[#dbdee6] dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-[#dbdee6] dark:border-gray-800 flex justify-between items-center">
+<h4 class="text-sm font-bold">History &amp; Audit Trail</h4>
+<span class="material-symbols-outlined text-[#616e89] text-xl">history</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex gap-4">
+<div class="size-2 rounded-full bg-green-500 mt-2 shrink-0"></div>
+<div>
+<p class="text-xs font-bold">Approved by Finance Manager (Robert King)</p>
+<p class="text-[10px] text-[#616e89] mt-0.5">Oct 25, 2023 • 02:45 PM</p>
+<p class="text-xs text-[#616e89] mt-2 italic bg-[#f6f6f8] dark:bg-gray-900/50 p-2 rounded">"Budget aligns with the annual strategic plan. Proceeding to Finance Head for final oversight."</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-2 rounded-full bg-primary mt-2 shrink-0"></div>
+<div>
+<p class="text-xs font-bold">Submitted for Approval</p>
+<p class="text-[10px] text-[#616e89] mt-0.5">Oct 24, 2023 • 09:12 AM</p>
+<p class="text-xs text-[#616e89] mt-1">Requested by Sarah Jenkins</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

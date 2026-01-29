@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mobile Projects List</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background": "#f8fafc",
+                        "card": "#ffffff",
+                        "border": "#e2e8f0",
+                        "text-main": "#0f172a",
+                        "text-secondary": "#64748b",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "Noto Sans", "sans-serif"],
+                        "body": ["Public Sans", "Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-background text-text-main font-display antialiased;
+            }
+        }.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+<header class="bg-white border-b border-border px-4 py-4 sticky top-0 z-20">
+<div class="flex items-center justify-between max-w-lg mx-auto">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-border" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA4Dhr9Uwo-dAMybW_stpcLJi4Y7-09Umt3-sirDy45931e1nLhJ9nhL4FJn3qOXeh9afgcF2IMeQweElczCDiZ5_I31WIHAgQxiNbf5wBZs7-njjuIadrD-gUweHlPjzYzmcYQn-Q2uhxl2_0CCRelZBnkTn0jGYJzoVDPJnAu_cFpaUClbqH5XlDb79cCMqcXhh5zoprcsyCz5KrEk0Iwm24bbGnpjuzSG13eN592ctNYxQCENUs510Eb-kX8rgi94CIwImiovyE");'></div>
+<h1 class="text-xl font-bold tracking-tight">Projects</h1>
+</div>
+<button class="p-2 text-text-secondary hover:bg-slate-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto no-scrollbar pb-32">
+<div class="max-w-lg mx-auto px-4 py-6 space-y-4">
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+<button class="px-4 py-1.5 bg-primary text-white text-xs font-semibold rounded-full shrink-0">All</button>
+<button class="px-4 py-1.5 bg-white border border-border text-text-secondary text-xs font-semibold rounded-full shrink-0">Active</button>
+<button class="px-4 py-1.5 bg-white border border-border text-text-secondary text-xs font-semibold rounded-full shrink-0">Priority</button>
+<button class="px-4 py-1.5 bg-white border border-border text-text-secondary text-xs font-semibold rounded-full shrink-0">Draft</button>
+</div>
+<article class="bg-card border border-border rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col gap-1">
+<h3 class="font-bold text-base leading-tight">Q3 Financial Audit</h3>
+<p class="text-xs text-text-secondary">Finance Dept</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600">
+                        High Priority
+                    </span>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-1.5 text-text-secondary">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Oct 12, 2024</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="size-6 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="size-6 rounded-full border-2 border-white bg-primary/10 flex items-center justify-center text-[8px] font-bold text-primary">+3</div>
+</div>
+</div>
+</article>
+<article class="bg-card border border-border rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col gap-1">
+<h3 class="font-bold text-base leading-tight">Mobile App Redesign</h3>
+<p class="text-xs text-text-secondary">Product Team</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-600">
+                        Medium
+                    </span>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-1.5 text-text-secondary">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 01, 2024</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="size-6 rounded-full border-2 border-white bg-slate-300"></div>
+</div>
+</div>
+</article>
+<article class="bg-card border border-border rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all opacity-80">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col gap-1">
+<h3 class="font-bold text-base leading-tight text-slate-500 italic">Server Migration</h3>
+<p class="text-xs text-text-secondary">IT Operations</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500">
+                        Low
+                    </span>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-1.5 text-text-secondary">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">TBD</span>
+</div>
+</div>
+</article>
+<article class="bg-card border border-border rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col gap-1">
+<h3 class="font-bold text-base leading-tight">Q4 Marketing Campaign</h3>
+<p class="text-xs text-text-secondary">Marketing</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600">
+                        High
+                    </span>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-1.5 text-text-secondary">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Dec 15, 2024</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white bg-slate-200"></div>
+</div>
+</div>
+</article>
+<article class="bg-card border border-border rounded-xl p-4 shadow-sm active:scale-[0.98] transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="flex flex-col gap-1">
+<h3 class="font-bold text-base leading-tight">Security Compliance</h3>
+<p class="text-xs text-text-secondary">Security Team</p>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-600 text-white shadow-sm">
+                        Critical
+                    </span>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-center gap-1.5 text-text-secondary">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 15, 2024</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white bg-slate-400"></div>
+<div class="size-6 rounded-full border-2 border-white bg-slate-200"></div>
+</div>
+</div>
+</article>
+</div>
+</main>
+<button class="fixed bottom-24 right-6 size-14 bg-primary text-white rounded-full shadow-xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-transform z-30">
+<span class="material-symbols-outlined" style="font-size: 32px;">add</span>
+</button>
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-border z-40 px-2 pb-safe-area-inset-bottom">
+<div class="max-w-lg mx-auto flex justify-around items-center h-16">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">grid_view</span>
+<span class="text-[10px] font-bold text-text-secondary group-hover:text-primary">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span class="text-[10px] font-bold text-primary">Projects</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">check_box</span>
+<span class="text-[10px] font-bold text-text-secondary group-hover:text-primary">Tasks</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">group</span>
+<span class="text-[10px] font-bold text-text-secondary group-hover:text-primary">Team</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">settings</span>
+<span class="text-[10px] font-bold text-text-secondary group-hover:text-primary">Settings</span>
+</a>
+</div>
+<div class="h-4 sm:h-0"></div>
+</nav>
+
+</body></html>

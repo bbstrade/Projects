@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Overview Grid - Municipal Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f172a",
+                        "primary-accent": "#2563eb",
+                        "background": "#f8fafc",
+                        "sidebar": "#ffffff",
+                        "border-light": "#e2e8f0",
+                        "text-main": "#0f172a",
+                        "text-muted": "#64748b",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "none": "0",
+                        "sm": "0.125rem",
+                        "DEFAULT": "0.375rem",
+                        "md": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "card": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+                        "card-hover": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-background text-text-main;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="font-sans h-screen overflow-hidden flex selection:bg-primary-accent/20 selection:text-primary-accent">
+<aside class="hidden lg:flex w-64 flex-col bg-sidebar border-r border-border-light flex-shrink-0 transition-all duration-300">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3 px-2 py-2">
+<div class="flex size-8 items-center justify-center rounded-md bg-primary text-white">
+<span class="material-symbols-outlined" style="font-size: 20px;">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-sm font-semibold leading-tight">Municipal Bank</h1>
+<p class="text-[10px] text-text-muted font-medium uppercase tracking-wider">Enterprise PMS</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-text-muted hover:text-text-main hover:bg-slate-100 transition-colors group" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px;">dashboard</span>
+<p class="text-sm font-medium">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md bg-slate-100 text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'FILL' 1;">folder_open</span>
+<p class="text-sm font-semibold">Projects</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-text-muted hover:text-text-main hover:bg-slate-100 transition-colors group" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px;">task_alt</span>
+<p class="text-sm font-medium">Tasks</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-text-muted hover:text-text-main hover:bg-slate-100 transition-colors group" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px;">group</span>
+<p class="text-sm font-medium">Team</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md text-text-muted hover:text-text-main hover:bg-slate-100 transition-colors group" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+<p class="text-sm font-medium">Settings</p>
+</a>
+</nav>
+</div>
+<div class="mt-auto border-t border-border-light pt-4 flex flex-col gap-4">
+<div class="flex items-center gap-3 px-2">
+<div class="size-8 rounded-full bg-slate-200 bg-cover bg-center border border-border-light" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDRw3mOCdsG2f0CQGFwRXmGhK5_IoAY5-4hhhvji3CLR6UClo4KtqMmLqRF5EnO-jLxgQr_cfc6A2zM2VGDLW44ghkkH4WBXKuzDnngc0vXCcMsEDng2KNn0uZJqh8o_oa_HppnYTZWl5ozb2reCCcxsGQOxYeLFWM2d0spXs9v2z_aqIKfHUkenO6jb2eIBxigzYNYbc40uHHVgXy2dxaO34hid8Q6iHeqiJxMg4WJHIHFT5YDr1aovoVl8SuWJOYAIdknaXEen3k");'></div>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-medium truncate">Alex Carter</p>
+<p class="text-xs text-text-muted truncate">Project Lead</p>
+</div>
+<button class="ml-auto text-text-muted hover:text-text-main">
+<span class="material-symbols-outlined" style="font-size: 18px;">unfold_more</span>
+</button>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background">
+<header class="w-full bg-white border-b border-border-light z-10 sticky top-0">
+<div class="max-w-[1400px] mx-auto px-8 py-8 flex flex-col gap-8">
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<h2 class="text-3xl font-bold tracking-tight text-slate-900">Projects</h2>
+<p class="text-text-muted text-sm">Overview of all active municipal initiatives and infrastructure tasks.</p>
+</div>
+<button class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-slate-800 text-white px-4 py-2.5 rounded-md shadow-sm transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+<span class="text-sm font-semibold">New Project</span>
+</button>
+</div>
+<div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+<div class="flex flex-1 w-full gap-3">
+<div class="relative flex-1 group max-w-sm">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" style="font-size: 18px;">search</span>
+<input class="w-full bg-white border border-border-light text-slate-900 text-sm rounded-md focus:ring-2 focus:ring-slate-100 focus:border-slate-400 block pl-10 pr-4 py-2 placeholder-text-muted transition-all" placeholder="Search projects..." type="text"/>
+</div>
+<div class="flex gap-2">
+<div class="relative">
+<select class="appearance-none bg-white border border-border-light text-slate-700 text-sm rounded-md px-3 py-2 pr-10 focus:ring-2 focus:ring-slate-100 focus:border-slate-400 cursor-pointer">
+<option>Status: All</option>
+<option>Active</option>
+<option>Draft</option>
+<option>In Review</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" style="font-size: 18px;">expand_more</span>
+</div>
+<div class="relative hidden sm:block">
+<select class="appearance-none bg-white border border-border-light text-slate-700 text-sm rounded-md px-3 py-2 pr-10 focus:ring-2 focus:ring-slate-100 focus:border-slate-400 cursor-pointer">
+<option>Priority: All</option>
+<option>Critical</option>
+<option>High</option>
+<option>Medium</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" style="font-size: 18px;">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex bg-slate-100 p-1 rounded-md border border-border-light">
+<button class="p-1.5 rounded bg-white shadow-sm text-primary">
+<span class="material-symbols-outlined block" style="font-size: 20px;">grid_view</span>
+</button>
+<button class="p-1.5 rounded text-text-muted hover:text-text-main transition-colors">
+<span class="material-symbols-outlined block" style="font-size: 20px;">format_list_bulleted</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto px-8 py-8">
+<div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Q3 Financial Audit</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">Finance Department</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Comprehensive audit of Q3 financial statements, compliance checks, and reconciliation of all municipal ledger accounts.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ACTIVE
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
+                        HIGH PRIORITY
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Oct 12, 2024</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">5</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">75%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</article>
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 text-indigo-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smartphone</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Mobile Banking UI</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">Product &amp; Tech</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Complete redesign of the customer-facing mobile banking application with focus on accessibility.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        IN PROGRESS
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        MEDIUM
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 05, 2024</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">8</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">42%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-indigo-500 rounded-full" style="width: 42%"></div>
+</div>
+</div>
+</article>
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-200 text-slate-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dns</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Server Infrastructure</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">IT Operations</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Migration of core legacy banking systems to cloud-native server architecture for high availability.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        DRAFT
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        LOW
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">TBD</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">3</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">0%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-slate-300 rounded-full" style="width: 5%"></div>
+</div>
+</div>
+</article>
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-rose-50 flex items-center justify-center border border-rose-100 text-rose-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Cyber Compliance</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">Security Team</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Ensuring adherence to latest national cyber security standards for financial institutions.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ACTIVE
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                        CRITICAL
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Dec 01, 2024</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">12</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">88%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-rose-500 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</article>
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 text-emerald-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Green Initiative</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">Corporate Social</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Transitioning all physical bank branches to carbon-neutral energy sources by 2025.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        REVIEW
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        MEDIUM
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Nov 20, 2024</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">6</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">95%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 95%"></div>
+</div>
+</div>
+</article>
+<article class="flex flex-col bg-white border border-border-light rounded-xl p-6 shadow-card hover:shadow-card-hover hover:border-slate-300 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-orange-50 flex items-center justify-center border border-orange-100 text-orange-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">campaign</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 group-hover:text-primary-accent transition-colors leading-tight">Community Outreach</h3>
+<p class="text-text-muted text-[11px] font-medium uppercase tracking-tight mt-0.5">Marketing</p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-slate-50">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+</button>
+</div>
+<p class="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-2">Annual municipal banking fair and financial literacy workshops for local schools.</p>
+<div class="flex flex-wrap gap-2 mb-8">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        PLANNING
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        MEDIUM
+                    </span>
+</div>
+<div class="mt-auto pt-5 border-t border-slate-100 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+<span class="text-xs font-medium">Dec 15, 2024</span>
+</div>
+<div class="flex items-center gap-1.5 text-text-muted">
+<span class="material-symbols-outlined" style="font-size: 16px;">group</span>
+<span class="text-xs font-medium">4</span>
+</div>
+</div>
+<span class="text-xs font-bold text-slate-900">12%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</article>
+</div>
+</div>
+</main>
+
+</body></html>

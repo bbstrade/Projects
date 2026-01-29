@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Municipal Bank - Project Management Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "surface-dark": "#1a1f2e",
+                        "border-dark": "#282d39",
+                        "text-secondary": "#9da6b9",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Public Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111621; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282d39; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4354; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Side Navigation -->
+<aside class="flex w-[280px] flex-col border-r border-border-dark bg-[#111318] flex-shrink-0 h-full overflow-y-auto">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-6">
+<!-- Brand / User Profile -->
+<div class="flex items-center gap-3 px-2">
+<div class="relative flex items-center justify-center rounded-full size-10 bg-primary/20 text-primary border border-primary/10">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-normal">Municipal Bank</h1>
+<p class="text-text-secondary text-xs font-normal leading-normal">Project Manager</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary group transition-colors" href="#">
+<span class="material-symbols-outlined fill">dashboard</span>
+<span class="text-sm font-semibold leading-normal">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm font-medium leading-normal">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">check_box</span>
+<span class="text-sm font-medium leading-normal">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">rule_folder</span>
+<span class="text-sm font-medium leading-normal">Approvals</span>
+<span class="ml-auto bg-amber-500/20 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium leading-normal">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium leading-normal">Team</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Settings -->
+<div class="flex flex-col gap-2 mt-auto">
+<div class="h-px w-full bg-border-dark my-2"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium leading-normal">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium leading-normal">Log out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex flex-1 flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- Top Header -->
+<header class="flex-shrink-0 flex items-center justify-between border-b border-border-dark bg-[#111318]/50 backdrop-blur-md px-6 py-4 z-10">
+<div class="flex items-center gap-4">
+<button class="text-text-secondary hover:text-white lg:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-white text-xl font-bold leading-tight tracking-tight">Dashboard Overview</h2>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search Bar -->
+<div class="hidden md:flex relative group">
+<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary text-[20px]">search</span>
+</div>
+<input class="bg-surface-dark border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary block w-64 pl-10 p-2 placeholder-text-secondary transition-all focus:w-80" placeholder="Search projects, tasks..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<button class="relative p-2 text-text-secondary hover:text-white hover:bg-surface-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="hidden sm:inline">New Project</span>
+</button>
+<div class="h-9 w-9 rounded-full bg-cover bg-center border-2 border-border-dark cursor-pointer ml-2" data-alt="User profile picture showing a professional headshot" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0wwAXeI-Aci1IpQ1zYeHHHvs9sOeps9w3M34olaDw3c-0tl6siFujrB7cCbBbk3_okIZWgOJ9sj2ShRjQObtOXsEGcGXdfVoaLT5gaxFkA3b6peNDDWoBI13neENKColy0ab5oJAtmrK9vqA7tUFtGwEoFw0h6HLpvekDLpdbzuFXu-hmg4aphjAB41zjfMq-TjMW3_je4_WrdAtOiqqI2FT4hwwVHz1nVgY8yuE4_KXklFJfP6ptinEcKAHerMX-3HRD-YKeL2c');">
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-dark border border-border-dark rounded-xl p-5 shadow-sm hover:border-primary/50 transition-colors group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+<span class="material-symbols-outlined">folder_open</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 5%
+                            </span>
+</div>
+<p class="text-text-secondary text-sm font-medium mb-1">Total Projects</p>
+<h3 class="text-white text-2xl font-bold">12</h3>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-dark border border-border-dark rounded-xl p-5 shadow-sm hover:border-primary/50 transition-colors group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-purple-500/10 rounded-lg text-purple-500">
+<span class="material-symbols-outlined">task_alt</span>
+</div>
+<span class="text-text-secondary text-xs font-bold bg-surface-dark border border-border-dark px-2 py-1 rounded-full">
+                                0% change
+                            </span>
+</div>
+<p class="text-text-secondary text-sm font-medium mb-1">Total Tasks</p>
+<h3 class="text-white text-2xl font-bold">148</h3>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-dark border border-red-900/30 rounded-xl p-5 shadow-sm hover:border-red-500/50 transition-colors group relative overflow-hidden">
+<div class="absolute -right-6 -top-6 w-20 h-20 bg-red-500/10 rounded-full blur-2xl"></div>
+<div class="flex justify-between items-start mb-4 relative">
+<div class="p-2 bg-red-500/10 rounded-lg text-red-500">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-red-400 text-xs font-bold bg-red-500/10 px-2 py-1 rounded-full">
+                                Needs Action
+                            </span>
+</div>
+<p class="text-text-secondary text-sm font-medium mb-1">Overdue Tasks</p>
+<h3 class="text-white text-2xl font-bold">5</h3>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-dark border border-border-dark rounded-xl p-5 shadow-sm hover:border-amber-500/50 transition-colors group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded-full">
+                                +3 New
+                            </span>
+</div>
+<p class="text-text-secondary text-sm font-medium mb-1">Pending Approvals</p>
+<h3 class="text-white text-2xl font-bold">8</h3>
+</div>
+</div>
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Pie Chart (Projects by Status) -->
+<div class="lg:col-span-5 flex flex-col bg-surface-dark border border-border-dark rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-white text-lg font-bold">Projects by Status</h3>
+<button class="text-text-secondary hover:text-white p-1 rounded hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-1 items-center justify-center relative min-h-[250px]">
+<!-- CSS Only Donut Chart Approximation using Conic Gradient -->
+<div class="relative w-48 h-48 rounded-full" style="background: conic-gradient(#2463eb 0% 60%, #10b981 60% 85%, #f59e0b 85% 100%);">
+<div class="absolute inset-0 m-auto w-32 h-32 bg-surface-dark rounded-full flex flex-col items-center justify-center">
+<span class="text-3xl font-bold text-white">12</span>
+<span class="text-xs text-text-secondary uppercase tracking-wider font-semibold">Total</span>
+</div>
+</div>
+</div>
+<div class="flex justify-center gap-6 mt-6 pt-6 border-t border-border-dark">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary font-medium">Active</span>
+<span class="text-sm font-bold text-white">8</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary font-medium">Completed</span>
+<span class="text-sm font-bold text-white">3</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-amber-500"></div>
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary font-medium">Delayed</span>
+<span class="text-sm font-bold text-white">1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bar Chart (Task Completion) -->
+<div class="lg:col-span-7 flex flex-col bg-surface-dark border border-border-dark rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<div>
+<h3 class="text-white text-lg font-bold">Task Completion History</h3>
+<p class="text-text-secondary text-sm">Last 4 Weeks performance</p>
+</div>
+<div class="bg-background-dark border border-border-dark rounded-lg flex p-1">
+<button class="px-3 py-1 text-xs font-medium text-white bg-primary rounded shadow-sm">Monthly</button>
+<button class="px-3 py-1 text-xs font-medium text-text-secondary hover:text-white transition-colors">Weekly</button>
+</div>
+</div>
+<div class="flex items-end gap-1 mt-auto h-[220px] pt-8 px-4 w-full">
+<!-- Y-axis labels (simplified) -->
+<div class="flex flex-col justify-between h-full pr-4 text-xs text-text-secondary pb-6">
+<span>100</span>
+<span>75</span>
+<span>50</span>
+<span>25</span>
+<span>0</span>
+</div>
+<!-- Bars Area -->
+<div class="flex flex-1 items-end justify-between h-full pb-6 pl-2 border-l border-b border-border-dark relative">
+<!-- Grid lines -->
+<div class="absolute inset-0 w-full h-full pointer-events-none flex flex-col justify-between pb-6 opacity-20">
+<div class="w-full h-px bg-text-secondary"></div>
+<div class="w-full h-px bg-text-secondary"></div>
+<div class="w-full h-px bg-text-secondary"></div>
+<div class="w-full h-px bg-text-secondary"></div>
+<div class="w-full h-px bg-transparent"></div>
+</div>
+<!-- Week 1 -->
+<div class="group relative flex flex-col items-center w-full">
+<div class="w-12 bg-primary/30 group-hover:bg-primary transition-all rounded-t-sm h-[30%] relative">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-xs font-bold py-1 px-2 rounded pointer-events-none transition-opacity">15</div>
+</div>
+<span class="absolute -bottom-6 text-xs text-text-secondary font-medium">Week 1</span>
+</div>
+<!-- Week 2 -->
+<div class="group relative flex flex-col items-center w-full">
+<div class="w-12 bg-primary/30 group-hover:bg-primary transition-all rounded-t-sm h-[80%] relative">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-xs font-bold py-1 px-2 rounded pointer-events-none transition-opacity">42</div>
+</div>
+<span class="absolute -bottom-6 text-xs text-text-secondary font-medium">Week 2</span>
+</div>
+<!-- Week 3 -->
+<div class="group relative flex flex-col items-center w-full">
+<div class="w-12 bg-primary/30 group-hover:bg-primary transition-all rounded-t-sm h-[55%] relative">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-xs font-bold py-1 px-2 rounded pointer-events-none transition-opacity">28</div>
+</div>
+<span class="absolute -bottom-6 text-xs text-text-secondary font-medium">Week 3</span>
+</div>
+<!-- Week 4 -->
+<div class="group relative flex flex-col items-center w-full">
+<div class="w-12 bg-primary transition-all rounded-t-sm h-[70%] relative shadow-[0_0_15px_rgba(36,99,235,0.3)]">
+<div class="opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-xs font-bold py-1 px-2 rounded pointer-events-none">35</div>
+</div>
+<span class="absolute -bottom-6 text-white font-bold text-xs">This Week</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h3 class="text-white text-lg font-bold">Recent Activity</h3>
+<a class="text-sm text-primary font-medium hover:underline" href="#">View All</a>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-background-dark text-xs uppercase text-text-secondary font-semibold">
+<tr>
+<th class="px-6 py-4">Project Name</th>
+<th class="px-6 py-4">Action</th>
+<th class="px-6 py-4">User</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark text-sm">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-medium text-white">Q3 Financial Audit</td>
+<td class="px-6 py-4 text-text-secondary">Updated budget forecast</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-cover bg-center" data-alt="Avatar of Sarah J." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0i_ZegCXdtK2Lbw2DkttutFcwLhl8WMJlRajgXUkYw-sQ_6os7AqZSaFx90QKOU-XNc3zAMe4WYNHLiQ0OodX4DvsPNF0HWxp4weAEER0RloX69K327naQCGd6-t45b2bW2TX-vQE9XrSNwiX_K4IsVrA8n-yoNiTN4ibFB5wHyr1TgmSu2tHQwlALLDT52m8sz2pQ8RnhYxV0-FUlvxudao2MYFCekvg0ELZLk9cuWlwBuYYeIy3uWhaJDqfOIV7x_9jucbRIYQ');"></div>
+<span class="text-white">Sarah J.</span>
+</td>
+<td class="px-6 py-4 text-text-secondary">Today, 10:23 AM</td>
+<td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">Active</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-medium text-white">Mobile App Redesign</td>
+<td class="px-6 py-4 text-text-secondary">Submitted for approval</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-cover bg-center" data-alt="Avatar of Mike R." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPl2gbZ2Ds9mBQk4W1FaYL-kccFpgu0WIg-AQCyLeVXtO_IIj5BDpc1kTAMRKv25vrBWsfPx5Q13nKpecRr3Q2COhCCC9dL7BoElK52ymsqP75_LP3BBNjB6RDW7-n1qLVaJ03YxHGzz0X_aFWB2ZjOrkSt49-Rh-MyfcdhcDiEaDa-0-JLK2h8ra53c0obR5jRH6LPzu6MPj_w60IZvyKlIpGwwtVA4u4jjMpbrQCOBsT_65DLJHi3Isf6OG4EUbfM3_3GfObxGg');"></div>
+<span class="text-white">Mike R.</span>
+</td>
+<td class="px-6 py-4 text-text-secondary">Yesterday, 4:15 PM</td>
+<td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500">Pending</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-medium text-white">Infrastructure Upgrade</td>
+<td class="px-6 py-4 text-text-secondary">Task deadline missed</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-cover bg-center" data-alt="Avatar of System Admin" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDr1VV4LAP2XljuuTSKaXcTREXTWCcsafFw2_X7CowSMQ6ZzU-Pg98-vxOS3u0P6TDtdaKM6edso80IDQSilJRsC0plBCcsYWiPz1fjrMGqyC8YfMRI7HDpaBavHCBY7Ek9AZ3yDSSbaK_-bFsYZfcp9ddCoBQr59Zb18zB13lWXMertHnd3N1RALReUbHGPBtRTW_ei6WY44yeP905axM7GUxDA6-1oGc5FT8LQoORGuLXhP41Qie10W7ZIn2BR8jgNs-_NoitCdo');"></div>
+<span class="text-white">System</span>
+</td>
+<td class="px-6 py-4 text-text-secondary">Oct 24, 2023</td>
+<td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500">Overdue</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

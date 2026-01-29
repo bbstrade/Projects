@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Municipal Bank - Mobile Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f8fafc",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e2e8f0",
+                        "text-secondary": "#64748b",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: "Public Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 antialiased overflow-x-hidden">
+<div class="flex flex-col min-h-screen pb-20">
+<header class="sticky top-0 z-30 flex items-center justify-between border-b border-border-light bg-white/80 backdrop-blur-md px-4 py-3">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center rounded-full size-8 bg-primary/10 text-primary border border-primary/10">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+</div>
+<h1 class="text-slate-900 text-lg font-bold leading-tight tracking-tight">Dashboard</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-text-secondary hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="relative p-2 text-text-secondary hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-cover bg-center border border-border-light ml-1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0wwAXeI-Aci1IpQ1zYeHHHvs9sOeps9w3M34olaDw3c-0tl6siFujrB7cCbBbk3_okIZWgOJ9sj2ShRjQObtOXsEGcGXdfVoaLT5gaxFkA3b6peNDDWoBI13neENKColy0ab5oJAtmrK9vqA7tUFtGwEoFw0h6HLpvekDLpdbzuFXu-hmg4aphjAB41zjfMq-TjMW3_je4_WrdAtOiqqI2FT4hwwVHz1nVgY8yuE4_KXklFJfP6ptinEcKAHerMX-3HRD-YKeL2c');"></div>
+</div>
+</header>
+<main class="flex-1 p-4 space-y-6">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>New Project</span>
+</button>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white border border-border-light rounded-xl p-4 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+</div>
+<span class="text-emerald-600 text-[10px] font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full flex items-center">
+                            +5%
+                        </span>
+</div>
+<p class="text-text-secondary text-[11px] font-medium uppercase tracking-wider">Projects</p>
+<h3 class="text-slate-900 text-xl font-bold">12</h3>
+</div>
+<div class="bg-white border border-border-light rounded-xl p-4 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-1.5 bg-purple-50 rounded-lg text-purple-600">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+</div>
+<p class="text-text-secondary text-[11px] font-medium uppercase tracking-wider">Tasks</p>
+<h3 class="text-slate-900 text-xl font-bold">148</h3>
+</div>
+<div class="bg-white border border-red-100 rounded-xl p-4 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-1.5 bg-red-50 rounded-lg text-red-600">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+</div>
+<p class="text-text-secondary text-[11px] font-medium uppercase tracking-wider">Overdue</p>
+<h3 class="text-red-600 text-xl font-bold">5</h3>
+</div>
+<div class="bg-white border border-border-light rounded-xl p-4 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-1.5 bg-amber-50 rounded-lg text-amber-600">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</div>
+</div>
+<p class="text-text-secondary text-[11px] font-medium uppercase tracking-wider">Pending</p>
+<h3 class="text-slate-900 text-xl font-bold">8</h3>
+</div>
+</div>
+<div class="bg-white border border-border-light rounded-xl p-5 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-slate-900 text-base font-bold">Projects by Status</h3>
+<button class="text-text-secondary p-1">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-center py-4">
+<div class="relative w-40 h-40 rounded-full" style="background: conic-gradient(#2463eb 0% 60%, #10b981 60% 85%, #f59e0b 85% 100%);">
+<div class="absolute inset-0 m-auto w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center">
+<span class="text-2xl font-bold text-slate-900">12</span>
+<span class="text-[10px] text-text-secondary uppercase font-semibold">Total</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border-light">
+<div class="flex flex-col items-center text-center">
+<div class="w-2 h-2 rounded-full bg-primary mb-1"></div>
+<span class="text-[10px] text-text-secondary font-medium">Active</span>
+<span class="text-xs font-bold text-slate-900">8</span>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="w-2 h-2 rounded-full bg-emerald-500 mb-1"></div>
+<span class="text-[10px] text-text-secondary font-medium">Done</span>
+<span class="text-xs font-bold text-slate-900">3</span>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="w-2 h-2 rounded-full bg-amber-500 mb-1"></div>
+<span class="text-[10px] text-text-secondary font-medium">Delayed</span>
+<span class="text-xs font-bold text-slate-900">1</span>
+</div>
+</div>
+</div>
+<div class="bg-white border border-border-light rounded-xl p-5 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-slate-900 text-base font-bold">Completion History</h3>
+<p class="text-text-secondary text-xs">Past 4 weeks</p>
+</div>
+<div class="bg-slate-50 border border-border-light rounded-lg flex p-1">
+<button class="px-2 py-1 text-[10px] font-bold text-primary bg-white rounded shadow-sm border border-border-light">W</button>
+<button class="px-2 py-1 text-[10px] font-bold text-text-secondary">M</button>
+</div>
+</div>
+<div class="flex items-end gap-1 h-32 w-full">
+<div class="flex flex-col justify-between h-full pr-2 text-[10px] text-text-secondary pb-4">
+<span>100</span>
+<span>0</span>
+</div>
+<div class="flex flex-1 items-end justify-between h-full pb-4 px-2 border-l border-b border-border-light relative">
+<div class="flex flex-col items-center w-full gap-1">
+<div class="w-6 bg-primary/20 rounded-t-sm h-8"></div>
+<span class="text-[9px] text-text-secondary font-medium">W1</span>
+</div>
+<div class="flex flex-col items-center w-full gap-1">
+<div class="w-6 bg-primary/20 rounded-t-sm h-20"></div>
+<span class="text-[9px] text-text-secondary font-medium">W2</span>
+</div>
+<div class="flex flex-col items-center w-full gap-1">
+<div class="w-6 bg-primary/20 rounded-t-sm h-14"></div>
+<span class="text-[9px] text-text-secondary font-medium">W3</span>
+</div>
+<div class="flex flex-col items-center w-full gap-1">
+<div class="w-6 bg-primary rounded-t-sm h-16 shadow-[0_0_10px_rgba(36,99,235,0.2)]"></div>
+<span class="text-[9px] text-primary font-bold">W4</span>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-slate-900 text-base font-bold">Recent Activity</h3>
+<a class="text-xs text-primary font-semibold" href="#">See All</a>
+</div>
+<div class="bg-white border border-border-light rounded-xl divide-y divide-border-light shadow-sm overflow-hidden">
+<div class="p-4 flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center shrink-0 border border-border-light" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0i_ZegCXdtK2Lbw2DkttutFcwLhl8WMJlRajgXUkYw-sQ_6os7AqZSaFx90QKOU-XNc3zAMe4WYNHLiQ0OodX4DvsPNF0HWxp4weAEER0RloX69K327naQCGd6-t45b2bW2TX-vQE9XrSNwiX_K4IsVrA8n-yoNiTN4ibFB5wHyr1TgmSu2tHQwlALLDT52m8sz2pQ8RnhYxV0-FUlvxudao2MYFCekvg0ELZLk9cuWlwBuYYeIy3uWhaJDqfOIV7x_9jucbRIYQ');"></div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-slate-900 truncate">Q3 Financial Audit</p>
+<span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">Active</span>
+</div>
+<p class="text-xs text-text-secondary truncate mt-0.5">Updated budget forecast • Today</p>
+</div>
+</div>
+<div class="p-4 flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center shrink-0 border border-border-light" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPl2gbZ2Ds9mBQk4W1FaYL-kccFpgu0WIg-AQCyLeVXtO_IIj5BDpc1kTAMRKv25vrBWsfPx5Q13nKpecRr3Q2COhCCC9dL7BoElK52ymsqP75_LP3BBNjB6RDW7-n1qLVaJ03YxHGzz0X_aFWB2ZjOrkSt49-Rh-MyfcdhcDiEaDa-0-JLK2h8ra53c0obR5jRH6LPzu6MPj_w60IZvyKlIpGwwtVA4u4jjMpbrQCOBsT_65DLJHi3Isf6OG4EUbfM3_3GfObxGg');"></div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-slate-900 truncate">Mobile App Redesign</p>
+<span class="text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">Pending</span>
+</div>
+<p class="text-xs text-text-secondary truncate mt-0.5">Submitted for approval • Yesterday</p>
+</div>
+</div>
+<div class="p-4 flex items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 border border-border-light">
+<span class="material-symbols-outlined text-[16px] text-text-secondary">settings</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-slate-900 truncate">Infrastructure Upgrade</p>
+<span class="text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">Overdue</span>
+</div>
+<p class="text-xs text-text-secondary truncate mt-0.5">Task deadline missed • Oct 24</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border-light px-4 pb-safe pt-2">
+<div class="flex items-center justify-between max-w-md mx-auto h-16">
+<a class="flex flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill text-[26px]">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-text-secondary" href="#">
+<span class="material-symbols-outlined text-[26px]">view_kanban</span>
+<span class="text-[10px] font-medium">Projects</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-text-secondary" href="#">
+<span class="material-symbols-outlined text-[26px]">check_box</span>
+<span class="text-[10px] font-medium">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-text-secondary relative" href="#">
+<span class="material-symbols-outlined text-[26px]">rule_folder</span>
+<span class="text-[10px] font-medium">Approvals</span>
+<span class="absolute top-0 right-1 size-4 bg-amber-500 text-white text-[8px] flex items-center justify-center rounded-full font-bold border-2 border-white">3</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-text-secondary" href="#">
+<span class="material-symbols-outlined text-[26px]">bar_chart</span>
+<span class="text-[10px] font-medium">Reports</span>
+</a>
+</div>
+</nav>
+</div>
+
+</body></html>

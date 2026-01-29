@@ -1,0 +1,10 @@
+{
+    "project": "projects-e3e92",
+    "functions": "convex",
+    "generate": {
+        "out": {
+            "path": "./apps/web/convex/_generated",
+            "mode": "codegen"
+        }
+    }
+}
