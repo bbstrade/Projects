@@ -8,7 +8,12 @@ import {
 const isPublicPage = createRouteMatcher(["/", "/login", "/register", "/auth/*"]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+    // DEBUG: Pass through to verify middleware invocation
+    console.log("Middleware invoked");
+    console.log("Convex URL:", process.env.NEXT_PUBLIC_CONVEX_URL);
+
     // Redirect unauthenticated users to login
+    /*
     if (!isPublicPage(request) && !(await convexAuth.isAuthenticated())) {
         return nextjsMiddlewareRedirect(request, "/login");
     }
@@ -21,6 +26,7 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     ) {
         return nextjsMiddlewareRedirect(request, "/dashboard");
     }
+    */
 });
 
 export const config = {
