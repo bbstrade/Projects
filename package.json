@@ -11,7 +11,7 @@
     "lint": "bun run --filter '*' lint"
   },
   "devDependencies": {
-    "@auth/core": "^0.32.0",
+    "@auth/core": "^0.37.4",
     "@convex-dev/auth": "^0.0.86",
     "convex": "^1.17.4",
     "google-auth-library": "^10.5.0"
