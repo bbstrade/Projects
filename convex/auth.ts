@@ -13,7 +13,7 @@ import Resend from "@auth/core/providers/resend";
  */
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     providers: [
-        Password,
+        Password({ verify: Resend }),
         Google,
         Resend,
     ],
