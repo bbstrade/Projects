@@ -3,7 +3,7 @@
     "functions": "convex",
     "generate": {
         "out": {
-            "path": "./apps/web/convex/_generated",
+            "path": "./convex/_generated",
             "mode": "codegen"
         }
     }
