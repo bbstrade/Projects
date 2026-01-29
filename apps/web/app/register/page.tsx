@@ -39,6 +39,7 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [pendingVerification, setPendingVerification] = useState(false);
     const { signIn } = useAuthActions();
     const router = useRouter();
 
@@ -54,15 +55,46 @@ export default function RegisterPage() {
 
         try {
             await signIn("password", { email, password, name, flow: "signUp" });
+            setPendingVerification(true);
             toast.success(dict.registerSuccess);
-            router.push("/dashboard");
         } catch (error) {
             console.error("Register error:", error);
             toast.error(dict.registerError);
-        } finally {
             setIsLoading(false);
         }
     };
+
+    if (pendingVerification) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+                <Card className="w-full max-w-md shadow-xl">
+                    <CardHeader className="space-y-1 text-center">
+                        <div className="flex justify-center mb-4">
+                            <div className="relative h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                <Mail className="h-8 w-8 text-blue-600" />
+                            </div>
+                        </div>
+                        <CardTitle className="text-2xl font-bold">Проверете имейла си</CardTitle>
+                        <CardDescription>
+                            Изпратихме линк за потвърждение на <strong>{email}</strong>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Моля, последвайте линка в имейла, за да активирате акаунта си и да влезете в системата.
+                        </p>
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => router.push("/login")}
+                        >
+                            Към вход
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">

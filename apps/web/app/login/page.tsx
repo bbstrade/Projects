@@ -58,7 +58,8 @@ export default function LoginPage() {
             router.push("/dashboard");
         } catch (error) {
             console.error("Login error:", error);
-            toast.error(dict.loginError);
+            const errorMessage = error instanceof Error ? error.message : dict.loginError;
+            toast.error(errorMessage === dict.loginError ? dict.loginError : "Грешка: " + errorMessage);
         } finally {
             setIsLoading(false);
         }
