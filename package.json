@@ -10,9 +10,9 @@
     "build": "bun run --filter '*' build",
     "lint": "bun run --filter '*' lint"
   },
-  "devDependencies": {
+  "dependencies": {
     "@auth/core": "^0.37.4",
-    "@convex-dev/auth": "^0.0.86",
+    "@convex-dev/auth": "^0.0.90",
     "convex": "^1.17.4",
     "google-auth-library": "^10.5.0"
   }
