@@ -60,12 +60,11 @@ export function ApprovalDetailDialog({
     };
 
     const handleApprove = async () => {
-        if (!approvalId || !users?.[0]) return;
+        if (!approvalId) return;
         setIsProcessing(true);
         try {
             await approveMutation({
                 approvalId,
-                approverId: users[0]._id, // In real app, use authenticated user
                 comments: comments || undefined,
             });
             toast.success("Заявката беше одобрена!");
@@ -79,12 +78,11 @@ export function ApprovalDetailDialog({
     };
 
     const handleReject = async () => {
-        if (!approvalId || !users?.[0]) return;
+        if (!approvalId) return;
         setIsProcessing(true);
         try {
             await rejectMutation({
                 approvalId,
-                approverId: users[0]._id,
                 comments: comments || undefined,
             });
             toast.success("Заявката беше отхвърлена");

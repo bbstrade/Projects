@@ -75,20 +75,12 @@ export function CreateApprovalDialog({ trigger, projectId, taskId }: CreateAppro
 
     async function onSubmit(values: FormValues) {
         try {
-            // For now, use first user as requester (in real app, use authenticated user)
-            const firstUser = users?.[0];
-            if (!firstUser) {
-                toast.error("Няма регистрирани потребители");
-                return;
-            }
-
             await createApproval({
                 title: values.title,
                 description: values.description,
                 type: values.type,
                 workflowType: values.workflowType,
                 approverIds: values.approverIds as Id<"users">[],
-                requesterId: firstUser._id,
                 projectId,
                 taskId,
             });

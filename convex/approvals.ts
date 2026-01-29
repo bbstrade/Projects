@@ -72,12 +72,22 @@ export const create = mutation({
         description: v.optional(v.string()),
         projectId: v.optional(v.id("projects")),
         taskId: v.optional(v.id("tasks")),
-        requesterId: v.id("users"),
         type: v.string(), // document, decision, budget, other
         workflowType: v.string(), // sequential, parallel
         approverIds: v.array(v.id("users")),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        const requesterId = user._id;
+
         const now = Date.now();
 
         // Create the approval
@@ -86,7 +96,7 @@ export const create = mutation({
             description: args.description,
             projectId: args.projectId,
             taskId: args.taskId,
-            requesterId: args.requesterId,
+            requesterId,
             type: args.type,
             status: "pending",
             workflowType: args.workflowType,
@@ -116,10 +126,20 @@ export const create = mutation({
 export const approve = mutation({
     args: {
         approvalId: v.id("approvals"),
-        approverId: v.id("users"),
         comments: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        const approverId = user._id;
+
         const approval = await ctx.db.get(args.approvalId);
         if (!approval) throw new Error("Approval not found");
         if (approval.status !== "pending") throw new Error("Approval is not pending");
@@ -130,13 +150,13 @@ export const approve = mutation({
             .withIndex("by_approval", (q) => q.eq("approvalId", args.approvalId))
             .filter((q) =>
                 q.and(
-                    q.eq(q.field("approverId"), args.approverId),
+                    q.eq(q.field("approverId"), approverId),
                     q.eq(q.field("status"), "pending")
                 )
             )
             .first();
 
-        if (!step) throw new Error("No pending step found for this approver");
+        if (!step) throw new Error("No pending step found for this user");
 
         const now = Date.now();
 
@@ -180,10 +200,20 @@ export const approve = mutation({
 export const reject = mutation({
     args: {
         approvalId: v.id("approvals"),
-        approverId: v.id("users"),
         comments: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        const approverId = user._id;
+
         const approval = await ctx.db.get(args.approvalId);
         if (!approval) throw new Error("Approval not found");
         if (approval.status !== "pending") throw new Error("Approval is not pending");
@@ -194,13 +224,13 @@ export const reject = mutation({
             .withIndex("by_approval", (q) => q.eq("approvalId", args.approvalId))
             .filter((q) =>
                 q.and(
-                    q.eq(q.field("approverId"), args.approverId),
+                    q.eq(q.field("approverId"), approverId),
                     q.eq(q.field("status"), "pending")
                 )
             )
             .first();
 
-        if (!step) throw new Error("No pending step found for this approver");
+        if (!step) throw new Error("No pending step found for this user");
 
         const now = Date.now();
 
@@ -227,12 +257,23 @@ export const reject = mutation({
 export const cancel = mutation({
     args: {
         approvalId: v.id("approvals"),
-        requesterId: v.id("users"),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        const requesterId = user._id;
+
         const approval = await ctx.db.get(args.approvalId);
         if (!approval) throw new Error("Approval not found");
-        if (approval.requesterId !== args.requesterId) {
+
+        if (approval.requesterId !== requesterId) {
             throw new Error("Only the requester can cancel this approval");
         }
         if (approval.status !== "pending") {

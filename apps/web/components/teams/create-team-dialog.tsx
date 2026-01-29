@@ -68,13 +68,9 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
     const onSubmit = async (data: FormData) => {
         setIsSubmitting(true);
         try {
-            // Get or create a default user for dev mode
-            const ownerId = await getOrCreateDefaultUser({});
-
             await createTeam({
                 name: data.name,
                 description: data.description,
-                ownerId: ownerId,
             });
             form.reset();
             onOpenChange(false);

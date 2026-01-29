@@ -77,16 +77,26 @@ export const create = mutation({
     args: {
         name: v.string(),
         description: v.optional(v.string()),
-        ownerId: v.id("users"),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        const ownerId = user._id;
+
         const now = Date.now();
 
         // Create the team
         const teamId = await ctx.db.insert("teams", {
             name: args.name,
             description: args.description,
-            ownerId: args.ownerId,
+            ownerId,
             createdAt: now,
             updatedAt: now,
         });
@@ -94,7 +104,7 @@ export const create = mutation({
         // Add owner as a team member
         await ctx.db.insert("teamMembers", {
             teamId: teamId,
-            userId: args.ownerId,
+            userId: ownerId,
             role: "owner",
             joinedAt: now,
         });
@@ -130,9 +140,21 @@ export const addMember = mutation({
         teamId: v.string(),
         userId: v.id("users"),
         role: v.optional(v.string()),
-        invitedBy: v.optional(v.id("users")),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        // We allow adding members without checking the inviter's permissions strictly for now, 
+        // but we record the inviter if authenticated.
+
+        let invitedBy = undefined;
+        if (identity) {
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                .unique();
+            if (user) invitedBy = user._id;
+        }
+
         // Check if already a member
         const existing = await ctx.db
             .query("teamMembers")
@@ -149,7 +171,7 @@ export const addMember = mutation({
             teamId: args.teamId,
             userId: args.userId,
             role: args.role || "member",
-            invitedBy: args.invitedBy,
+            invitedBy,
             joinedAt: Date.now(),
         });
     },

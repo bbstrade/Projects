@@ -71,9 +71,23 @@ export const create = mutation({
         parentTaskId: v.optional(v.id("tasks")),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        let creatorId = undefined;
+
+        if (identity) {
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                .unique();
+            if (user) {
+                creatorId = user._id;
+            }
+        }
+
         const now = Date.now();
         return await ctx.db.insert("tasks", {
             ...args,
+            creatorId,
             createdAt: now,
             updatedAt: now,
         });

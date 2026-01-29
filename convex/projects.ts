@@ -13,13 +13,35 @@ export const create = mutation({
         name: v.string(),
         description: v.optional(v.string()),
         priority: v.string(),
+        status: v.optional(v.string()),
         startDate: v.optional(v.number()),
         endDate: v.optional(v.number()),
-        teamId: v.string(), // We'll hardcode this or get from context for now
+        teamId: v.string(),
     },
     handler: async (ctx, args) => {
-        const status = "active"; // Default status
-        return await ctx.db.insert("projects", { ...args, status });
+        const identity = await ctx.auth.getUserIdentity();
+        let ownerId = undefined;
+
+        if (identity) {
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                .unique();
+            if (user) {
+                ownerId = user._id;
+            }
+        }
+
+        const status = args.status || "active"; // Default to active if not provided
+        const now = Date.now();
+
+        return await ctx.db.insert("projects", {
+            ...args,
+            status,
+            ownerId,
+            createdAt: now,
+            updatedAt: now,
+        });
     },
 });
 
