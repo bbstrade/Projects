@@ -13,8 +13,11 @@
   "dependencies": {
     "@auth/core": "^0.37.4",
     "@convex-dev/auth": "^0.0.90",
-    "convex": "^1.17.4",
+    "convex": "^1.31.7",
     "google-auth-library": "^10.5.0",
     "resend": "^6.9.1"
+  },
+  "devDependencies": {
+    "jose": "^6.1.3"
   }
 }

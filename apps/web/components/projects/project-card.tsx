@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import {
     Landmark,
     Smartphone,
@@ -107,6 +110,7 @@ export function ProjectCard({
     lang = "bg",
     onEdit
 }: ProjectCardProps) {
+    const router = useRouter();
     const dict = DICTIONARY[lang];
     const removeProject = useMutation(api.projects.remove);
 
@@ -117,6 +121,10 @@ export function ProjectCard({
         } catch (error) {
             toast.error("Error deleting project");
         }
+    };
+
+    const handleCardClick = () => {
+        router.push(`/projects/${id}`);
     };
 
     // Icon and color mapping based on type
@@ -172,7 +180,10 @@ export function ProjectCard({
     };
 
     return (
-        <article className="flex flex-col bg-white dark:bg-card border border-border rounded-xl p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/20 group">
+        <article
+            onClick={handleCardClick}
+            className="flex flex-col bg-white dark:bg-card border border-border rounded-xl p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/20 group cursor-pointer"
+        >
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
                     <div className={cn("size-10 rounded-lg flex items-center justify-center border", iconColorClasses[color])}>
@@ -186,23 +197,25 @@ export function ProjectCard({
                     </div>
                 </div>
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <button className="text-muted-foreground hover:text-slate-900 dark:hover:text-white p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                            <MoreHorizontal className="w-5 h-5" />
-                        </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit?.(id)} className="cursor-pointer">
-                            <Edit className="w-4 h-4 mr-2" />
-                            {dict.actions.edit}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {dict.actions.delete}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="text-muted-foreground hover:text-slate-900 dark:hover:text-white p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <MoreHorizontal className="w-5 h-5" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onEdit?.(id)} className="cursor-pointer">
+                                <Edit className="w-4 h-4 mr-2" />
+                                {dict.actions.edit}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                {dict.actions.delete}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             <p className="text-muted-foreground text-sm mb-5 line-clamp-2 h-10">

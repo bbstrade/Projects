@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAuthActions } from "@convex-dev/auth/react";
 import {
     User,
     Mail,
@@ -13,6 +14,7 @@ import {
     Globe,
     Save,
     Camera,
+    LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +31,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useRouter } from "next/navigation";
 
 const dict = {
     title: "Профил",
@@ -53,6 +56,7 @@ const dict = {
     memberSince: "Член от",
     save: "Запази промените",
     saving: "Запазване...",
+    signOut: "Изход",
     roles: {
         admin: "Администратор",
         member: "Член",
@@ -61,6 +65,8 @@ const dict = {
 };
 
 export default function ProfilePage() {
+    const { signOut } = useAuthActions();
+    const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [name, setName] = useState("");
     const [theme, setTheme] = useState("system");
@@ -98,6 +104,11 @@ export default function ProfilePage() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleSignOut = async () => {
+        await signOut();
+        router.push("/login");
     };
 
     const formatDate = (timestamp?: number) => {
@@ -285,8 +296,13 @@ export default function ProfilePage() {
                         </CardContent>
                     </Card>
 
-                    {/* Save Button */}
-                    <div className="flex justify-end">
+                    {/* Actions Button */}
+                    <div className="flex justify-between">
+                        <Button variant="destructive" onClick={handleSignOut}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            {dict.signOut}
+                        </Button>
+
                         <Button onClick={handleSave} disabled={isSubmitting}>
                             <Save className="mr-2 h-4 w-4" />
                             {isSubmitting ? dict.saving : dict.save}
