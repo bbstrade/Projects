@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Get team by ID
@@ -42,7 +43,7 @@ export const list = query({
             .collect();
 
         const teams = await Promise.all(
-            memberships.map((m) => ctx.db.get(m.teamId))
+            memberships.map((m) => ctx.db.get(m.teamId as Id<"teams">))
         );
 
         return teams.filter((t) => t !== null);
@@ -64,7 +65,7 @@ export const listForUser = query({
             memberships.map((m) =>
                 ctx.db
                     .query("teams")
-                    .filter((q) => q.eq(q.field("_id"), m.teamId))
+                    .filter((q) => q.eq(q.field("_id"), m.teamId as Id<"teams">))
                     .first()
             )
         );
