@@ -62,7 +62,7 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
     type TaskFormValues = z.infer<typeof taskSchema>;
 
     const form = useForm<TaskFormValues>({
-        resolver: zodResolver(taskSchema),
+        resolver: zodResolver(taskSchema) as any,
         defaultValues: {
             title: task?.title || "",
             description: task?.description || "",
@@ -232,19 +232,34 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="dueDate"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Due Date</FormLabel>
-                                    <FormControl>
-                                        <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="estimatedHours"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Estimated Hours</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="0" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="dueDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Due Date</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <FormField
                             control={form.control}
                             name="description"
