@@ -58,8 +58,21 @@ export default function LoginPage() {
             router.push("/dashboard");
         } catch (error) {
             console.error("Login error:", error);
-            const errorMessage = error instanceof Error ? error.message : dict.loginError;
-            toast.error(errorMessage === dict.loginError ? dict.loginError : "Грешка: " + errorMessage);
+            let errorMessage = dict.loginError;
+            if (error instanceof Error) {
+                if (error.message.includes("Invalid login credentials")) {
+                    errorMessage = "Грешен имейл или парола."; // Standardize generic backend error
+                } else if (error.message.includes("Account not found")) {
+                    errorMessage = "Акаунтът не е намерен.";
+                } else {
+                    // Keep technical error for other cases but maybe prefix? 
+                    // Or just use generic if it's too technical? 
+                    // Let's rely on the dict default for unknown, or show message if meaningful.
+                    // The previous code showed "Грешка: " + message. I'll stick to that for unknown errors but fix common ones.
+                    errorMessage = "Грешка: " + error.message;
+                }
+            }
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

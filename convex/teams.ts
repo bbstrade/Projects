@@ -14,10 +14,38 @@ export const get = query({
 /**
  * List all teams
  */
+/**
+ * List all teams (Filtered by permissions)
+ */
 export const list = query({
     args: {},
     handler: async (ctx) => {
-        return await ctx.db.query("teams").order("desc").collect();
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) return [];
+
+        // System Admin sees all teams
+        if (user.role === "admin") {
+            return await ctx.db.query("teams").order("desc").collect();
+        }
+
+        // Regular users see only their teams
+        const memberships = await ctx.db
+            .query("teamMembers")
+            .withIndex("by_user", (q) => q.eq("userId", user._id))
+            .collect();
+
+        const teams = await Promise.all(
+            memberships.map((m) => ctx.db.get(m.teamId))
+        );
+
+        return teams.filter((t) => t !== null);
     },
 });
 
@@ -114,6 +142,41 @@ export const create = mutation({
 });
 
 /**
+ * Helper to check permissions
+ */
+async function checkTeamPermission(
+    ctx: any,
+    teamId: string,
+    requiredRoles: string[] = ["owner", "admin"]
+) {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique();
+
+    if (!user) throw new Error("User not found");
+
+    // System Admin has full access
+    if (user.role === "admin") return { user, member: null, isSystemAdmin: true };
+
+    const member = await ctx.db
+        .query("teamMembers")
+        .withIndex("by_user_team", (q: any) =>
+            q.eq("userId", user._id).eq("teamId", teamId)
+        )
+        .unique();
+
+    if (!member || !requiredRoles.includes(member.role)) {
+        throw new Error("Insufficient permissions");
+    }
+
+    return { user, member, isSystemAdmin: false };
+}
+
+/**
  * Update team
  */
 export const update = mutation({
@@ -124,6 +187,9 @@ export const update = mutation({
         settings: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
+        // Only Owner or System Admin should update team details
+        await checkTeamPermission(ctx, args.teamId, ["owner"]);
+
         const { teamId, ...fields } = args;
         await ctx.db.patch(teamId, {
             ...fields,
@@ -142,18 +208,7 @@ export const addMember = mutation({
         role: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        // We allow adding members without checking the inviter's permissions strictly for now, 
-        // but we record the inviter if authenticated.
-
-        let invitedBy = undefined;
-        if (identity) {
-            const user = await ctx.db
-                .query("users")
-                .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
-                .unique();
-            if (user) invitedBy = user._id;
-        }
+        const { user } = await checkTeamPermission(ctx, args.teamId, ["owner", "admin"]);
 
         // Check if already a member
         const existing = await ctx.db
@@ -171,7 +226,7 @@ export const addMember = mutation({
             teamId: args.teamId,
             userId: args.userId,
             role: args.role || "member",
-            invitedBy,
+            invitedBy: user._id,
             joinedAt: Date.now(),
         });
     },
@@ -186,6 +241,8 @@ export const removeMember = mutation({
         userId: v.id("users"),
     },
     handler: async (ctx, args) => {
+        await checkTeamPermission(ctx, args.teamId, ["owner", "admin"]);
+
         const membership = await ctx.db
             .query("teamMembers")
             .withIndex("by_user_team", (q) =>
@@ -212,9 +269,12 @@ export const updateMemberRole = mutation({
     args: {
         teamId: v.string(),
         userId: v.id("users"),
-        role: v.string(),
+        role: v.string(), // owner, admin, member
     },
     handler: async (ctx, args) => {
+        // Only Owner can change roles (or System Admin)
+        await checkTeamPermission(ctx, args.teamId, ["owner"]);
+
         const membership = await ctx.db
             .query("teamMembers")
             .withIndex("by_user_team", (q) =>

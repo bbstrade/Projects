@@ -59,7 +59,19 @@ export default function RegisterPage() {
             toast.success(dict.registerSuccess);
         } catch (error) {
             console.error("Register error:", error);
-            toast.error(dict.registerError);
+            let errorMessage = dict.registerError;
+
+            if (error instanceof Error) {
+                if (error.message.includes("already exists")) {
+                    errorMessage = "Този имейл вече е регистриран.";
+                } else if (error.message.includes("password")) {
+                    errorMessage = "Паролата е твърде слаба или кратка.";
+                } else {
+                    errorMessage = error.message;
+                }
+            }
+
+            toast.error(errorMessage);
             setIsLoading(false);
         }
     };
