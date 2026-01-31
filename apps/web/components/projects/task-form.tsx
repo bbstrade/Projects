@@ -59,7 +59,9 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
     const updateTask = useMutation(api.tasks.update);
     const users = useQuery(api.users.list);
 
-    const form = useForm<z.infer<typeof taskSchema>>({
+    type TaskFormValues = z.infer<typeof taskSchema>;
+
+    const form = useForm<TaskFormValues>({
         resolver: zodResolver(taskSchema),
         defaultValues: {
             title: task?.title || "",
@@ -67,8 +69,8 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
             status: task?.status || "todo",
             priority: task?.priority || "medium",
             assigneeId: task?.assigneeId || "unassigned",
-            estimatedHours: task?.estimatedHours ? Number(task.estimatedHours) : undefined,
-            dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : undefined,
+            estimatedHours: (task?.estimatedHours ? Number(task.estimatedHours) : undefined) as number | undefined,
+            dueDate: (task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : undefined) as string | undefined,
         },
     });
 
@@ -85,9 +87,9 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                 dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : undefined,
             });
         }
-    }, [task, form, isOpen]); // Add isOpen to refresh if needed, primarily task
+    }, [task, form, isOpen]);
 
-    async function onSubmit(values: z.infer<typeof taskSchema>) {
+    async function onSubmit(values: TaskFormValues) {
         try {
             const dueDate = values.dueDate ? new Date(values.dueDate).getTime() : undefined;
             const assigneeId = values.assigneeId === "unassigned" ? undefined : values.assigneeId as Id<"users">;
