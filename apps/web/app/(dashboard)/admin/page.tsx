@@ -251,10 +251,10 @@ export default function AdminPage() {
                                             <div className="flex items-center gap-4">
                                                 <Avatar className="h-10 w-10">
                                                     <AvatarImage src={user.avatar} />
-                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                    <AvatarFallback>{(user.name || "?").charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold truncate">{user.name}</p>
+                                                    <p className="text-sm font-semibold truncate">{user.name || "Unknown User"}</p>
                                                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                                                 </div>
                                                 <Badge variant={user.role === "admin" ? "default" : "secondary"}>
