@@ -1,7 +1,9 @@
 import { defineSchema, defineTable } from "convex/server";
+import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+    ...authTables,
     projects: defineTable({
         name: v.string(),
         description: v.optional(v.string()),
@@ -15,6 +17,7 @@ export default defineSchema({
         metadata: v.optional(v.any()),
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
+        team_members: v.optional(v.array(v.string())), // Array of names/emails as strings per requirements
     })
         .index("by_team", ["teamId"])
         .index("by_status", ["status"])
@@ -77,21 +80,24 @@ export default defineSchema({
         .index("by_approver", ["approverId"]),
 
     users: defineTable({
-        name: v.string(),
-        email: v.string(),
+        name: v.optional(v.string()),
+        email: v.optional(v.string()),
+        emailVerificationTime: v.optional(v.number()),
+        image: v.optional(v.string()),
+        isAnonymous: v.optional(v.boolean()),
         avatar: v.optional(v.string()),
-        tokenIdentifier: v.string(),
-        role: v.string(), // admin, member
+        tokenIdentifier: v.optional(v.string()),
+        role: v.optional(v.string()), // admin, member
         currentTeamId: v.optional(v.string()), // string to match teamId in projects
         preferences: v.optional(v.object({
             theme: v.string(),
             notifications: v.boolean(),
             language: v.string(),
         })),
-        createdAt: v.number(),
-        updatedAt: v.number(),
+        createdAt: v.optional(v.number()),
+        updatedAt: v.optional(v.number()),
     })
-        .index("by_email", ["email"])
+        .index("email", ["email"])
         .index("by_token", ["tokenIdentifier"]),
 
     teams: defineTable({
@@ -138,6 +144,31 @@ export default defineSchema({
     })
         .index("by_task", ["taskId"])
         .index("by_parent", ["parentCommentId"]),
+
+    projectComments: defineTable({
+        projectId: v.id("projects"),
+        userId: v.id("users"),
+        content: v.string(),
+        parentCommentId: v.optional(v.id("projectComments")),
+        files: v.optional(v.array(v.string())), // Array of storage IDs or URLs
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_project", ["projectId"])
+        .index("by_parent", ["parentCommentId"]),
+
+    projectGuests: defineTable({
+        projectId: v.id("projects"),
+        email: v.string(),
+        userId: v.optional(v.id("users")), // Optional, if they are a registered user
+        permissions: v.array(v.string()), // view, comment, edit_tasks, create_tasks
+        status: v.string(), // pending, active, revoked
+        invitedBy: v.id("users"),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_project", ["projectId"])
+        .index("by_email", ["email"]),
 
     projectTemplates: defineTable({
         name: v.string(),

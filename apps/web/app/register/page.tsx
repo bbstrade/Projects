@@ -114,7 +114,7 @@ export default function RegisterPage() {
                     <CardDescription>{dict.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
                         <div className="space-y-2">
                             <Label htmlFor="name">{dict.nameLabel}</Label>
                             <div className="relative">
@@ -127,6 +127,7 @@ export default function RegisterPage() {
                                     onChange={(e) => setName(e.target.value)}
                                     className="pl-9"
                                     required
+                                    suppressHydrationWarning
                                 />
                             </div>
                         </div>
@@ -142,6 +143,7 @@ export default function RegisterPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="pl-9"
                                     required
+                                    suppressHydrationWarning
                                 />
                             </div>
                         </div>
@@ -158,6 +160,7 @@ export default function RegisterPage() {
                                     className="pl-9 pr-10"
                                     minLength={8}
                                     required
+                                    suppressHydrationWarning
                                 />
                                 <button
                                     type="button"
@@ -185,6 +188,7 @@ export default function RegisterPage() {
                                     className="pl-9"
                                     minLength={8}
                                     required
+                                    suppressHydrationWarning
                                 />
                             </div>
                         </div>
