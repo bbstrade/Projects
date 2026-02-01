@@ -9,7 +9,9 @@ const isPublicPage = createRouteMatcher(["/login", "/register", "/auth/(.*)"]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     // Redirect unauthenticated users to login
-    if (!isPublicPage(request) && !(await convexAuth.isAuthenticated())) {
+    // BUT allow requests with "code" (OAuth callback) to pass through so the client can handle the exchange
+    const hasCode = request.nextUrl.searchParams.has("code");
+    if (!isPublicPage(request) && !(await convexAuth.isAuthenticated()) && !hasCode) {
         return nextjsMiddlewareRedirect(request, "/login");
     }
 
