@@ -5,11 +5,12 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff, Mail, Lock, User, UserPlus, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, UserPlus, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 const dict = {
@@ -30,6 +31,13 @@ const dict = {
     passwordMismatch: "Паролите не съвпадат",
     registerError: "Грешка при регистрация",
     registerSuccess: "Успешна регистрация!",
+    errors: {
+        emailExists: "Този имейл вече е регистриран.",
+        weakPassword: "Паролата е твърде слаба или кратка.",
+        invalidEmail: "Невалиден имейл адрес.",
+        networkError: "Грешка в мрежата. Моля, опитайте отново.",
+        generic: "Възникна грешка. Моля, опитайте отново.",
+    },
 };
 
 export default function RegisterPage() {
@@ -39,14 +47,36 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [pendingVerification, setPendingVerification] = useState(false);
     const { signIn } = useAuthActions();
     const router = useRouter();
 
+    const getErrorMessage = (err: Error): string => {
+        const message = err.message.toLowerCase();
+
+        if (message.includes("already exists") || message.includes("duplicate")) {
+            return dict.errors.emailExists;
+        }
+        if (message.includes("password") || message.includes("weak")) {
+            return dict.errors.weakPassword;
+        }
+        if (message.includes("email") || message.includes("invalid")) {
+            return dict.errors.invalidEmail;
+        }
+        if (message.includes("network") || message.includes("fetch")) {
+            return dict.errors.networkError;
+        }
+
+        return dict.errors.generic;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
 
         if (password !== confirmPassword) {
+            setError(dict.passwordMismatch);
             toast.error(dict.passwordMismatch);
             return;
         }
@@ -57,23 +87,18 @@ export default function RegisterPage() {
             await signIn("password", { email, password, name, flow: "signUp" });
             setPendingVerification(true);
             toast.success(dict.registerSuccess);
-        } catch (error) {
-            console.error("Register error:", error);
-            let errorMessage = dict.registerError;
-
-            if (error instanceof Error) {
-                if (error.message.includes("already exists")) {
-                    errorMessage = "Този имейл вече е регистриран.";
-                } else if (error.message.includes("password")) {
-                    errorMessage = "Паролата е твърде слаба или кратка.";
-                } else {
-                    errorMessage = error.message;
-                }
-            }
-
+        } catch (err) {
+            console.error("Register error:", err);
+            const errorMessage = err instanceof Error ? getErrorMessage(err) : dict.errors.generic;
+            setError(errorMessage);
             toast.error(errorMessage);
             setIsLoading(false);
         }
+    };
+
+    // Clear error when user starts typing
+    const clearError = () => {
+        if (error) setError(null);
     };
 
     if (pendingVerification) {
@@ -126,6 +151,13 @@ export default function RegisterPage() {
                     <CardDescription>{dict.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {error && (
+                        <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
                         <div className="space-y-2">
                             <Label htmlFor="name">{dict.nameLabel}</Label>
@@ -136,7 +168,7 @@ export default function RegisterPage() {
                                     type="text"
                                     placeholder={dict.namePlaceholder}
                                     value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    onChange={(e) => { setName(e.target.value); clearError(); }}
                                     className="pl-9"
                                     required
                                     suppressHydrationWarning
@@ -152,8 +184,8 @@ export default function RegisterPage() {
                                     type="email"
                                     placeholder={dict.emailPlaceholder}
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-9"
+                                    onChange={(e) => { setEmail(e.target.value); clearError(); }}
+                                    className={`pl-9 ${error ? "border-destructive" : ""}`}
                                     required
                                     suppressHydrationWarning
                                 />
@@ -168,8 +200,8 @@ export default function RegisterPage() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder={dict.passwordPlaceholder}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-9 pr-10"
+                                    onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                                    className={`pl-9 pr-10 ${error ? "border-destructive" : ""}`}
                                     minLength={8}
                                     required
                                     suppressHydrationWarning
@@ -196,8 +228,8 @@ export default function RegisterPage() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder={dict.confirmPasswordPlaceholder}
                                     value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="pl-9"
+                                    onChange={(e) => { setConfirmPassword(e.target.value); clearError(); }}
+                                    className={`pl-9 ${error ? "border-destructive" : ""}`}
                                     minLength={8}
                                     required
                                     suppressHydrationWarning

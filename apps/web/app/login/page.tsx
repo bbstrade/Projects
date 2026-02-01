@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useConvexAuth } from "convex/react";
 import { useRouter } from "next/navigation";
-import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff, Mail, Lock, LogIn, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 
@@ -28,10 +27,15 @@ const dict = {
     noAccount: "Нямате акаунт?",
     register: "Регистрация",
     forgotPassword: "Забравена парола?",
-    orContinueWith: "Или продължете с",
-    googleLogin: "Google",
     loginError: "Грешен имейл или парола",
     loginSuccess: "Успешен вход!",
+    errors: {
+        invalidCredentials: "Грешен имейл или парола.",
+        accountNotFound: "Акаунтът не е намерен.",
+        networkError: "Грешка в мрежата. Моля, опитайте отново.",
+        tooManyAttempts: "Твърде много опити. Моля, изчакайте малко.",
+        generic: "Възникна грешка. Моля, опитайте отново.",
+    },
 };
 
 export default function LoginPage() {
@@ -39,71 +43,77 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { signIn, signOut } = useAuthActions();
+    const [error, setError] = useState<string | null>(null);
+    const { signIn } = useAuthActions();
     const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
 
-    // Query backend session state directly
-    const backendUser = useQuery(api.myUser.get);
-
     useEffect(() => {
         setMounted(true);
     }, []);
 
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && !isAuthLoading) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, isAuthLoading, router]);
+
     const logoSrc = mounted && resolvedTheme === "dark" ? "/logo-dark.png" : "/logo.png";
-    const themeDebug = mounted ? resolvedTheme : "system";
+
+    const getErrorMessage = (error: Error): string => {
+        const message = error.message.toLowerCase();
+
+        if (message.includes("invalid") || message.includes("credentials") || message.includes("password")) {
+            return dict.errors.invalidCredentials;
+        }
+        if (message.includes("not found") || message.includes("no user")) {
+            return dict.errors.accountNotFound;
+        }
+        if (message.includes("network") || message.includes("fetch")) {
+            return dict.errors.networkError;
+        }
+        if (message.includes("rate") || message.includes("limit") || message.includes("too many")) {
+            return dict.errors.tooManyAttempts;
+        }
+
+        return dict.errors.generic;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
 
         try {
             await signIn("password", { email, password, flow: "signIn" });
             toast.success(dict.loginSuccess);
             router.push("/dashboard");
-        } catch (error) {
-            console.error("Login error:", error);
-            let errorMessage = dict.loginError;
-            if (error instanceof Error) {
-                if (error.message.includes("Invalid login credentials")) {
-                    errorMessage = "Грешен имейл или парола."; // Standardize generic backend error
-                } else if (error.message.includes("Account not found")) {
-                    errorMessage = "Акаунтът не е намерен.";
-                } else {
-                    errorMessage = "Грешка: " + error.message;
-                }
-            }
+        } catch (err) {
+            console.error("Login error:", err);
+            const errorMessage = err instanceof Error ? getErrorMessage(err) : dict.errors.generic;
+            setError(errorMessage);
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleGoogleLogin = async () => {
-        setIsLoading(true);
-        try {
-            await signIn("google", { redirectTo: "/dashboard" });
-        } catch (error) {
-            console.error("Google login error:", error);
-            toast.error("Грешка при вход с Google");
-        } finally {
-            setIsLoading(false);
-        }
+    // Clear error when user starts typing
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value);
+        if (error) setError(null);
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.target.value);
+        if (error) setError(null);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 relative" suppressHydrationWarning>
-            <div className="absolute top-0 left-0 p-2 text-xs text-black bg-yellow-200 z-50 opacity-80 select-text">
-                DEBUG INFO:<br />
-                CONVEX_URL: {process.env.NEXT_PUBLIC_CONVEX_URL || "UNDEFINED"}<br />
-                IS_AUTH: {isAuthenticated ? "TRUE" : "FALSE"}<br />
-                AUTH_LOADING: {isAuthLoading ? "YES" : "NO"}<br />
-                BACKEND_USER: {backendUser === undefined ? "LOADING..." : backendUser === null ? "NULL" : backendUser}<br />
-                THEME: {themeDebug}
-            </div>
-
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4" suppressHydrationWarning>
             <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="space-y-1 text-center">
                     <div className="flex justify-center mb-4">
@@ -121,6 +131,13 @@ export default function LoginPage() {
                     <CardDescription>{dict.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {error && (
+                        <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
                         <div className="space-y-2">
                             <Label htmlFor="email">{dict.emailLabel}</Label>
@@ -131,8 +148,8 @@ export default function LoginPage() {
                                     type="email"
                                     placeholder={dict.emailPlaceholder}
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-9"
+                                    onChange={handleEmailChange}
+                                    className={`pl-9 ${error ? "border-destructive" : ""}`}
                                     required
                                     suppressHydrationWarning
                                 />
@@ -155,8 +172,8 @@ export default function LoginPage() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder={dict.passwordPlaceholder}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-9 pr-10"
+                                    onChange={handlePasswordChange}
+                                    className={`pl-9 pr-10 ${error ? "border-destructive" : ""}`}
                                     required
                                     suppressHydrationWarning
                                 />
@@ -191,58 +208,14 @@ export default function LoginPage() {
                             )}
                         </Button>
                     </form>
-
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <Separator className="w-full" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-2 text-muted-foreground">
-                                {dict.orContinueWith}
-                            </span>
-                        </div>
-                    </div>
-
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleGoogleLogin}
-                        disabled={isLoading}
-                    >
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                            <path
-                                fill="currentColor"
-                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                            />
-                        </svg>
-                        {dict.googleLogin}
-                    </Button>
                 </CardContent>
-                <CardFooter className="justify-center flex-col">
+                <CardFooter className="justify-center">
                     <p className="text-sm text-muted-foreground">
                         {dict.noAccount}{" "}
                         <Link href="/register" className="text-blue-600 hover:underline font-medium">
                             {dict.register}
                         </Link>
                     </p>
-                    <button
-                        onClick={() => void signOut()}
-                        className="text-xs text-muted-foreground mt-4 hover:underline hover:text-red-500 transition-colors"
-                    >
-                        Проблем с входа? Изчисти сесията
-                    </button>
                 </CardFooter>
             </Card>
         </div>
