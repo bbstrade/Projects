@@ -22,7 +22,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
                 };
             },
         }),
-        Google,
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        }),
         Resend,
     ],
 });
