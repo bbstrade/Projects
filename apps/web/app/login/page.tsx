@@ -41,6 +41,9 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const { signIn, signOut } = useAuthActions();
     const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
+    const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+    const { resolvedTheme } = useTheme();
 
     // Query backend session state directly
     const backendUser = useQuery(api.myUser.get);
