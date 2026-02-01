@@ -55,7 +55,7 @@ interface CreateTeamDialogProps {
 export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const createTeam = useMutation(api.teams.create);
-    const getOrCreateDefaultUser = useMutation(api.users.getOrCreateDefaultUser);
+
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),

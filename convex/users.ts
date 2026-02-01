@@ -115,34 +115,4 @@ export const me = query({
     },
 });
 
-/**
- * Get or create a default user for development (no auth)
- */
-export const getOrCreateDefaultUser = mutation({
-    args: {},
-    handler: async (ctx) => {
-        // Check if default user exists
-        const defaultEmail = "dev@municipalbank.bg";
-        const existing = await ctx.db
-            .query("users")
-            .withIndex("email", (q) => q.eq("email", defaultEmail))
-            .first();
 
-        if (existing) {
-            return existing._id;
-        }
-
-        // Create default user
-        const now = Date.now();
-        const userId = await ctx.db.insert("users", {
-            name: "Dev User",
-            email: defaultEmail,
-            tokenIdentifier: "dev-token",
-            role: "admin",
-            createdAt: now,
-            updatedAt: now,
-        });
-
-        return userId;
-    },
-});
