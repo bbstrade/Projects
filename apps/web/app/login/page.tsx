@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
+import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, Mail, Lock, LogIn, Loader2 } from "lucide-react";
@@ -44,6 +45,9 @@ export default function LoginPage() {
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
 
+    // Query backend session state directly
+    const backendUser = useQuery(api.myUser.get);
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -67,10 +71,6 @@ export default function LoginPage() {
                 } else if (error.message.includes("Account not found")) {
                     errorMessage = "Акаунтът не е намерен.";
                 } else {
-                    // Keep technical error for other cases but maybe prefix? 
-                    // Or just use generic if it's too technical? 
-                    // Let's rely on the dict default for unknown, or show message if meaningful.
-                    // The previous code showed "Грешка: " + message. I'll stick to that for unknown errors but fix common ones.
                     errorMessage = "Грешка: " + error.message;
                 }
             }
@@ -94,11 +94,12 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 relative">
-            <div className="absolute top-0 left-0 p-2 text-xs text-black bg-yellow-200 z-50 opacity-80 pointer-events-none">
+            <div className="absolute top-0 left-0 p-2 text-xs text-black bg-yellow-200 z-50 opacity-80 select-text">
                 DEBUG INFO:<br />
                 CONVEX_URL: {process.env.NEXT_PUBLIC_CONVEX_URL || "UNDEFINED"}<br />
                 IS_AUTH: {isAuthenticated ? "TRUE" : "FALSE"}<br />
                 AUTH_LOADING: {isAuthLoading ? "YES" : "NO"}<br />
+                BACKEND_USER: {backendUser === undefined ? "LOADING..." : backendUser === null ? "NULL" : backendUser}<br />
                 THEME: {resolvedTheme}
             </div>
 
