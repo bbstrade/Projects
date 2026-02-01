@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -38,6 +39,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { signIn, signOut } = useAuthActions();
+    const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
@@ -96,7 +98,7 @@ export default function LoginPage() {
                 DEBUG INFO:<br />
                 CONVEX_URL: {process.env.NEXT_PUBLIC_CONVEX_URL || "UNDEFINED"}<br />
                 IS_AUTH: {isAuthenticated ? "TRUE" : "FALSE"}<br />
-                LOADING: {isLoading ? "YES" : "NO"}<br />
+                AUTH_LOADING: {isAuthLoading ? "YES" : "NO"}<br />
                 THEME: {resolvedTheme}
             </div>
 
