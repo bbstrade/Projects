@@ -113,6 +113,12 @@ export function ApprovalDetailDialog({
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="sr-only">Зареждане</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Зареждане на детайли за одобрение
+                        </DialogDescription>
+                    </DialogHeader>
                     <div className="flex items-center justify-center py-8">
                         <div className="animate-pulse text-muted-foreground">
                             Зареждане...

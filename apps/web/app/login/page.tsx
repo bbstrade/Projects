@@ -37,7 +37,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { signIn } = useAuthActions();
+    const { signIn, signOut } = useAuthActions();
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
@@ -218,13 +218,19 @@ export default function LoginPage() {
                         {dict.googleLogin}
                     </Button>
                 </CardContent>
-                <CardFooter className="justify-center">
+                <CardFooter className="justify-center flex-col">
                     <p className="text-sm text-muted-foreground">
                         {dict.noAccount}{" "}
                         <Link href="/register" className="text-blue-600 hover:underline font-medium">
                             {dict.register}
                         </Link>
                     </p>
+                    <button
+                        onClick={() => void signOut()}
+                        className="text-xs text-muted-foreground mt-4 hover:underline hover:text-red-500 transition-colors"
+                    >
+                        Проблем с входа? Изчисти сесията
+                    </button>
                 </CardFooter>
             </Card>
         </div>
