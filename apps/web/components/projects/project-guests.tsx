@@ -48,18 +48,27 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
         return (
             <div className="p-8 text-center text-muted-foreground border rounded-lg bg-slate-50 dark:bg-slate-900/50">
                 <Shield className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Guest Access Disabled</h3>
-                <p>This team does not allow external guest users.</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Достъпът за гости е изключен</h3>
+                <p>Този екип не позволява външни гости.</p>
             </div>
         );
     }
 
     const availablePermissions = [
-        { id: "view", label: "View Project" },
-        { id: "comment", label: "Comment" },
-        { id: "edit_tasks", label: "Edit Tasks" },
-        { id: "create_tasks", label: "Create Tasks" },
+        { id: "view", label: "Преглед на проект" },
+        { id: "comment", label: "Коментари" },
+        { id: "edit_tasks", label: "Редактиране на задачи" },
+        { id: "create_tasks", label: "Създаване на задачи" },
     ];
+
+    const translateStatus = (status: string) => {
+        const map: Record<string, string> = {
+            active: "Активен",
+            pending: "Чакащ",
+            revoked: "Отменен",
+        };
+        return map[status] || status;
+    };
 
     const handleInvite = async () => {
         if (!email) return;
@@ -69,12 +78,12 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                 email,
                 permissions,
             });
-            toast.success("Guest invited");
+            toast.success("Гостът е поканен успешно");
             setIsInviteOpen(false);
             setEmail("");
             setPermissions(["view"]);
         } catch (error: any) {
-            toast.error(error.message || "Failed to invite guest");
+            toast.error(error.message || "Грешка при покана на гост");
         }
     };
 
@@ -87,35 +96,35 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
     };
 
     const handleRemove = async (id: Id<"projectGuests">) => {
-        if (confirm("Remove this guest?")) {
+        if (confirm("Премахване на този гост?")) {
             await removeGuest({ id });
-            toast.success("Guest removed");
+            toast.success("Гостът е премахнат");
         }
     };
 
-    if (!guests) return <div>Loading guests...</div>;
+    if (!guests) return <div>Зареждане на гости...</div>;
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-4 rounded-lg border border-border">
-                <h3 className="font-semibold">Guest Users</h3>
+                <h3 className="font-semibold">Гости</h3>
                 <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                     <DialogTrigger asChild>
                         <Button>
                             <UserPlus className="w-4 h-4 mr-2" />
-                            Invite Guest
+                            Покани гост
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Invite External Guest</DialogTitle>
+                            <DialogTitle>Покани външен гост</DialogTitle>
                             <DialogDescription>
-                                Invite someone outside the team to collaborate on this project.
+                                Поканете някого извън екипа за сътрудничество по този проект.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Email Address</label>
+                                <label className="text-sm font-medium">Имейл адрес</label>
                                 <Input
                                     placeholder="guest@example.com"
                                     value={email}
@@ -123,7 +132,7 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Permissions</label>
+                                <label className="text-sm font-medium">Права</label>
                                 <div className="space-y-2 border rounded-md p-3">
                                     {availablePermissions.map((perm) => (
                                         <div key={perm.id} className="flex items-center space-x-2">
@@ -140,7 +149,7 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                                 </div>
                             </div>
                         </div>
-                        <Button onClick={handleInvite} className="w-full">Send Invitation</Button>
+                        <Button onClick={handleInvite} className="w-full">Изпрати покана</Button>
                     </DialogContent>
                 </Dialog>
             </div>
@@ -149,17 +158,17 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Email / User</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Permissions</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>Имейл / Потребител</TableHead>
+                            <TableHead>Статус</TableHead>
+                            <TableHead>Права</TableHead>
+                            <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {guests.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                                    No guests invited yet.
+                                    Все още няма поканени гости.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -175,14 +184,14 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={guest.status === "active" ? "default" : "secondary"}>
-                                        {guest.status}
+                                        {translateStatus(guest.status)}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1">
                                         {guest.permissions.map(p => (
                                             <Badge key={p} variant="outline" className="text-xs">
-                                                {p.replace('_', ' ')}
+                                                {availablePermissions.find(ap => ap.id === p)?.label || p}
                                             </Badge>
                                         ))}
                                     </div>

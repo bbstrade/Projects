@@ -37,22 +37,22 @@ export default function ProjectDetailsPage() {
     if (project === null) {
         return (
             <div className="flex h-screen items-center justify-center flex-col gap-4">
-                <h2 className="text-xl font-semibold">Project not found</h2>
+                <h2 className="text-xl font-semibold">Проектът не е намерен</h2>
                 <button onClick={() => router.push("/projects")} className="text-blue-500 hover:underline">
-                    Back to Projects
+                    Към всички проекти
                 </button>
             </div>
         );
     }
 
     const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+        if (confirm("Сигурни ли сте, че искате да изтриете този проект? Това действие е необратимо.")) {
             try {
                 await deleteProject({ id: projectId });
-                toast.success("Project deleted successfully");
+                toast.success("Проектът беше изтрит успешно");
                 router.push("/projects");
             } catch (error) {
-                toast.error("Failed to delete project");
+                toast.error("Грешка при изтриване на проекта");
             }
         }
     };
@@ -65,7 +65,7 @@ export default function ProjectDetailsPage() {
                         onClick={() => router.push("/projects")}
                         className="mb-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        ← Back to Projects
+                        ← Към всички проекти
                     </button>
 
                     <ProjectHeader
@@ -77,11 +77,10 @@ export default function ProjectDetailsPage() {
 
                     <Tabs defaultValue="tasks" className="space-y-4">
                         <TabsList>
-                            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                            <TabsTrigger value="team">Team</TabsTrigger>
-                            {/* Only show Guests tab if allowed (mock check for now, ideally strictly from team settings) */}
-                            <TabsTrigger value="guests">Guests</TabsTrigger>
-                            <TabsTrigger value="comments">Comments</TabsTrigger>
+                            <TabsTrigger value="tasks">Задачи</TabsTrigger>
+                            <TabsTrigger value="team">Екип</TabsTrigger>
+                            <TabsTrigger value="guests">Гости</TabsTrigger>
+                            <TabsTrigger value="comments">Коментари</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="tasks" className="space-y-4">

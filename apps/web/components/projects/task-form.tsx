@@ -32,7 +32,7 @@ import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 
 const taskSchema = z.object({
-    title: z.string().min(1, "Title is required"),
+    title: z.string().min(1, "Заглавието е задължително"),
     description: z.optional(z.string()),
     status: z.string(),
     priority: z.string(),
@@ -105,7 +105,7 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                     estimatedHours: values.estimatedHours,
                     dueDate,
                 });
-                toast.success("Task updated");
+                toast.success("Задачата е обновена");
             } else {
                 await createTask({
                     projectId,
@@ -117,12 +117,12 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                     estimatedHours: values.estimatedHours,
                     dueDate,
                 });
-                toast.success("Task created");
+                toast.success("Задачата е създадена");
             }
             form.reset();
             onOpenChangeHandler?.(false);
         } catch (error) {
-            toast.error("Failed to save task");
+            toast.error("Грешка при запазване на задачата");
             console.error(error);
         }
     }
@@ -132,13 +132,13 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
             {trigger ? (
                 <DialogTrigger asChild>{trigger}</DialogTrigger>
             ) : (
-                !isControlled && <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" />New Task</Button></DialogTrigger>
+                !isControlled && <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" />Нова задача</Button></DialogTrigger>
             )}
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+                    <DialogTitle>{task ? "Редактиране на задача" : "Създаване на нова задача"}</DialogTitle>
                     <DialogDescription>
-                        {task ? "Update task details." : "Add a new task to your project."}
+                        {task ? "Обновяване на детайлите за задачата." : "Добавете нова задача към проекта."}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -148,9 +148,9 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                             name="title"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Title</FormLabel>
+                                    <FormLabel>Заглавие</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Task title" {...field} />
+                                        <Input placeholder="Заглавие на задачата" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -163,18 +163,18 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                                 name="status"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Status</FormLabel>
+                                        <FormLabel>Статус</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Status" />
+                                                    <SelectValue placeholder="Статус" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="todo">To Do</SelectItem>
-                                                <SelectItem value="in_progress">In Progress</SelectItem>
-                                                <SelectItem value="in_review">In Review</SelectItem>
-                                                <SelectItem value="done">Done</SelectItem>
+                                                <SelectItem value="todo">За правене</SelectItem>
+                                                <SelectItem value="in_progress">В процес</SelectItem>
+                                                <SelectItem value="in_review">Преглед</SelectItem>
+                                                <SelectItem value="done">Готово</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -186,18 +186,18 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                                 name="priority"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Priority</FormLabel>
+                                        <FormLabel>Приоритет</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Priority" />
+                                                    <SelectValue placeholder="Приоритет" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="low">Low</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="high">High</SelectItem>
-                                                <SelectItem value="critical">Critical</SelectItem>
+                                                <SelectItem value="low">Нисък</SelectItem>
+                                                <SelectItem value="medium">Среден</SelectItem>
+                                                <SelectItem value="high">Висок</SelectItem>
+                                                <SelectItem value="critical">Критичен</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -211,15 +211,15 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                             name="assigneeId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Assignee</FormLabel>
+                                    <FormLabel>Отговорник</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select assignee" />
+                                                <SelectValue placeholder="Избери отговорник" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                                            <SelectItem value="unassigned">Няма</SelectItem>
                                             {users?.map((user) => (
                                                 <SelectItem key={user._id} value={user._id}>
                                                     {user.name || user.email}
@@ -238,7 +238,7 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                                 name="estimatedHours"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Estimated Hours</FormLabel>
+                                        <FormLabel>Очаквани часове</FormLabel>
                                         <FormControl>
                                             <Input type="number" placeholder="0" {...field} />
                                         </FormControl>
@@ -251,7 +251,7 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                                 name="dueDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Due Date</FormLabel>
+                                        <FormLabel>Краен срок</FormLabel>
                                         <FormControl>
                                             <Input type="date" {...field} />
                                         </FormControl>
@@ -265,9 +265,9 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel>Описание</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Task details..." {...field} />
+                                        <Textarea placeholder="Детайли за задачата..." {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -275,7 +275,7 @@ export function TaskForm({ projectId, task, trigger, open: controlledOpen, onOpe
                         />
 
                         <DialogFooter>
-                            <Button type="submit">{task ? "Update" : "Create"}</Button>
+                            <Button type="submit">{task ? "Обнови" : "Създай"}</Button>
                         </DialogFooter>
                     </form>
                 </Form>

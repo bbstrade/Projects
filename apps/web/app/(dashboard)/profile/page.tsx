@@ -73,13 +73,9 @@ export default function ProfilePage() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [language, setLanguage] = useState("bg");
 
-    // Get or create default user for dev mode
-    const getOrCreateDefaultUser = useMutation(api.users.getOrCreateDefaultUser);
-    const users = useQuery(api.users.list, {});
+    // Get current user
+    const currentUser = useQuery(api.users.me);
     const updateUser = useMutation(api.users.update);
-
-    // Get first user (dev mode)
-    const currentUser = users?.[0];
 
     // Initialize form values when user loads
     if (currentUser && !name) {

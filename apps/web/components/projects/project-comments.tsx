@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { Trash2, Send, Paperclip } from "lucide-react";
+import { bg } from "date-fns/locale";
+import { Trash2, Send, Paperclip, AtSign } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ProjectCommentsProps {
     projectId: Id<"projects">;
@@ -33,31 +35,40 @@ export function ProjectComments({ projectId }: ProjectCommentsProps) {
                 content: newComment,
             });
             setNewComment("");
-            toast.success("Comment added");
+            toast.success("Коментарът е добавен");
         } catch (error) {
-            toast.error("Failed to add comment");
+            toast.error("Грешка при добавяне на коментар");
         }
     };
 
     const handleDelete = async (id: Id<"projectComments">) => {
-        if (confirm("Delete this comment?")) {
+        if (confirm("Изтриване на този коментар?")) {
             await deleteComment({ id });
-            toast.success("Comment deleted");
+            toast.success("Коментарът е изтрит");
         }
     };
 
-    if (comments === undefined) return <div>Loading comments...</div>;
+    const handleFileUpload = () => {
+        toast.info("Функционалността за качване на файлове се разработва.");
+    };
+
+    const handleMention = () => {
+        setNewComment(prev => prev + "@");
+        toast.info("Използвайте @, за да споменете някого.");
+    };
+
+    if (comments === undefined) return <div>Зареждане на коментари...</div>;
 
     return (
         <div className="flex flex-col h-[600px] border rounded-lg bg-white dark:bg-slate-950 overflow-hidden">
             <div className="p-4 border-b bg-slate-50/50 dark:bg-slate-900/50">
-                <h3 className="font-semibold">Discussion</h3>
+                <h3 className="font-semibold">Дискусия</h3>
             </div>
 
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-6">
                     {comments.length === 0 && (
-                        <p className="text-center text-muted-foreground py-10">No comments yet. Start the discussion!</p>
+                        <p className="text-center text-muted-foreground py-10">Все още няма коментари. Започнете дискусията!</p>
                     )}
                     {comments.map((comment) => (
                         <div key={comment._id} className="flex gap-4 group">
@@ -68,9 +79,9 @@ export function ProjectComments({ projectId }: ProjectCommentsProps) {
                             <div className="flex-1 space-y-1">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-sm">{comment.user?.name || "Unknown User"}</span>
+                                        <span className="font-semibold text-sm">{comment.user?.name || "Неизвестен потребител"}</span>
                                         <span className="text-xs text-muted-foreground">
-                                            {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
+                                            {formatDistanceToNow(comment.createdAt, { addSuffix: true, locale: bg })}
                                         </span>
                                     </div>
                                     {currentUser?._id === comment.userId && (
@@ -98,7 +109,7 @@ export function ProjectComments({ projectId }: ProjectCommentsProps) {
                     <Textarea
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Write a comment..."
+                        placeholder="Напишете коментар... (@ за споменаване)"
                         className="min-h-[80px] resize-none"
                         onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
@@ -111,8 +122,11 @@ export function ProjectComments({ projectId }: ProjectCommentsProps) {
                         <Button size="icon" onClick={handleSubmit} disabled={!newComment.trim()}>
                             <Send className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" title="Attach file (coming soon)">
+                        <Button variant="ghost" size="icon" onClick={handleFileUpload} title="Прикачи файл">
                             <Paperclip className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={handleMention} title="Спомени някого">
+                            <AtSign className="w-4 h-4" />
                         </Button>
                     </div>
                 </div>

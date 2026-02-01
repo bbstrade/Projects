@@ -82,25 +82,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
     const logoSrc = mounted && resolvedTheme === "dark" ? "/logo-dark.png" : "/logo.png";
 
-    // Get or create default user for dev mode
-    const getOrCreateDefaultUser = useMutation(api.users.getOrCreateDefaultUser);
-    const users = useQuery(api.users.list, {});
+    const currentUser = useQuery(api.users.me);
     const projects = useQuery(api.projects.list, {});
     const tasks = useQuery(api.tasks.listAll, {});
-    const currentUser = users?.[0];
 
     // Initialize user ID on mount
     useEffect(() => {
-        const initUser = async () => {
-            if (!currentUser) {
-                const id = await getOrCreateDefaultUser({});
-                setUserId(id);
-            } else {
-                setUserId(currentUser._id);
-            }
-        };
-        initUser();
-    }, [currentUser, getOrCreateDefaultUser]);
+        if (currentUser) {
+            setUserId(currentUser._id);
+        }
+    }, [currentUser]);
 
     const runCommand = React.useCallback((command: () => unknown) => {
         setOpen(false);
