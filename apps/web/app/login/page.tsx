@@ -91,7 +91,15 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 relative">
+            <div className="absolute top-0 left-0 p-2 text-xs text-black bg-yellow-200 z-50 opacity-80 pointer-events-none">
+                DEBUG INFO:<br />
+                CONVEX_URL: {process.env.NEXT_PUBLIC_CONVEX_URL || "UNDEFINED"}<br />
+                IS_AUTH: {isAuthenticated ? "TRUE" : "FALSE"}<br />
+                LOADING: {isLoading ? "YES" : "NO"}<br />
+                THEME: {resolvedTheme}
+            </div>
+
             <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="space-y-1 text-center">
                     <div className="flex justify-center mb-4">
