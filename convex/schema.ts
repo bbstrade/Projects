@@ -82,8 +82,9 @@ export default defineSchema({
     users: defineTable({
         name: v.optional(v.string()),
         email: v.optional(v.string()),
+        emailVerified: v.optional(v.boolean()),
+        image: v.optional(v.string()), // Added for compatibility with Auth
         emailVerificationTime: v.optional(v.number()),
-        image: v.optional(v.string()),
         isAnonymous: v.optional(v.boolean()),
         avatar: v.optional(v.string()),
         tokenIdentifier: v.optional(v.string()),
