@@ -41,9 +41,6 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const { signIn, signOut } = useAuthActions();
     const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
-    const router = useRouter();
-    const [mounted, setMounted] = useState(false);
-    const { resolvedTheme } = useTheme();
 
     // Query backend session state directly
     const backendUser = useQuery(api.myUser.get);
@@ -53,6 +50,7 @@ export default function LoginPage() {
     }, []);
 
     const logoSrc = mounted && resolvedTheme === "dark" ? "/logo-dark.png" : "/logo.png";
+    const themeDebug = mounted ? resolvedTheme : "system";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,7 +81,7 @@ export default function LoginPage() {
     const handleGoogleLogin = async () => {
         setIsLoading(true);
         try {
-            await signIn("google");
+            await signIn("google", { redirectTo: "/dashboard" });
         } catch (error) {
             console.error("Google login error:", error);
             toast.error("Грешка при вход с Google");
@@ -93,14 +91,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 relative">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 relative" suppressHydrationWarning>
             <div className="absolute top-0 left-0 p-2 text-xs text-black bg-yellow-200 z-50 opacity-80 select-text">
                 DEBUG INFO:<br />
                 CONVEX_URL: {process.env.NEXT_PUBLIC_CONVEX_URL || "UNDEFINED"}<br />
                 IS_AUTH: {isAuthenticated ? "TRUE" : "FALSE"}<br />
                 AUTH_LOADING: {isAuthLoading ? "YES" : "NO"}<br />
                 BACKEND_USER: {backendUser === undefined ? "LOADING..." : backendUser === null ? "NULL" : backendUser}<br />
-                THEME: {resolvedTheme}
+                THEME: {themeDebug}
             </div>
 
             <Card className="w-full max-w-md shadow-xl">
