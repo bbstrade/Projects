@@ -10,6 +10,11 @@ export default {
             domain: "https://aromatic-husky-535.convex.cloud",
             applicationID: "convex",
         },
+        {
+            domain: "https://projects-bbstrade.vercel.app",
+            applicationID: "convex",
+        },
     ],
 };
+
 
