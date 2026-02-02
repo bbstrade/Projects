@@ -44,8 +44,8 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { language } = useLanguage();
-    const dict = getDictionary(language);
+    const { lang } = useLanguage();
+    const dict = getDictionary(lang);
     const { theme, setTheme } = useTheme();
     const { isAuthenticated } = useConvexAuth();
 
