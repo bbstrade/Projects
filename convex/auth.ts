@@ -4,6 +4,7 @@ import { Password } from "@convex-dev/auth/providers/Password";
 const ResendOTP = {
     id: "resend-otp",
     type: "email" as const,
+    name: "ResendOTP",
     apiKey: process.env.AUTH_RESEND_KEY,
     maxAge: 60 * 15, // 15 minutes
     async generateVerificationToken() {
