@@ -34,6 +34,7 @@ export const ResendOTP = Email({
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     providers: [
         Password({
+            id: "password",
             verify: ResendOTP,
             profile(params) {
                 return {
@@ -42,6 +43,5 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
                 };
             },
         }),
-        ResendOTP,
     ],
 });
