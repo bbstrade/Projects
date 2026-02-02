@@ -18,7 +18,15 @@ const dictionaries = {
         verificationSent: "Verification email sent",
         checkEmail: "Please check your email",
         welcomeBack: "Welcome back",
-        forgotPassword: "Forgot password?"
+        forgotPassword: "Forgot password?",
+        loadingCreating: "Creating...",
+        loadingVerifying: "Verifying...",
+        loadingChecking: "Checking...",
+        loadingLoggingIn: "Logging in...",
+        resendCode: "Resend Code",
+        confirmPassword: "Confirm Password",
+        passwordsDoNotMatch: "Passwords do not match",
+        codeResent: "Code resent successfully"
     },
     bg: {
         login: "Вход",
@@ -36,7 +44,15 @@ const dictionaries = {
         verificationSent: "Код за потвърждение",
         checkEmail: "Моля проверете имейла си",
         welcomeBack: "Добре дошли отново",
-        forgotPassword: "Забравена парола?"
+        forgotPassword: "Забравена парола?",
+        loadingCreating: "Създаване...",
+        loadingVerifying: "Проверка...",
+        loadingChecking: "Проверка...",
+        loadingLoggingIn: "Вход...",
+        resendCode: "Изпрати нов код",
+        confirmPassword: "Потвърди парола",
+        passwordsDoNotMatch: "Паролите не съвпадат",
+        codeResent: "Кодът е изпратен отново"
     },
 };
 

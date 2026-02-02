@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { getDictionary } from "@/lib/dictionary";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,11 +30,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 
-// Define validation schema
+// Define validation schema with Confirm Password
 const registerSchema = z.object({
     name: z.string().min(2, { message: "Името трябва да е поне 2 символа" }),
     email: z.string().email({ message: "Моля въведете валиден имейл" }),
     password: z.string().min(6, { message: "Паролата трябва да е поне 6 символа" }),
+    confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Паролите не съвпадат",
+    path: ["confirmPassword"],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -60,6 +64,7 @@ export default function RegisterPage() {
             name: "",
             email: "",
             password: "",
+            confirmPassword: "",
         },
     });
 
@@ -101,11 +106,24 @@ export default function RegisterPage() {
                 code: otp
             });
             toast.success(dict.registerSuccess || "Успешна регистрация!");
-            // Remove manual router.push here to avoid race condition with Middleware cookie check
-            // The useEffect above will handle redirection once isAuthenticated is true
         } catch (err) {
             console.error(err);
             handleAuthError(err);
+            setLoading(false);
+        }
+    };
+
+    const onResendCode = async () => {
+        if (!formData) return;
+        setLoading(true);
+        setError("");
+        try {
+            await signIn("password", { email: formData.email, password: formData.password, name: formData.name, flow: "signUp" });
+            toast.success(dict.codeResent || "Кодът е изпратен отново!");
+        } catch (err) {
+            console.error(err);
+            handleAuthError(err);
+        } finally {
             setLoading(false);
         }
     };
@@ -168,24 +186,35 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        <Button
-                            onClick={onVerify}
-                            className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white"
-                            disabled={loading || otp.length < 6}
-                        >
-                            {loading ? (
-                                <div className="flex items-center justify-center space-x-2">
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                    <span>Verifying...</span>
-                                </div>
-                            ) : (
-                                "Потвърди"
-                            )}
-                        </Button>
+                        <div className="flex flex-col gap-3">
+                            <Button
+                                onClick={onVerify}
+                                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white"
+                                disabled={loading || otp.length < 6}
+                            >
+                                {loading ? (
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        <span>{dict.loadingVerifying || "Проверка..."}</span>
+                                    </div>
+                                ) : (
+                                    "Потвърди"
+                                )}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={onResendCode}
+                                className="w-full h-11"
+                                disabled={loading}
+                            >
+                                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                                {dict.resendCode || "Изпрати нов код"}
+                            </Button>
+                        </div>
 
                         <Button
                             variant="ghost"
-                            className="w-full text-muted-foreground hover:text-primary"
+                            className="w-full text-muted-foreground hover:text-primary mt-2"
                             onClick={() => setPendingVerification(false)}
                         >
                             Назад
@@ -302,6 +331,24 @@ export default function RegisterPage() {
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-medium">{dict.confirmPassword || "Потвърди парола"}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="••••••••"
+                                                type="password"
+                                                className={`h-11 transition-all duration-200 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 ${error ? 'border-red-500 focus:ring-red-200' : ''}`}
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <Button
                                 type="submit"
                                 className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white mt-2"
@@ -310,7 +357,7 @@ export default function RegisterPage() {
                                 {loading ? (
                                     <div className="flex items-center justify-center space-x-2">
                                         <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>Creating...</span>
+                                        <span>{dict.loadingCreating || "Създаване..."}</span>
                                     </div>
                                 ) : (
                                     dict.register || "Регистрация"
