@@ -16,7 +16,9 @@ const dictionaries = {
         name: "Name",
         createAccount: "Create your account",
         verificationSent: "Verification email sent",
-        checkEmail: "Please check your email"
+        checkEmail: "Please check your email",
+        welcomeBack: "Welcome back",
+        forgotPassword: "Forgot password?"
     },
     bg: {
         login: "Вход",
@@ -32,7 +34,9 @@ const dictionaries = {
         name: "Име",
         createAccount: "Създайте своя профил",
         verificationSent: "Код за потвърждение",
-        checkEmail: "Моля проверете имейла си"
+        checkEmail: "Моля проверете имейла си",
+        welcomeBack: "Добре дошли отново",
+        forgotPassword: "Забравена парола?"
     },
 };
 
