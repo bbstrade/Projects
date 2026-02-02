@@ -12,11 +12,10 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { getDictionary } from "@/lib/dictionary";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Loader2, AlertCircle } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { useConvexAuth } from "convex/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,9 +28,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
 
-// Define validation schema
 const loginSchema = z.object({
     email: z.string().email({ message: "Моля въведете валиден имейл" }),
     password: z.string().min(1, { message: "Моля въведете парола" }),
@@ -49,7 +46,6 @@ export default function LoginPage() {
     const { theme, setTheme } = useTheme();
     const { isAuthenticated } = useConvexAuth();
 
-    // Initialize form
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
@@ -70,33 +66,32 @@ export default function LoginPage() {
 
         try {
             await signIn("password", { email: values.email, password: values.password, flow: "signIn" });
+            // Let the useEffect handle redirection
             toast.success(dict.loginSuccess || "Успешен вход!");
-            router.push("/dashboard");
         } catch (err) {
             console.error(err);
-            let errorMessage = dict.invalidCredentials || "Грешен имейл или парола";
-            const errString = String(err);
-            if (errString.includes("Account not found") || errString.includes("User not found")) {
-                errorMessage = "Акаунтът не е намерен. Моля, регистрирайте се.";
-            } else if (errString.includes("Invalid password") || errString.includes("Password incorrect")) {
-                errorMessage = "Грешна парола. Моля, опитайте отново.";
-            } else if (errString.includes("Network")) {
-                errorMessage = "Проблем с мрежата. Моля, проверете връзката си.";
-            } else if (errString.includes("Rate limit")) {
-                errorMessage = "Твърде много опити. Моля, изчакайте малко.";
-            }
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
+            handleAuthError(err);
+            setLoading(false); // Only stop loading on error, keep loading on success until redirect
         }
+    };
+
+    const handleAuthError = (err: any) => {
+        let errorMessage = "Възникна грешка.";
+        const errString = String(err);
+        if (errString.includes("Invalid credentials") || errString.includes("Password")) {
+            errorMessage = "Грешен имейл или парола.";
+        } else if (errString.includes("Network")) {
+            errorMessage = "Проблем с мрежата.";
+        }
+        setError(errorMessage);
     };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4 relative overflow-hidden">
 
             {/* Background decoration */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/30 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-200/30 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="absolute top-4 right-4 z-10">
                 <Button
@@ -111,11 +106,10 @@ export default function LoginPage() {
                 </Button>
             </div>
 
-
             <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl animate-in fade-in zoom-in duration-500">
-                <CardHeader className="space-y-4 text-center pb-8 pt-8">
+                <CardHeader className="space-y-1 text-center pb-8 pt-8">
                     <div className="flex justify-center mb-4 transition-transform hover:scale-105 duration-300">
-                        <div className="relative w-32 h-32 filter drop-shadow-lg">
+                        <div className="relative w-24 h-24 filter drop-shadow-lg">
                             <Image
                                 src="/logo.png"
                                 alt="Logo"
@@ -128,11 +122,8 @@ export default function LoginPage() {
                     <CardTitle className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                         {dict.login || "Вход"}
                     </CardTitle>
-                    <p className="text-xl font-bold text-black dark:text-white mt-[-0.5rem] mb-2">
-                        График
-                    </p>
                     <CardDescription className="text-base text-muted-foreground">
-                        {dict.loginPrompt || "Въведете вашите данни за вход"}
+                        {dict.welcomeBack || "Добре дошли отново"}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 px-8 pb-8">
@@ -147,7 +138,7 @@ export default function LoginPage() {
                     )}
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -158,7 +149,6 @@ export default function LoginPage() {
                                             <Input
                                                 placeholder="name@example.com"
                                                 type="email"
-                                                autoComplete="email"
                                                 className={`h-11 transition-all duration-200 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 ${error ? 'border-red-500 focus:ring-red-200' : ''}`}
                                                 {...field}
                                             />
@@ -172,12 +162,19 @@ export default function LoginPage() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-medium">{dict.password || "Парола"}</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel className="text-sm font-medium">{dict.password || "Парола"}</FormLabel>
+                                            <Link
+                                                href="/forgot-password"
+                                                className="ml-auto text-sm font-medium text-primary hover:underline group-hover:text-primary/80"
+                                            >
+                                                {dict.forgotPassword || "Забравена парола?"}
+                                            </Link>
+                                        </div>
                                         <FormControl>
                                             <Input
                                                 placeholder="••••••••"
                                                 type="password"
-                                                autoComplete="current-password"
                                                 className={`h-11 transition-all duration-200 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 ${error ? 'border-red-500 focus:ring-red-200' : ''}`}
                                                 {...field}
                                             />
@@ -186,16 +183,15 @@ export default function LoginPage() {
                                     </FormItem>
                                 )}
                             />
-
                             <Button
                                 type="submit"
-                                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white"
+                                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white mt-2"
                                 disabled={loading}
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center space-x-2">
                                         <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>checking...</span>
+                                        <span>Logging in...</span>
                                     </div>
                                 ) : (
                                     dict.login || "Вход"
@@ -207,7 +203,7 @@ export default function LoginPage() {
                 <Separator className="bg-gray-100 dark:bg-gray-800" />
                 <CardFooter className="flex flex-col space-y-4 pt-6 pb-8 bg-gray-50/50 dark:bg-gray-900/50">
                     <div className="text-center text-sm text-muted-foreground">
-                        {dict.noAccount || "Нямате акаунт?"}{" "}
+                        {dict.dontHaveAccount || "Нямате акаунт?"}{" "}
                         <Link href="/register" className="font-semibold text-primary hover:text-primary/80 hover:underline transition-all">
                             {dict.register || "Регистрация"}
                         </Link>

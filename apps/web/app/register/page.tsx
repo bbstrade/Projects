@@ -82,7 +82,6 @@ export default function RegisterPage() {
         } catch (err) {
             console.error(err);
             handleAuthError(err);
-        } finally {
             setLoading(false);
         }
     };
@@ -94,7 +93,6 @@ export default function RegisterPage() {
 
         try {
             // Second step: Verify code
-            // Note: Use flow: "signUp" (or "email-verification" depending on provider) with the code
             await signIn("password", {
                 email: formData.email,
                 password: formData.password,
@@ -103,11 +101,11 @@ export default function RegisterPage() {
                 code: otp
             });
             toast.success(dict.registerSuccess || "Успешна регистрация!");
-            router.push("/dashboard");
+            // Remove manual router.push here to avoid race condition with Middleware cookie check
+            // The useEffect above will handle redirection once isAuthenticated is true
         } catch (err) {
             console.error(err);
             handleAuthError(err);
-        } finally {
             setLoading(false);
         }
     };
