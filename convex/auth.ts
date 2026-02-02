@@ -1,16 +1,15 @@
 import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
+import { Email } from "@convex-dev/auth/providers/Email";
 
-const ResendOTP = {
+export const ResendOTP = Email({
     id: "resend-otp",
-    type: "email" as const,
-    name: "ResendOTP",
     apiKey: process.env.AUTH_RESEND_KEY,
     maxAge: 60 * 15, // 15 minutes
     async generateVerificationToken() {
         return Math.floor(100000 + Math.random() * 900000).toString();
     },
-    async sendVerificationRequest({ identifier: email, provider, token }: any) {
+    async sendVerificationRequest({ identifier: email, provider, token }) {
         const response = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -30,7 +29,7 @@ const ResendOTP = {
             throw new Error(`Could not send email: ${text}`);
         }
     },
-};
+});
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     providers: [
