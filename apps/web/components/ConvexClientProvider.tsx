@@ -14,7 +14,7 @@ export default function ConvexClientProvider({
 }) {
     return (
         <Suspense fallback={<Loading />}>
-            <ConvexAuthNextjsProvider client={convex} verbose={true}>
+            <ConvexAuthNextjsProvider client={convex}>
                 {children}
             </ConvexAuthNextjsProvider>
         </Suspense>
