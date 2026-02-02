@@ -46,7 +46,12 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
     const { signIn } = useAuthActions();
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+
+    // Separate loading states
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [verifyLoading, setVerifyLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+
     const [pendingVerification, setPendingVerification] = useState(false);
     const [otp, setOtp] = useState("");
     const [formData, setFormData] = useState<RegisterFormValues | null>(null);
@@ -75,7 +80,7 @@ export default function RegisterPage() {
     }, [isAuthenticated, router]);
 
     const onSubmit = async (values: RegisterFormValues) => {
-        setLoading(true);
+        setSubmitLoading(true);
         setError("");
 
         try {
@@ -87,13 +92,14 @@ export default function RegisterPage() {
         } catch (err) {
             console.error(err);
             handleAuthError(err);
-            setLoading(false);
+        } finally {
+            setSubmitLoading(false);
         }
     };
 
     const onVerify = async () => {
         if (!formData || !otp) return;
-        setLoading(true);
+        setVerifyLoading(true);
         setError("");
 
         try {
@@ -106,16 +112,18 @@ export default function RegisterPage() {
                 code: otp
             });
             toast.success(dict.registerSuccess || "Успешна регистрация!");
+            router.push("/dashboard");
         } catch (err) {
             console.error(err);
             handleAuthError(err);
-            setLoading(false);
+        } finally {
+            setVerifyLoading(false);
         }
     };
 
     const onResendCode = async () => {
         if (!formData) return;
-        setLoading(true);
+        setResendLoading(true);
         setError("");
         try {
             await signIn("password", { email: formData.email, password: formData.password, name: formData.name, flow: "signUp" });
@@ -124,7 +132,7 @@ export default function RegisterPage() {
             console.error(err);
             handleAuthError(err);
         } finally {
-            setLoading(false);
+            setResendLoading(false);
         }
     };
 
@@ -190,9 +198,9 @@ export default function RegisterPage() {
                             <Button
                                 onClick={onVerify}
                                 className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white"
-                                disabled={loading || otp.length < 6}
+                                disabled={verifyLoading || otp.length < 6}
                             >
-                                {loading ? (
+                                {verifyLoading ? (
                                     <div className="flex items-center justify-center space-x-2">
                                         <Loader2 className="h-5 w-5 animate-spin" />
                                         <span>{dict.loadingVerifying || "Проверка..."}</span>
@@ -205,9 +213,9 @@ export default function RegisterPage() {
                                 variant="outline"
                                 onClick={onResendCode}
                                 className="w-full h-11"
-                                disabled={loading}
+                                disabled={resendLoading}
                             >
-                                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                                <RefreshCw className={`h-4 w-4 mr-2 ${resendLoading ? "animate-spin" : ""}`} />
                                 {dict.resendCode || "Изпрати нов код"}
                             </Button>
                         </div>
