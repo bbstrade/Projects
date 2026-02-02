@@ -11,10 +11,11 @@ export default {
             applicationID: "convex",
         },
         {
-            domain: "https://projects-bbstrade.vercel.app",
+            domain: process.env.SITE_URL || "https://projects-bbstrade.vercel.app",
             applicationID: "convex",
         },
     ],
 };
+
 
 
