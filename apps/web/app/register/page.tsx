@@ -16,7 +16,7 @@ import { Sun, Moon } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useConvexAuth } from "convex/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +29,6 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
 
 // Define validation schema
 const registerSchema = z.object({
@@ -45,6 +44,9 @@ export default function RegisterPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [pendingVerification, setPendingVerification] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [formData, setFormData] = useState<RegisterFormValues | null>(null);
+
     const router = useRouter();
     const { lang } = useLanguage();
     const dict = getDictionary(lang);
@@ -72,51 +74,123 @@ export default function RegisterPage() {
         setError("");
 
         try {
+            // First step: Trigger verification code
             await signIn("password", { email: values.email, password: values.password, name: values.name, flow: "signUp" });
+            setFormData(values);
             setPendingVerification(true);
-            toast.success(dict.registerSuccess || "Успешна регистрация!");
+            toast.success(dict.verificationSent || "Изпратен е код за потвърждение!");
         } catch (err) {
             console.error(err);
-            let errorMessage = "Възникна грешка при регистрация";
-            const errString = String(err);
-            if (errString.includes("already exists")) {
-                errorMessage = "Потребител с този имейл вече съществува.";
-            } else if (errString.includes("Weak password")) {
-                errorMessage = "Паролата е твърде слаба.";
-            } else if (errString.includes("Network")) {
-                errorMessage = "Проблем с мрежата. Моля, проверете връзката си.";
-            }
-            setError(errorMessage);
+            handleAuthError(err);
         } finally {
             setLoading(false);
         }
     };
 
+    const onVerify = async () => {
+        if (!formData || !otp) return;
+        setLoading(true);
+        setError("");
+
+        try {
+            // Second step: Verify code
+            // Note: Use flow: "signUp" (or "email-verification" depending on provider) with the code
+            await signIn("password", {
+                email: formData.email,
+                password: formData.password,
+                name: formData.name,
+                flow: "signUp",
+                code: otp
+            });
+            toast.success(dict.registerSuccess || "Успешна регистрация!");
+            router.push("/dashboard");
+        } catch (err) {
+            console.error(err);
+            handleAuthError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAuthError = (err: any) => {
+        let errorMessage = "Възникна грешка.";
+        const errString = String(err);
+        if (errString.includes("already exists")) {
+            errorMessage = "Потребител с този имейл вече съществува.";
+        } else if (errString.includes("Weak password")) {
+            errorMessage = "Паролата е твърде слаба.";
+        } else if (errString.includes("Network")) {
+            errorMessage = "Проблем с мрежата.";
+        } else if (errString.includes("Code")) {
+            errorMessage = "Грешен код за потвърждение.";
+        }
+        setError(errorMessage);
+    };
+
     if (pendingVerification) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4 relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-200/30 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[100px] pointer-events-none" />
+
                 <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl animate-in fade-in zoom-in duration-500">
-                    <CardHeader className="text-center">
+                    <CardHeader className="text-center pt-8">
                         <div className="flex justify-center mb-4">
                             <div className="relative w-24 h-24">
                                 <Image src="/logo.png" alt="Logo" fill style={{ objectFit: "contain" }} />
                             </div>
                         </div>
-                        <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-500">{dict.verificationSent || "Код за потвърждение"}</CardTitle>
-                        <CardDescription className="text-lg mt-4">
-                            {dict.checkEmail || "Моля проверете имейла си"}
+                        <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
+                            {dict.verificationSent || "Код за потвърждение"}
+                        </CardTitle>
+                        <CardDescription className="text-lg mt-2">
+                            {dict.checkEmail || "Въведете кода изпратен на"}: <span className="font-medium text-primary">{formData?.email}</span>
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="text-center pb-8">
-                        <p className="text-muted-foreground mb-6">
-                            Изпратихме код за потвърждение на вашият имейл.
-                        </p>
+                    <CardContent className="text-center pb-8 space-y-6">
+                        {error && (
+                            <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Грешка</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        <div className="space-y-2">
+                            <Label htmlFor="otp" className="sr-only">Code</Label>
+                            <Input
+                                id="otp"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="123456"
+                                className="text-center text-2xl tracking-[0.5em] font-mono h-14 border-2 focus:ring-2 focus:ring-primary/20"
+                                maxLength={6}
+                                autoFocus
+                            />
+                        </div>
+
                         <Button
-                            variant="outline"
-                            className="w-full"
+                            onClick={onVerify}
+                            className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white"
+                            disabled={loading || otp.length < 6}
+                        >
+                            {loading ? (
+                                <div className="flex items-center justify-center space-x-2">
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span>Verifying...</span>
+                                </div>
+                            ) : (
+                                "Потвърди"
+                            )}
+                        </Button>
+
+                        <Button
+                            variant="ghost"
+                            className="w-full text-muted-foreground hover:text-primary"
                             onClick={() => setPendingVerification(false)}
                         >
-                            Назад към регистрация
+                            Назад
                         </Button>
                     </CardContent>
                 </Card>
@@ -232,7 +306,7 @@ export default function RegisterPage() {
                             />
                             <Button
                                 type="submit"
-                                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 mt-2"
+                                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white mt-2"
                                 disabled={loading}
                             >
                                 {loading ? (
