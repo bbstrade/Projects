@@ -1,12 +1,7 @@
 import { convexAuth } from "@convex-dev/auth/server";
-
 import { Password } from "@convex-dev/auth/providers/Password";
-
-import { Resend } from "resend";
 import { Email } from "@convex-dev/auth/providers/Email";
-import { alphabet, generateRandomString } from "oslo/crypto/random"; // Verify if oslo is available? No.
 
-// custom implementation
 export const ResendOTP = Email({
     id: "resend-otp",
     apiKey: process.env.AUTH_RESEND_KEY,
@@ -15,16 +10,23 @@ export const ResendOTP = Email({
         return Math.floor(100000 + Math.random() * 900000).toString();
     },
     async sendVerificationRequest({ identifier: email, provider, token }) {
-        const resend = new Resend(provider.apiKey);
-        const { error } = await resend.emails.send({
-            from: "My App <onboarding@resend.dev>",
-            to: email,
-            subject: `Sign in verification code`,
-            html: `<p>Your verification code is: <strong>${token}</strong></p>`,
+        const response = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${provider.apiKey}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                from: "Project Manager <onboarding@resend.dev>",
+                to: [email],
+                subject: `Sign in verification code`,
+                html: `<p>Your verification code is: <strong>${token}</strong></p>`,
+            }),
         });
 
-        if (error) {
-            throw new Error("Could not send email: " + error.message);
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Could not send email: ${text}`);
         }
     },
 });
