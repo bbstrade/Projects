@@ -203,7 +203,7 @@ export default function LoginPage() {
                 <Separator className="bg-gray-100 dark:bg-gray-800" />
                 <CardFooter className="flex flex-col space-y-4 pt-6 pb-8 bg-gray-50/50 dark:bg-gray-900/50">
                     <div className="text-center text-sm text-muted-foreground">
-                        {dict.dontHaveAccount || "Нямате акаунт?"}{" "}
+                        {dict.noAccount || "Нямате акаунт?"}{" "}
                         <Link href="/register" className="font-semibold text-primary hover:text-primary/80 hover:underline transition-all">
                             {dict.register || "Регистрация"}
                         </Link>
