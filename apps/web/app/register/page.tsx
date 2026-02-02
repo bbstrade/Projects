@@ -352,9 +352,9 @@ export default function RegisterPage() {
                             <Button
                                 type="submit"
                                 className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98] bg-black hover:bg-black/90 text-white mt-2"
-                                disabled={loading}
+                                disabled={submitLoading}
                             >
-                                {loading ? (
+                                {submitLoading ? (
                                     <div className="flex items-center justify-center space-x-2">
                                         <Loader2 className="h-5 w-5 animate-spin" />
                                         <span>{dict.loadingCreating || "Създаване..."}</span>
