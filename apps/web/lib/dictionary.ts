@@ -2,7 +2,7 @@
 
 
 const dictionaries = {
-    en: () => Promise.resolve({
+    en: {
         login: "Log in",
         loginPrompt: "Enter your credentials to access your account",
         email: "Email",
@@ -17,8 +17,8 @@ const dictionaries = {
         createAccount: "Create your account",
         verificationSent: "Verification email sent",
         checkEmail: "Please check your email"
-    }),
-    bg: () => Promise.resolve({
+    },
+    bg: {
         login: "Вход",
         loginPrompt: "Въведете вашите данни за вход",
         email: "Имейл",
@@ -33,12 +33,12 @@ const dictionaries = {
         createAccount: "Създайте своя профил",
         verificationSent: "Код за потвърждение",
         checkEmail: "Моля проверете имейла си"
-    }),
+    },
 };
 
-export const getDictionary = async (locale: string) => {
+export const getDictionary = (locale: string) => {
     if (locale === "bg") {
-        return dictionaries.bg();
+        return dictionaries.bg;
     }
-    return dictionaries.en();
+    return dictionaries.en;
 };
