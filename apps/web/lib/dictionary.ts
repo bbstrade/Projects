@@ -1,4 +1,5 @@
-import "server-only";
+// import "server-only";  <-- Removed to support Client Component usage
+
 
 const dictionaries = {
     en: () => Promise.resolve({
