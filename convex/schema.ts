@@ -83,13 +83,15 @@ export default defineSchema({
         name: v.optional(v.string()),
         email: v.optional(v.string()),
         emailVerified: v.optional(v.boolean()),
-        image: v.optional(v.string()), // Added for compatibility with Auth
+        image: v.optional(v.string()),
         emailVerificationTime: v.optional(v.number()),
+        phone: v.optional(v.string()), // Added for auth compatibility
+        phoneVerificationTime: v.optional(v.number()), // Added for auth compatibility
         isAnonymous: v.optional(v.boolean()),
         avatar: v.optional(v.string()),
         tokenIdentifier: v.optional(v.string()),
         role: v.optional(v.string()), // admin, member
-        currentTeamId: v.optional(v.string()), // string to match teamId in projects
+        currentTeamId: v.optional(v.string()),
         preferences: v.optional(v.object({
             theme: v.string(),
             notifications: v.boolean(),
@@ -99,6 +101,7 @@ export default defineSchema({
         updatedAt: v.optional(v.number()),
     })
         .index("email", ["email"])
+        .index("phone", ["phone"]) // Added for auth compatibility
         .index("by_token", ["tokenIdentifier"]),
 
     teams: defineTable({
