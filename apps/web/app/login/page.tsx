@@ -32,10 +32,10 @@ import {
 
 const formSchema = z.object({
     email: z.string().email({
-        message: "Please enter a valid email address.",
+        message: "Моля, въведете валиден имейл адрес.",
     }),
     password: z.string().min(1, {
-        message: "Password is required.",
+        message: "Паролата е задължителна.",
     }),
 });
 
@@ -61,13 +61,13 @@ export default function LoginPage() {
             });
 
             if (error) {
-                toast.error(error.message || "Something went wrong");
+                toast.error(error.message || "Нещо се обърка");
             } else {
-                toast.success("Signed in successfully");
+                toast.success("Успешен вход");
                 router.push("/dashboard");
             }
         } catch (err: any) {
-            toast.error("An unexpected error occurred");
+            toast.error("Възникна неочаквана грешка");
             console.error(err);
         } finally {
             setLoading(false);
@@ -78,9 +78,9 @@ export default function LoginPage() {
         <div className="flex items-center justify-center min-h-screen bg-muted/50">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Вход</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your email and password to access your account
+                        Въведете вашия имейл и парола за достъп
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>Имейл</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="name@example.com"
@@ -109,10 +109,18 @@ export default function LoginPage() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Password</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>Парола</FormLabel>
+                                            <Link
+                                                href="/forgot-password"
+                                                className="text-sm font-medium text-primary hover:underline"
+                                            >
+                                                Забравена парола?
+                                            </Link>
+                                        </div>
                                         <FormControl>
                                             <Input
-                                                placeholder="Enter your password"
+                                                placeholder="Въведете вашата парола"
                                                 type="password"
                                                 disabled={loading}
                                                 {...field}
@@ -124,16 +132,16 @@ export default function LoginPage() {
                             />
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Sign In
+                                Вход
                             </Button>
                         </form>
                     </Form>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2">
                     <div className="text-sm text-center text-muted-foreground w-full">
-                        Don&apos;t have an account?{" "}
+                        Нямате акаунт?{" "}
                         <Link href="/register" className="text-primary hover:underline font-medium">
-                            Register
+                            Регистрация
                         </Link>
                     </div>
                 </CardFooter>

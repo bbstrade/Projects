@@ -32,13 +32,13 @@ import { useTheme } from "next-themes";
 
 const formSchema = z.object({
     name: z.string().min(2, {
-        message: "Name must be at least 2 characters.",
+        message: "Името трябва да е поне 2 знака.",
     }),
     email: z.string().email({
-        message: "Please enter a valid email address.",
+        message: "Моля, въведете валиден имейл адрес.",
     }),
     password: z.string().min(8, {
-        message: "Password must be at least 8 characters.",
+        message: "Паролата трябва да е поне 8 знака.",
     }),
 });
 
@@ -66,13 +66,13 @@ export default function RegisterPage() {
             });
 
             if (error) {
-                toast.error(error.message || "Registration failed");
+                toast.error(error.message || "Регистрацията неуспешна");
             } else {
-                toast.success("Account created successfully!");
+                toast.success("Акаунтът е създаден успешно!");
                 router.push("/dashboard");
             }
         } catch (err: any) {
-            toast.error("An unexpected error occurred");
+            toast.error("Възникна неочаквана грешка");
             console.error(err);
         } finally {
             setLoading(false);
@@ -83,9 +83,9 @@ export default function RegisterPage() {
         <div className="flex items-center justify-center min-h-screen bg-muted/50">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Създаване на акаунт</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your information to create your account
+                        Въведете данните си, за да създадете акаунт
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -96,10 +96,10 @@ export default function RegisterPage() {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Name</FormLabel>
+                                        <FormLabel>Име</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="John Doe"
+                                                placeholder="Иван Петров"
                                                 disabled={loading}
                                                 {...field}
                                             />
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>Имейл</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="name@example.com"
@@ -131,10 +131,10 @@ export default function RegisterPage() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Password</FormLabel>
+                                        <FormLabel>Парола</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Create a password"
+                                                placeholder="Създайте парола"
                                                 type="password"
                                                 disabled={loading}
                                                 {...field}
@@ -146,16 +146,16 @@ export default function RegisterPage() {
                             />
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Register
+                                Регистрация
                             </Button>
                         </form>
                     </Form>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2">
                     <div className="text-sm text-center text-muted-foreground w-full">
-                        Already have an account?{" "}
+                        Вече имате акаунт?{" "}
                         <Link href="/login" className="text-primary hover:underline font-medium">
-                            Login
+                            Вход
                         </Link>
                     </div>
                 </CardFooter>
