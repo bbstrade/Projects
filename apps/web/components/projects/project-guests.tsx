@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/language-provider";
 import {
     Table,
     TableBody,
@@ -32,6 +33,7 @@ interface ProjectGuestsProps {
 }
 
 export function ProjectGuests({ projectId }: ProjectGuestsProps) {
+    const { t } = useLanguage();
     const guests = useQuery(api.project_guests.list, { projectId });
     const inviteGuest = useMutation(api.project_guests.invite);
     const removeGuest = useMutation(api.project_guests.remove);
@@ -48,24 +50,24 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
         return (
             <div className="p-8 text-center text-muted-foreground border rounded-lg bg-slate-50 dark:bg-slate-900/50">
                 <Shield className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Достъпът за гости е изключен</h3>
-                <p>Този екип не позволява външни гости.</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t("guestAccessDisabled")}</h3>
+                <p>{t("guestAccessDisabledDesc")}</p>
             </div>
         );
     }
 
     const availablePermissions = [
-        { id: "view", label: "Преглед на проект" },
-        { id: "comment", label: "Коментари" },
-        { id: "edit_tasks", label: "Редактиране на задачи" },
-        { id: "create_tasks", label: "Създаване на задачи" },
+        { id: "view", label: t("permView") },
+        { id: "comment", label: t("permComment") },
+        { id: "edit_tasks", label: t("permEditTasks") },
+        { id: "create_tasks", label: t("permCreateTasks") },
     ];
 
     const translateStatus = (status: string) => {
         const map: Record<string, string> = {
-            active: "Активен",
-            pending: "Чакащ",
-            revoked: "Отменен",
+            active: t("statusActive"),
+            pending: t("statusPending"),
+            revoked: t("statusRevoked"),
         };
         return map[status] || status;
     };
@@ -78,12 +80,12 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                 email,
                 permissions,
             });
-            toast.success("Гостът е поканен успешно");
+            toast.success(t("guestInvited"));
             setIsInviteOpen(false);
             setEmail("");
             setPermissions(["view"]);
         } catch (error: any) {
-            toast.error(error.message || "Грешка при покана на гост");
+            toast.error(error.message || t("guestInviteError"));
         }
     };
 
@@ -96,35 +98,35 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
     };
 
     const handleRemove = async (id: Id<"projectGuests">) => {
-        if (confirm("Премахване на този гост?")) {
+        if (confirm(t("removeGuestConfirm"))) {
             await removeGuest({ id });
-            toast.success("Гостът е премахнат");
+            toast.success(t("guestRemoved"));
         }
     };
 
-    if (!guests) return <div>Зареждане на гости...</div>;
+    if (!guests) return <div>{t("loadingChecking")}</div>;
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-4 rounded-lg border border-border">
-                <h3 className="font-semibold">Гости</h3>
+                <h3 className="font-semibold">{t("guestsTitle")}</h3>
                 <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                     <DialogTrigger asChild>
                         <Button>
                             <UserPlus className="w-4 h-4 mr-2" />
-                            Покани гост
+                            {t("inviteGuest")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Покани външен гост</DialogTitle>
+                            <DialogTitle>{t("inviteExternalGuest")}</DialogTitle>
                             <DialogDescription>
-                                Поканете някого извън екипа за сътрудничество по този проект.
+                                {t("inviteGuestDesc")}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Имейл адрес</label>
+                                <label className="text-sm font-medium">{t("emailAddress")}</label>
                                 <Input
                                     placeholder="guest@example.com"
                                     value={email}
@@ -132,7 +134,7 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Права</label>
+                                <label className="text-sm font-medium">{t("permissions")}</label>
                                 <div className="space-y-2 border rounded-md p-3">
                                     {availablePermissions.map((perm) => (
                                         <div key={perm.id} className="flex items-center space-x-2">
@@ -149,7 +151,7 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                                 </div>
                             </div>
                         </div>
-                        <Button onClick={handleInvite} className="w-full">Изпрати покана</Button>
+                        <Button onClick={handleInvite} className="w-full">{t("sendInvite")}</Button>
                     </DialogContent>
                 </Dialog>
             </div>
@@ -158,17 +160,17 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Имейл / Потребител</TableHead>
-                            <TableHead>Статус</TableHead>
-                            <TableHead>Права</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
+                            <TableHead>{t("emailAddress")} / {t("name")}</TableHead>
+                            <TableHead>{t("status")}</TableHead>
+                            <TableHead>{t("permissions")}</TableHead>
+                            <TableHead className="text-right">{t("actions")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {guests.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                                    Все още няма поканени гости.
+                                    {t("noGuests")}
                                 </TableCell>
                             </TableRow>
                         )}

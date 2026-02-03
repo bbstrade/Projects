@@ -14,6 +14,7 @@ import { ProjectComments } from "@/components/projects/project-comments";
 import { EditProjectDialog } from "@/components/projects/edit-project-dialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export default function ProjectDetailsPage() {
     const params = useParams();
@@ -23,6 +24,8 @@ export default function ProjectDetailsPage() {
     const project = useQuery(api.projects.get, { id: projectId });
     const stats = useQuery(api.projects.getStats, { projectId });
     const deleteProject = useMutation(api.projects.remove);
+
+    const { t } = useLanguage();
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -37,22 +40,22 @@ export default function ProjectDetailsPage() {
     if (project === null) {
         return (
             <div className="flex h-screen items-center justify-center flex-col gap-4">
-                <h2 className="text-xl font-semibold">Проектът не е намерен</h2>
+                <h2 className="text-xl font-semibold">{t("projectNotFound")}</h2>
                 <button onClick={() => router.push("/projects")} className="text-blue-500 hover:underline">
-                    Към всички проекти
+                    {t("toAllProjects")}
                 </button>
             </div>
         );
     }
 
     const handleDelete = async () => {
-        if (confirm("Сигурни ли сте, че искате да изтриете този проект? Това действие е необратимо.")) {
+        if (confirm(t("deleteConfirm"))) {
             try {
                 await deleteProject({ id: projectId });
-                toast.success("Проектът беше изтрит успешно");
+                toast.success(t("projectDeleted"));
                 router.push("/projects");
             } catch (error) {
-                toast.error("Грешка при изтриване на проекта");
+                toast.error(t("deleteError"));
             }
         }
     };
@@ -65,7 +68,7 @@ export default function ProjectDetailsPage() {
                         onClick={() => router.push("/projects")}
                         className="mb-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        ← Към всички проекти
+                        {t("backToProjects")}
                     </button>
 
                     <ProjectHeader
@@ -77,10 +80,10 @@ export default function ProjectDetailsPage() {
 
                     <Tabs defaultValue="tasks" className="space-y-4">
                         <TabsList>
-                            <TabsTrigger value="tasks">Задачи</TabsTrigger>
-                            <TabsTrigger value="team">Екип</TabsTrigger>
-                            <TabsTrigger value="guests">Гости</TabsTrigger>
-                            <TabsTrigger value="comments">Коментари</TabsTrigger>
+                            <TabsTrigger value="tasks">{t("tabTasks")}</TabsTrigger>
+                            <TabsTrigger value="team">{t("tabTeam")}</TabsTrigger>
+                            <TabsTrigger value="guests">{t("tabGuests")}</TabsTrigger>
+                            <TabsTrigger value="comments">{t("tabComments")}</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="tasks" className="space-y-4">
