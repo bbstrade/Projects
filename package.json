@@ -13,12 +13,15 @@
   "dependencies": {
     "@auth/core": "^0.37.4",
     "@convex-dev/better-auth": "^0.10.10",
-    "better-auth": "^1.4.18",
+    "better-auth": "1.4.9",
     "convex": "^1.31.7",
     "google-auth-library": "^10.5.0",
     "resend": "^6.9.1"
   },
   "devDependencies": {
     "jose": "^6.1.3"
+  },
+  "overrides": {
+    "@types/react": "^19.0.0"
   }
 }
