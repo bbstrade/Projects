@@ -40,6 +40,10 @@ const formSchema = z.object({
     password: z.string().min(8, {
         message: "Паролата трябва да е поне 8 знака.",
     }),
+    confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Паролите не съвпадат",
+    path: ["confirmPassword"],
 });
 
 export default function RegisterPage() {
@@ -53,6 +57,7 @@ export default function RegisterPage() {
             name: "",
             email: "",
             password: "",
+            confirmPassword: "",
         },
     });
 
@@ -80,15 +85,22 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/50">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Създаване на акаунт</CardTitle>
-                    <CardDescription className="text-center">
-                        Въведете данните си, за да създадете акаунт
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+            <div className="flex items-center justify-center py-12">
+                <div className="mx-auto grid w-[350px] gap-6">
+                    <div className="flex flex-col items-center text-center space-y-2">
+                        <div className="w-16 h-16 relative mb-2">
+                            <img
+                                src="/logo.png"
+                                alt="Logo"
+                                className="object-contain w-full h-full"
+                            />
+                        </div>
+                        <h1 className="text-3xl font-bold">Регистрация</h1>
+                        <p className="text-balance text-muted-foreground">
+                            Въведете вашите данни за нов акаунт
+                        </p>
+                    </div>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
@@ -116,7 +128,7 @@ export default function RegisterPage() {
                                         <FormLabel>Имейл</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="name@example.com"
+                                                placeholder="m@example.com"
                                                 type="email"
                                                 disabled={loading}
                                                 {...field}
@@ -144,22 +156,50 @@ export default function RegisterPage() {
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Потвърди парола</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Потвърдете вашата парола"
+                                                type="password"
+                                                disabled={loading}
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Регистрация
                             </Button>
                         </form>
                     </Form>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2">
-                    <div className="text-sm text-center text-muted-foreground w-full">
+                    <div className="text-center text-sm">
                         Вече имате акаунт?{" "}
-                        <Link href="/login" className="text-primary hover:underline font-medium">
+                        <Link href="/login" className="underline underline-offset-4 hover:text-primary">
                             Вход
                         </Link>
                     </div>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
+            <div className="hidden bg-muted lg:block relative h-full">
+                <div className="absolute inset-0 bg-zinc-900/10 dark:bg-zinc-900/50" />
+                <div className="h-full flex items-center justify-center p-8 bg-zinc-900 text-white">
+                    <div className="max-w-md space-y-4">
+                        <blockquote className="space-y-2">
+                            <p className="text-lg">
+                                "Присъединете се към хиляди професионалисти, които управляват своите проекти по-ефективно с нашата платформа."
+                            </p>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

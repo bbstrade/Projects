@@ -75,15 +75,22 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/50">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Вход</CardTitle>
-                    <CardDescription className="text-center">
-                        Въведете вашия имейл и парола за достъп
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+            <div className="flex items-center justify-center py-12">
+                <div className="mx-auto grid w-[350px] gap-6">
+                    <div className="flex flex-col items-center text-center space-y-2">
+                        <div className="w-16 h-16 relative mb-2">
+                            <img
+                                src="/logo.png"
+                                alt="Logo"
+                                className="object-contain w-full h-full"
+                            />
+                        </div>
+                        <h1 className="text-3xl font-bold">Добре дошли</h1>
+                        <p className="text-balance text-muted-foreground">
+                            Въведете вашия имейл за вход в системата
+                        </p>
+                    </div>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
@@ -94,7 +101,7 @@ export default function LoginPage() {
                                         <FormLabel>Имейл</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="name@example.com"
+                                                placeholder="m@example.com"
                                                 type="email"
                                                 disabled={loading}
                                                 {...field}
@@ -113,7 +120,7 @@ export default function LoginPage() {
                                             <FormLabel>Парола</FormLabel>
                                             <Link
                                                 href="/forgot-password"
-                                                className="text-sm font-medium text-primary hover:underline"
+                                                className="text-sm font-medium text-primary hover:underline underline-offset-4"
                                             >
                                                 Забравена парола?
                                             </Link>
@@ -136,16 +143,27 @@ export default function LoginPage() {
                             </Button>
                         </form>
                     </Form>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2">
-                    <div className="text-sm text-center text-muted-foreground w-full">
+                    <div className="text-center text-sm">
                         Нямате акаунт?{" "}
-                        <Link href="/register" className="text-primary hover:underline font-medium">
+                        <Link href="/register" className="underline underline-offset-4 hover:text-primary">
                             Регистрация
                         </Link>
                     </div>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
+            <div className="hidden bg-muted lg:block relative h-full">
+                <div className="absolute inset-0 bg-zinc-900/10 dark:bg-zinc-900/50" />
+                <div className="h-full flex items-center justify-center p-8 bg-zinc-900 text-white">
+                    <div className="max-w-md space-y-4">
+                        <blockquote className="space-y-2">
+                            <p className="text-lg">
+                                "Управлението на проекти никога не е било по-лесно. Системата ни помага да следим задачите, сроковете и екипите си с лекота."
+                            </p>
+                            <footer className="text-sm">John Doe</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

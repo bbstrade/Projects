@@ -1,9 +1,7 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useSession, signOut } from "@/lib/auth-client";
 import {
     User,
     Mail,
@@ -61,11 +59,12 @@ const dict = {
         admin: "Администратор",
         member: "Член",
         owner: "Собственик",
+        user: "Потребител"
     },
 };
 
 export default function ProfilePage() {
-    const { signOut } = useAuthActions();
+    const { data: session, isPending: isSessionLoading } = useSession();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [name, setName] = useState("");
@@ -73,21 +72,47 @@ export default function ProfilePage() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [language, setLanguage] = useState("bg");
 
-    // Get current user
-    const currentUser = useQuery(api.users.me);
+    // Get current user from Convex (if available)
+    const convexUser = useQuery(api.users.me);
     const updateUser = useMutation(api.users.update);
 
+    // Merge session user and convex user
+    const user = convexUser || (session?.user ? {
+        _id: undefined, // Cannot update if no convex ID
+        name: session.user.name,
+        email: session.user.email,
+        avatar: session.user.image,
+        role: "member",
+        createdAt: session.user.createdAt ? new Date(session.user.createdAt).getTime() : Date.now(),
+        // Default preferences
+        preferences: {
+            theme: "system",
+            notifications: true,
+            language: "bg"
+        }
+    } : null);
+
     // Initialize form values when user loads
-    if (currentUser && !name) {
-        setName(currentUser.name || "");
-    }
+    useEffect(() => {
+        if (user && !name) {
+            setName(user.name || "");
+            if (user.preferences) {
+                setTheme(user.preferences.theme || "system");
+                setNotificationsEnabled(user.preferences.notifications ?? true);
+                setLanguage(user.preferences.language || "bg");
+            }
+        }
+    }, [user, name]);
 
     const handleSave = async () => {
-        if (!currentUser) return;
+        if (!user || !user._id) {
+            console.error("No valid user ID to update");
+            return;
+        }
         setIsSubmitting(true);
         try {
             await updateUser({
-                userId: currentUser._id,
+                userId: user._id as any,
                 name: name,
                 preferences: {
                     theme,
@@ -116,7 +141,7 @@ export default function ProfilePage() {
         });
     };
 
-    if (!currentUser) {
+    if (convexUser === undefined && isSessionLoading) {
         return (
             <div className="p-8">
                 <div className="animate-pulse space-y-4">
@@ -128,86 +153,103 @@ export default function ProfilePage() {
         );
     }
 
+    if (!user) {
+        // Optionally redirect here or show empty state
+        return (
+            <div className="p-8 text-center text-muted-foreground">
+                Не е намерен потребител. Моля влезте в системата.
+                <Button variant="outline" className="mt-4 block mx-auto" onClick={() => router.push("/login")}>
+                    Към вход
+                </Button>
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-6 p-8">
+        <div className="space-y-8 p-8 max-w-7xl mx-auto">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
-                <p className="text-muted-foreground">{dict.subtitle}</p>
+                <h1 className="text-4xl font-bold tracking-tight text-foreground">{dict.title}</h1>
+                <p className="text-lg text-muted-foreground mt-2">{dict.subtitle}</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-4">
                 {/* Profile Card */}
-                <Card className="md:col-span-1">
-                    <CardContent className="pt-6">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="relative">
-                                <Avatar className="h-24 w-24">
-                                    <AvatarImage src={currentUser.avatar} />
-                                    <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                                        {currentUser.name?.charAt(0) || "U"}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <Button
-                                    size="icon"
-                                    variant="secondary"
-                                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                                >
-                                    <Camera className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <h3 className="mt-4 text-lg font-semibold">{currentUser.name}</h3>
-                            <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                            <Badge className="mt-2" variant="secondary">
-                                <Shield className="mr-1 h-3 w-3" />
-                                {dict.roles[currentUser.role as keyof typeof dict.roles] || currentUser.role}
-                            </Badge>
-
-                            <Separator className="my-4" />
-
-                            <div className="w-full space-y-2 text-left text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{dict.memberSince}</span>
-                                    <span>{formatDate(currentUser.createdAt)}</span>
+                <div className="md:col-span-1 lg:col-span-1 space-y-6">
+                    <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
+                        <CardContent className="pt-8 pb-8">
+                            <div className="flex flex-col items-center text-center">
+                                <div className="relative mb-6">
+                                    <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                                        <AvatarImage src={user.avatar || undefined} className="object-cover" />
+                                        <AvatarFallback className="text-4xl bg-primary/10 text-primary">
+                                            {user.name?.charAt(0) || "U"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <Button
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute bottom-0 right-0 h-10 w-10 rounded-full shadow-md hover:scale-105 transition-transform"
+                                    >
+                                        <Camera className="h-5 w-5" />
+                                    </Button>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{dict.lastLogin}</span>
-                                    <span>{formatDate(Date.now())}</span>
+                                <h3 className="text-2xl font-bold">{user.name}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
+                                <Badge className="mt-4 px-3 py-1 text-sm bg-primary/10 text-primary hover:bg-primary/20 border-0">
+                                    <Shield className="mr-1.5 h-3.5 w-3.5" />
+                                    {dict.roles[user.role as keyof typeof dict.roles] || user.role}
+                                </Badge>
+
+                                <Separator className="my-6" />
+
+                                <div className="w-full space-y-3 text-left text-sm">
+                                    <div className="flex justify-between items-center p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                        <span className="text-muted-foreground">{dict.memberSince}</span>
+                                        <span className="font-medium">{formatDate(user.createdAt)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                        <span className="text-muted-foreground">{dict.lastLogin}</span>
+                                        <span className="font-medium">{formatDate(Date.now())}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Settings Cards */}
-                <div className="md:col-span-2 space-y-6">
+                <div className="md:col-span-2 lg:col-span-3 space-y-8">
                     {/* Personal Info */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5" />
+                    <Card className="border-0 shadow-sm">
+                        <CardHeader className="pb-4 border-b">
+                            <CardTitle className="flex items-center gap-3 text-xl">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                    <User className="h-5 w-5" />
+                                </div>
                                 {dict.personalInfo}
                             </CardTitle>
                             <CardDescription>{dict.personalInfoDesc}</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">{dict.name}</Label>
+                        <CardContent className="pt-6 space-y-6">
+                            <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-2.5">
+                                    <Label htmlFor="name" className="text-base">{dict.name}</Label>
                                     <Input
                                         id="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Вашето име"
+                                        className="h-11"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">{dict.email}</Label>
+                                <div className="space-y-2.5">
+                                    <Label htmlFor="email" className="text-base">{dict.email}</Label>
                                     <Input
                                         id="email"
-                                        value={currentUser.email}
+                                        value={user.email}
                                         disabled
-                                        className="bg-muted"
+                                        className="bg-muted h-11"
                                     />
                                 </div>
                             </div>
@@ -215,20 +257,22 @@ export default function ProfilePage() {
                     </Card>
 
                     {/* Preferences */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Sun className="h-5 w-5" />
+                    <Card className="border-0 shadow-sm">
+                        <CardHeader className="pb-4 border-b">
+                            <CardTitle className="flex items-center gap-3 text-xl">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                    <Sun className="h-5 w-5" />
+                                </div>
                                 {dict.preferences}
                             </CardTitle>
                             <CardDescription>{dict.preferencesDesc}</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label>{dict.theme}</Label>
+                        <CardContent className="pt-6 space-y-6">
+                            <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-2.5">
+                                    <Label className="text-base">{dict.theme}</Label>
                                     <Select value={theme} onValueChange={setTheme}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="h-11">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -245,15 +289,18 @@ export default function ProfilePage() {
                                                 </div>
                                             </SelectItem>
                                             <SelectItem value="system">
-                                                {dict.themeSystem}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="h-4 w-4 block bg-gradient-to-tr from-gray-500 to-gray-200 rounded-full" />
+                                                    {dict.themeSystem}
+                                                </div>
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>{dict.language}</Label>
+                                <div className="space-y-2.5">
+                                    <Label className="text-base">{dict.language}</Label>
                                     <Select value={language} onValueChange={setLanguage}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="h-11">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -274,33 +321,34 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between rounded-lg border p-4">
-                                <div className="space-y-0.5">
+                            <div className="flex items-center justify-between rounded-xl border p-5 hover:bg-muted/30 transition-colors">
+                                <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <Bell className="h-4 w-4" />
-                                        <span className="font-medium">{dict.notifications}</span>
+                                        <Bell className="h-5 w-5 text-primary" />
+                                        <span className="font-semibold">{dict.notifications}</span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground pl-7">
                                         {dict.notificationsDesc}
                                     </p>
                                 </div>
                                 <Switch
                                     checked={notificationsEnabled}
                                     onCheckedChange={setNotificationsEnabled}
+                                    className="data-[state=checked]:bg-primary"
                                 />
                             </div>
                         </CardContent>
                     </Card>
 
                     {/* Actions Button */}
-                    <div className="flex justify-between">
-                        <Button variant="destructive" onClick={handleSignOut}>
-                            <LogOut className="mr-2 h-4 w-4" />
+                    <div className="flex justify-between items-center pt-4">
+                        <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-11 px-6" onClick={handleSignOut}>
+                            <LogOut className="mr-2 h-5 w-5" />
                             {dict.signOut}
                         </Button>
 
-                        <Button onClick={handleSave} disabled={isSubmitting}>
-                            <Save className="mr-2 h-4 w-4" />
+                        <Button onClick={handleSave} disabled={isSubmitting} size="lg" className="h-11 px-8 shadow-lg hover:shadow-xl transition-all">
+                            <Save className="mr-2 h-5 w-5" />
                             {isSubmitting ? dict.saving : dict.save}
                         </Button>
                     </div>
