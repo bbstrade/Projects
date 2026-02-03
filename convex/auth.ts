@@ -2,8 +2,9 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
 import { Email } from "@convex-dev/auth/providers/Email";
 
+console.log("Resend API Key present:", !!process.env.AUTH_RESEND_KEY);
+
 export const ResendOTP = Email({
-    id: "resend-otp",
     apiKey: process.env.AUTH_RESEND_KEY,
     maxAge: 60 * 15, // 15 minutes
     async generateVerificationToken() {
