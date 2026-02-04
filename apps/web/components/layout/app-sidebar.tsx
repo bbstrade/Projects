@@ -18,9 +18,16 @@ import {
     ChevronRight,
     Clock,
     Plus,
+    Search,
+    Globe,
+    Sun,
+    Moon,
 } from "lucide-react";
 import { TeamSwitcher } from "@/components/team-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { NotificationsDropdown } from "@/components/notifications/notifications-dropdown";
+import { useLanguage } from "@/components/language-provider";
 import { useState, useMemo } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useTheme } from "next-themes";
@@ -42,11 +49,13 @@ export const adminItems = [
 interface AppSidebarProps {
     className?: string;
     onMobileNavigate?: () => void;
+    onOpenSearch?: () => void;
 }
 
-export function AppSidebar({ className, onMobileNavigate }: AppSidebarProps) {
+export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSidebarProps) {
     const pathname = usePathname();
-    const { resolvedTheme } = useTheme();
+    const { theme, setTheme, resolvedTheme } = useTheme();
+    const { lang, setLang } = useLanguage();
     const logoSrc = resolvedTheme === "dark" ? "/logo-dark.png" : "/logo.png";
     const [tasksOpen, setTasksOpen] = useState(true);
     const [projectsOpen, setProjectsOpen] = useState(true);
@@ -55,10 +64,6 @@ export function AppSidebar({ className, onMobileNavigate }: AppSidebarProps) {
     const user = useQuery(api.users.me);
     const currentTeamId = user?.currentTeamId;
 
-    // Pass skipping argument if we don't have teamId yet, though listByTeam expects string. 
-    // We can handle undefined by passing "" or waiting. listByTeam failure? 
-    // Best to conditional rendering or pass a skip token if Convex supported it, here just empty string if null.
-    // Ideally we wait for user.
     const teamIdParam = currentTeamId || "";
 
     const tasks = useQuery(api.tasks.listByTeam, currentTeamId ? { teamId: currentTeamId } : "skip");
@@ -155,6 +160,35 @@ export function AppSidebar({ className, onMobileNavigate }: AppSidebarProps) {
 
             <div className="px-3 py-2 border-b shrink-0">
                 <TeamSwitcher />
+            </div>
+
+            <div className="flex items-center justify-end px-4 py-2 border-b gap-1 shrink-0">
+                <div className="flex-1 mr-2 relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <div
+                        onClick={onOpenSearch}
+                        className="h-8 w-full bg-slate-100 dark:bg-slate-900 border-none rounded-md flex items-center pl-9 text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        Search...
+                    </div>
+                </div>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setLang(lang === "bg" ? "en" : "bg")}
+                    className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                    <Globe className="h-4 w-4 text-slate-500" />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                    {resolvedTheme === "dark" ? <Sun className="h-4 w-4 text-slate-500" /> : <Moon className="h-4 w-4 text-slate-500" />}
+                </Button>
+                {user && <NotificationsDropdown userId={user._id} />}
             </div>
 
             <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
@@ -279,7 +313,7 @@ export function AppSidebar({ className, onMobileNavigate }: AppSidebarProps) {
                                         return (
                                             <Link
                                                 key={project._id}
-                                                href={`/projects?id=${project._id}`} // Assuming project details page accepts ID
+                                                href={`/projects?id=${project._id}`}
                                                 onClick={onMobileNavigate}
                                                 className="group flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-l-2"
                                                 style={{ borderLeftColor: getProjectColor(project.status) }}
