@@ -89,7 +89,9 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                                 )}
                             </div>
                             <div className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300">
-                                {c.content}
+                                {c.content.split(/(@\w+(?:\s\w+)?)/g).map((part, i) =>
+                                    part.startsWith('@') ? <span key={i} className="font-medium text-blue-600">{part}</span> : part
+                                )}
                             </div>
                         </div>
                     </div>
@@ -102,23 +104,92 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                 )}
             </div>
 
-            <div className="flex gap-4 mt-6">
+            {/* Comment Input with Mentions */}
+            <div className="flex gap-4 mt-6 relative">
                 <Avatar className="w-8 h-8">
                     <AvatarFallback>ME</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-2">
-                    <Textarea
-                        placeholder="Write a comment..."
+                <div className="flex-1 space-y-2 relative">
+                    <MentionInput
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        className="min-h-[80px]"
+                        onChange={setComment}
+                        onSubmit={handleSubmit}
+                        isSubmitting={isSubmitting}
                     />
-                    <div className="flex justify-end">
-                        <Button size="sm" onClick={handleSubmit} disabled={isSubmitting || !comment.trim()}>
-                            <Send className="w-4 h-4 mr-2" /> Comment
-                        </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Sub-component to handle Mention Logic to keep main component clean
+function MentionInput({ value, onChange, onSubmit, isSubmitting }: any) {
+    const [mentionQuery, setMentionQuery] = useState("");
+    const [showMentions, setShowMentions] = useState(false);
+
+    // Fetch users for mention
+    const users = useQuery(api.users.search, { query: mentionQuery });
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newValue = e.target.value;
+        onChange(newValue);
+
+        // Simple detection: ends with @ or @something
+        const lastWord = newValue.split(/\s/).pop();
+        if (lastWord?.startsWith("@")) {
+            setMentionQuery(lastWord.substring(1));
+            setShowMentions(true);
+        } else {
+            setShowMentions(false);
+        }
+    };
+
+    const handleSelectUser = (userName: string) => {
+        const words = value.split(/\s/);
+        words.pop(); // Remove the partial mention
+        const newValue = [...words, `@${userName} `].join(" ");
+        onChange(newValue);
+        setShowMentions(false);
+    };
+
+    return (
+        <div className="relative">
+            {showMentions && users && users.length > 0 && (
+                <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border rounded-md shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                    <div className="p-1">
+                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">Suggested users</div>
+                        {users.map((user) => (
+                            <button
+                                key={user._id}
+                                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center gap-2"
+                                onClick={() => handleSelectUser(user.name || "User")}
+                            >
+                                <Avatar className="w-5 h-5">
+                                    <AvatarImage src={user.avatar} />
+                                    <AvatarFallback className="text-[10px]">{user.name?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <span>{user.name}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
+            )}
+            <Textarea
+                placeholder="Write a comment... (Type @ to mention)"
+                value={value}
+                onChange={handleChange}
+                className="min-h-[80px]"
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!showMentions) onSubmit();
+                    }
+                }}
+            />
+            <div className="flex justify-end mt-2">
+                <Button size="sm" onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+                    <Send className="w-4 h-4 mr-2" /> Comment
+                </Button>
             </div>
         </div>
     );

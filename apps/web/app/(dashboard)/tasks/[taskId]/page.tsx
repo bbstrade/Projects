@@ -34,6 +34,7 @@ import { TaskSubtasks } from "@/components/tasks/task-subtasks";
 import { TaskAttachments } from "@/components/tasks/task-attachments";
 import { TaskComments } from "@/components/tasks/task-comments";
 import { TaskAssigneeSelector } from "@/components/tasks/task-assignee-selector";
+import { TaskProjectSelector } from "@/components/tasks/task-project-selector";
 
 export default function TaskDetailsPage() {
     const { t } = useLanguage();
@@ -244,6 +245,14 @@ export default function TaskDetailsPage() {
                                         taskId={taskId}
                                         projectId={task.projectId}
                                         currentAssigneeId={task.assigneeId}
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-muted-foreground">Project</label>
+                                    <TaskProjectSelector
+                                        taskId={taskId}
+                                        currentProjectId={task.projectId}
                                     />
                                 </div>
 

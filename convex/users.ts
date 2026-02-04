@@ -48,6 +48,25 @@ export const list = query({
 });
 
 /**
+ * Search users by name or email
+ */
+export const search = query({
+    args: { query: v.string() },
+    handler: async (ctx, args) => {
+        if (!args.query) return [];
+
+        // Simple search - in prod use Convex Search Indexes
+        const users = await ctx.db.query("users").collect();
+        const lowerQuery = args.query.toLowerCase();
+
+        return users.filter(u =>
+            (u.name && u.name.toLowerCase().includes(lowerQuery)) ||
+            u.email.toLowerCase().includes(lowerQuery)
+        ).slice(0, 5);
+    },
+});
+
+/**
  * Create a new user
  */
 export const create = mutation({

@@ -167,6 +167,7 @@ export const update = mutation({
         id: v.id("tasks"),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
+        projectId: v.optional(v.id("projects")),
         priority: v.optional(v.string()),
         status: v.optional(v.string()),
         assigneeId: v.optional(v.id("users")),

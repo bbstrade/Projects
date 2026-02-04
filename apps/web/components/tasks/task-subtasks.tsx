@@ -369,9 +369,10 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <span
                                                         className={cn(
-                                                            "font-medium",
+                                                            "font-medium cursor-pointer hover:underline hover:text-primary transition-colors",
                                                             subtask.completed && "line-through text-muted-foreground"
                                                         )}
+                                                        onClick={() => startEditing(subtask)}
                                                     >
                                                         {subtask.title}
                                                     </span>
