@@ -139,9 +139,8 @@ export const switchTeam = mutation({
             .withIndex("by_user_team", (q) => q.eq("userId", user._id).eq("teamId", args.teamId))
             .unique();
 
-        // System admins can switch to any team even if not explicitly a member (optional feature, but safety first: require membership for now or auto-add?)
-        // For now, require membership. 
-        if (!membership && user.role !== "admin") {
+        // System admins can switch to any team even if not explicitly a member
+        if (!membership && user.role !== "admin" && user.systemRole !== "superadmin") {
             throw new Error("You are not a member of this team");
         }
 
@@ -150,5 +149,25 @@ export const switchTeam = mutation({
         });
 
         return { success: true };
+    },
+});
+
+/**
+ * Set superadmin role (Migration Tool)
+ */
+export const setSuperAdmin = mutation({
+    args: { email: v.string() },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("email", (q) => q.eq("email", args.email))
+            .unique();
+
+        if (!user) {
+            throw new Error("User not found: " + args.email);
+        }
+
+        await ctx.db.patch(user._id, { systemRole: "superadmin" });
+        return "Role updated to superadmin";
     },
 });

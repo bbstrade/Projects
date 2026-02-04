@@ -108,6 +108,7 @@ export default defineSchema({
         avatar: v.optional(v.string()),
         tokenIdentifier: v.optional(v.string()),
         role: v.optional(v.string()), // admin, member
+        systemRole: v.optional(v.string()), // superadmin, user
         currentTeamId: v.optional(v.string()),
         preferences: v.optional(v.object({
             theme: v.string(),

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
 import {
@@ -34,35 +34,21 @@ import {
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDropdown } from "@/components/notifications/notifications-dropdown";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useLanguage } from "@/components/language-provider";
 import React from "react";
-import { TeamSwitcher } from "@/components/team-switcher";
-
-const sidebarItems = [
-    { icon: LayoutDashboard, label: "Табло", href: "/dashboard" },
-    { icon: FolderKanban, label: "Проекти", href: "/projects" },
-    { icon: CheckSquare, label: "Задачи", href: "/tasks" },
-    { icon: FileCheck, label: "Одобрения", href: "/approvals" },
-    { icon: Users, label: "Екипи", href: "/teams" },
-    { icon: FileText, label: "Доклади", href: "/reports" },
-    { icon: Settings, label: "Настройки", href: "/settings" },
-];
-
-const adminItems = [
-    { icon: Shield, label: "Админ", href: "/admin" },
-];
+import { AppSidebar, sidebarItems } from "@/components/layout/app-sidebar";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [userId, setUserId] = useState<Id<"users"> | null>(null);
     const [mounted, setMounted] = useState(false);
-    const [open, setOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [sheetOpen, setSheetOpen] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { lang, setLang } = useLanguage();
 
@@ -74,7 +60,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         const down = (e: KeyboardEvent) => {
             if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
-                setOpen((open) => !open);
+                setSearchOpen((open) => !open);
             }
         };
         document.addEventListener("keydown", down);
@@ -95,13 +81,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }, [currentUser]);
 
     const runCommand = React.useCallback((command: () => unknown) => {
-        setOpen(false);
+        setSearchOpen(false);
         command();
     }, []);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-            <CommandDialog open={open} onOpenChange={setOpen}>
+            <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
                 <CommandInput placeholder={lang === "bg" ? "Търсене във всички менюта..." : "Type a command or search..."} />
                 <CommandList>
                     <CommandEmpty>{lang === "bg" ? "Няма намерени резултати." : "No results found."}</CommandEmpty>
@@ -121,7 +107,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         {projects?.slice(0, 5).map((project) => (
                             <CommandItem
                                 key={project._id}
-                                onSelect={() => runCommand(() => router.push(`/projects?id=${project._id}`))} // Assuming query param or modal handling, keeping it simple for now
+                                onSelect={() => runCommand(() => router.push(`/projects?id=${project._id}`))}
                             >
                                 <FolderKanban className="mr-2 h-4 w-4" />
                                 {project.name}
@@ -153,7 +139,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setOpen(true)}
+                        onClick={() => setSearchOpen(true)}
                         className="h-8 w-8 text-muted-foreground"
                     >
                         <Search className="h-4 w-4" />
@@ -175,46 +161,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                     </Button>
                     {userId && <NotificationsDropdown userId={userId} />}
-                    <Sheet>
+                    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-64">
-                            <div className="mb-8 text-xl font-bold">Menu</div>
-                            <nav className="flex flex-col gap-2">
-                                {sidebarItems.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-slate-100 dark:hover:bg-slate-800",
-                                            pathname.startsWith(item.href)
-                                                ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400"
-                                                : "text-slate-600 dark:text-slate-400"
-                                        )}
-                                    >
-                                        <item.icon className="h-5 w-5" />
-                                        {item.label}
-                                    </Link>
-                                ))}
-                                {currentUser?.role === "admin" && adminItems.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-slate-100 dark:hover:bg-slate-800",
-                                            pathname.startsWith(item.href)
-                                                ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400"
-                                                : "text-slate-600 dark:text-slate-400"
-                                        )}
-                                    >
-                                        <item.icon className="h-5 w-5" />
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </nav>
+                        <SheetContent side="left" className="p-0 w-72 border-r-0">
+                            <AppSidebar
+                                className="w-full border-none h-full"
+                                onMobileNavigate={() => setSheetOpen(false)}
+                            />
                         </SheetContent>
                     </Sheet>
                 </div>
@@ -222,113 +179,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex h-screen overflow-hidden">
                 {/* Desktop Sidebar */}
-                <aside className="hidden w-64 flex-col border-r bg-white dark:bg-slate-950 md:flex">
-                    <div className="flex h-16 items-center gap-3 border-b px-4">
-                        <Image src={logoSrc} alt="Logo" width={36} height={36} />
-                        <span className="font-bold text-lg text-slate-900 dark:text-white">Управление</span>
-                    </div>
-                    <div className="px-3 py-2 border-b">
-                        <TeamSwitcher />
-                    </div>
-
-
-
-                    {/* Notifications & Settings in header area */}
-                    <div className="flex items-center justify-end px-4 py-2 border-b gap-1">
-                        <div className="flex-1 mr-2 relative">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                            <div
-                                onClick={() => setOpen(true)}
-                                className="h-8 w-full bg-slate-100 dark:bg-slate-900 border-none rounded-md flex items-center pl-9 text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                            >
-                                {lang === "bg" ? "Търсене..." : "Search..."}
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setLang(lang === "bg" ? "en" : "bg")}
-                            className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title={lang === "bg" ? "Change to English" : "Смени на Български"}
-                        >
-                            <Globe className="h-4 w-4 text-slate-500" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                            className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
-                        >
-                            {resolvedTheme === "dark" ? (
-                                <Sun className="h-4 w-4 text-slate-500" />
-                            ) : (
-                                <Moon className="h-4 w-4 text-slate-500" />
-                            )}
-                        </Button>
-                        {userId && <NotificationsDropdown userId={userId} />}
-                    </div>
-
-                    <nav className="flex-1 space-y-1 p-4">
-                        {sidebarItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800",
-                                    pathname.startsWith(item.href)
-                                        ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400"
-                                        : "text-slate-600 dark:text-slate-400"
-                                )}
-                            >
-                                <item.icon className="h-5 w-5" />
-                                {item.label}
-                            </Link>
-                        ))}
-                        {currentUser?.role === "admin" && adminItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800",
-                                    pathname.startsWith(item.href)
-                                        ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400"
-                                        : "text-slate-600 dark:text-slate-400"
-                                )}
-                            >
-                                <item.icon className="h-5 w-5" />
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    {/* User Profile Link */}
-                    <div className="border-t p-4">
-                        <Link
-                            href="/profile"
-                            className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-slate-100 dark:hover:bg-slate-800",
-                                pathname === "/profile"
-                                    ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400"
-                                    : "text-slate-600 dark:text-slate-400"
-                            )}
-                        >
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={currentUser?.avatar} />
-                                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                                    {currentUser?.name?.charAt(0) || "U"}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium">
-                                    {currentUser?.name || "Потребител"}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                    {currentUser?.email || "Профил"}
-                                </span>
-                            </div>
-                        </Link>
-                    </div>
-                </aside>
+                <AppSidebar
+                    className="hidden md:flex"
+                    onOpenSearch={() => setSearchOpen(true)}
+                />
 
                 {/* Main Content */}
                 <main className={cn("flex-1 overflow-y-auto", pathname === "/projects" ? "p-0" : "p-8")}>

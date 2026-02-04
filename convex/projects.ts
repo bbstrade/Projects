@@ -137,3 +137,25 @@ export const updateTeamMembers = mutation({
         // Logic to sync with TeamMembers table could go here if we can resolve emails to users
     }
 });
+
+export const listByTeam = query({
+    args: {
+        teamId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const projects = await ctx.db
+            .query("projects")
+            .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+            .order("desc") // by creation time usually (schema default order)
+            .collect();
+
+        // Enrich if needed (e.g. owner email)
+        return await Promise.all(projects.map(async (p) => {
+            let owner = undefined;
+            if (p.ownerId) {
+                owner = await ctx.db.get(p.ownerId);
+            }
+            return { ...p, created_by: owner?.email }; // mapping for frontend compatibility
+        }));
+    },
+});

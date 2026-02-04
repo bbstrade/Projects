@@ -434,6 +434,40 @@ export function CreateProjectDialog({
                                 </Button>
                             </div>
 
+                            {/* Team Members Dropdown */}
+                            <Select
+                                key={selectedMembers.length}
+                                onValueChange={(value) => {
+                                    if (value && !selectedMembers.includes(value)) {
+                                        setSelectedMembers([...selectedMembers, value]);
+                                    }
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Избери от екипа" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {membersWithDetails
+                                        .filter(m => m.email && !selectedMembers.includes(m.email))
+                                        .map((member) => (
+                                            <SelectItem key={member._id} value={member.email}>
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-6 w-6">
+                                                        <AvatarImage src={member.user?.avatar} />
+                                                        <AvatarFallback>{member.displayName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                    </Avatar>
+                                                    {member.displayName}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    {membersWithDetails.filter(m => m.email && !selectedMembers.includes(m.email)).length === 0 && (
+                                        <div className="p-2 text-sm text-muted-foreground text-center">
+                                            Няма други членове
+                                        </div>
+                                    )}
+                                </SelectContent>
+                            </Select>
+
                             {/* Selected members badges */}
                             {selectedMembers.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-2">

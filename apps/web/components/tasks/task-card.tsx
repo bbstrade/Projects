@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { format } from "date-fns";
-import { Calendar, Clock, MoreHorizontal, Edit, Trash2, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, MoreHorizontal, Edit, Trash2, CheckCircle2, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -175,6 +175,10 @@ export function TaskCard({
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDetailOpen(true); }}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        Преглед
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkDone(); }}>
                                         <CheckCircle2 className="mr-2 h-4 w-4" />
                                         Маркирай като завършена
@@ -219,6 +223,10 @@ export function TaskCard({
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDetailOpen(true); }}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Преглед
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkDone(); }}>
                                     <CheckCircle2 className="mr-2 h-4 w-4" />
                                     Маркирай като завършена

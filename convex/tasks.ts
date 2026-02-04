@@ -212,3 +212,51 @@ export const get = query({
         return { ...task, assignee };
     },
 });
+
+export const listByTeam = query({
+    args: {
+        teamId: v.string(),
+        assigneeId: v.optional(v.id("users")),
+    },
+    handler: async (ctx, args) => {
+        // 1. Get all projects for the team
+        const projects = await ctx.db
+            .query("projects")
+            .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+            .collect();
+
+        const projectIds = projects.map((p) => p._id);
+
+        if (projectIds.length === 0) {
+            return [];
+        }
+
+        // 2. Fetch tasks for these projects
+        // Optimized approach: Use Promise.all
+        const tasks = await Promise.all(
+            projectIds.map((projectId) =>
+                ctx.db
+                    .query("tasks")
+                    .withIndex("by_project", (q) => q.eq("projectId", projectId))
+                    .collect()
+            )
+        );
+
+        // Flatten array
+        const allTasks = tasks.flat();
+
+        // 3. Enrich with assignee details
+        const enrichedTasks = await Promise.all(
+            allTasks.map(async (t) => {
+                let assignee = null;
+                if (t.assigneeId) {
+                    assignee = await ctx.db.get(t.assigneeId);
+                }
+                return { ...t, assignee, assignee_email: assignee?.email };
+            })
+        );
+
+        // Sort by createdAt desc
+        return enrichedTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    },
+});

@@ -49,12 +49,10 @@ export const list = query({
 
         if (!user) return [];
 
-        // System Admin sees all teams if view="all"
-        if (user.role === "admin" && args.view === "all") {
+        // Super Admin sees all teams
+        if (user.systemRole === "superadmin") {
             const teams = await ctx.db.query("teams").order("desc").collect();
-            // For admins viewing all, we don't necessarily have a role in every team.
-            // We can check if they are a member, or just return null role.
-            // Let's attach role if they ARE a member.
+            // Attach role if they are a member
             const memberships = await ctx.db
                 .query("teamMembers")
                 .withIndex("by_user", (q) => q.eq("userId", user._id))
