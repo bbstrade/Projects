@@ -41,6 +41,7 @@ import { useEffect, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useLanguage } from "@/components/language-provider";
 import React from "react";
+import { TeamSwitcher } from "@/components/team-switcher";
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Табло", href: "/dashboard" },
@@ -223,11 +224,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {/* Desktop Sidebar */}
                 <aside className="hidden w-64 flex-col border-r bg-white dark:bg-slate-950 md:flex">
                     <div className="flex h-16 items-center justify-between border-b px-6">
-                        <div className="flex items-center gap-2">
-                            <Image src={logoSrc} alt="Logo" width={56} height={56} />
-                            <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                Управление на проекти
-                            </div>
+                        <div className="flex items-center gap-2 w-full">
+                            <TeamSwitcher />
                         </div>
                     </div>
 

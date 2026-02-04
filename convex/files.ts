@@ -13,20 +13,29 @@ export const saveFile = mutation({
         fileSize: v.number(),
         projectId: v.optional(v.id("projects")),
         taskId: v.optional(v.id("tasks")),
-        uploadedBy: v.id("users"),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
         const now = Date.now();
         const fileId = await ctx.db.insert("files", {
             ...args,
+            uploadedBy: user._id,
             createdAt: now,
         });
 
         // Add an activity log entry (for Phase 6)
-        // Note: activityLogs table will be added in schema next
         try {
             await ctx.db.insert("activityLogs" as any, {
-                userId: args.uploadedBy,
+                userId: user._id,
                 action: "uploaded_file",
                 entityType: "file",
                 entityId: fileId,

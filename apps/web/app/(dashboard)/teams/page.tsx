@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateTeamDialog } from "@/components/teams/create-team-dialog";
 import { InviteMemberDialog } from "@/components/teams/invite-member-dialog";
+import { ManageTeamDialog } from "@/components/teams/manage-team-dialog";
 
 // Български речник
 const dict = {
@@ -59,9 +60,17 @@ export default function TeamsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [manageDialogOpen, setManageDialogOpen] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-    const teams = useQuery(api.teams.list, {});
+    const currentUser = useQuery(api.users.me);
+    const [adminViewAll, setAdminViewAll] = useState(false);
+
+    // Only pass permissions view if user is admin
+    const queryArgs = adminViewAll ? { view: "all" } : { view: "my" };
+    const teams = useQuery(api.teams.list, queryArgs);
+
+    const isAdmin = currentUser?.role === "admin";
 
     // Филтриране по searchQuery
     const filteredTeams = teams?.filter((team) =>
@@ -82,10 +91,20 @@ export default function TeamsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
                     <p className="text-muted-foreground">{dict.subtitle}</p>
                 </div>
-                <Button onClick={() => setCreateDialogOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {dict.newTeam}
-                </Button>
+                <div className="flex gap-2">
+                    {isAdmin && (
+                        <Button
+                            variant={adminViewAll ? "default" : "outline"}
+                            onClick={() => setAdminViewAll(!adminViewAll)}
+                        >
+                            {adminViewAll ? "Моите екипи" : "Всички екипи (Admin)"}
+                        </Button>
+                    )}
+                    <Button onClick={() => setCreateDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {dict.newTeam}
+                    </Button>
+                </div>
             </div>
 
             {/* Search */}
@@ -123,6 +142,10 @@ export default function TeamsPage() {
                             key={team._id}
                             team={team}
                             onInvite={() => handleInviteMember(team._id)}
+                            onManage={() => {
+                                setSelectedTeamId(team._id);
+                                setManageDialogOpen(true);
+                            }}
                         />
                     ))}
                 </div>
@@ -145,10 +168,19 @@ export default function TeamsPage() {
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
             />
+            <InviteMemberDialog
+                open={inviteDialogOpen}
+                onOpenChange={setInviteDialogOpen}
+                teamId={selectedTeamId}
+            />
+
+
             {selectedTeamId && (
-                <InviteMemberDialog
-                    open={inviteDialogOpen}
-                    onOpenChange={setInviteDialogOpen}
+                <ManageTeamDialog
+
+
+                    open={manageDialogOpen}
+                    onOpenChange={setManageDialogOpen}
                     teamId={selectedTeamId}
                 />
             )}
@@ -160,6 +192,7 @@ export default function TeamsPage() {
 function TeamCard({
     team,
     onInvite,
+    onManage,
 }: {
     team: {
         _id: string;
@@ -167,6 +200,7 @@ function TeamCard({
         description?: string;
     };
     onInvite: () => void;
+    onManage: () => void;
 }) {
     const members = useQuery(api.teams.getMembers, { teamId: team._id });
 
@@ -196,7 +230,7 @@ function TeamCard({
                                 <UserPlus className="mr-2 h-4 w-4" />
                                 {dict.inviteMember}
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={onManage}>
                                 <Settings className="mr-2 h-4 w-4" />
                                 {dict.settings}
                             </DropdownMenuItem>

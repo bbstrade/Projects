@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 interface ProjectTasksProps {
     projectId: Id<"projects">;
@@ -31,6 +32,7 @@ export function ProjectTasks({ projectId }: ProjectTasksProps) {
     const [grouping, setGrouping] = useState<"none" | "assignee" | "status">("none");
     const [view, setView] = useState<"list" | "grid">("list");
     const [editingTask, setEditingTask] = useState<any>(null);
+    const router = useRouter();
 
     const handleDelete = async (id: Id<"tasks">) => {
         if (confirm("Изтриване на тази задача?")) {
@@ -106,7 +108,12 @@ export function ProjectTasks({ projectId }: ProjectTasksProps) {
                             task.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
                             }`}></div>
                         <div className="flex-1">
-                            <h4 className="font-semibold text-sm">{task.title}</h4>
+                            <h4
+                                className="font-semibold text-sm cursor-pointer hover:text-primary hover:underline"
+                                onClick={() => router.push(`/tasks/${task._id}`)}
+                            >
+                                {task.title}
+                            </h4>
                             <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="secondary" className="text-xs px-1 py-0">{translateStatus(task.status)}</Badge>
                                 {task.dueDate && (

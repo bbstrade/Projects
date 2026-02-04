@@ -116,3 +116,39 @@ export const me = query({
 });
 
 
+
+/**
+ * Switch current team
+ */
+export const switchTeam = mutation({
+    args: { teamId: v.string() },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        // Verify membership
+        const membership = await ctx.db
+            .query("teamMembers")
+            .withIndex("by_user_team", (q) => q.eq("userId", user._id).eq("teamId", args.teamId))
+            .unique();
+
+        // System admins can switch to any team even if not explicitly a member (optional feature, but safety first: require membership for now or auto-add?)
+        // For now, require membership. 
+        if (!membership && user.role !== "admin") {
+            throw new Error("You are not a member of this team");
+        }
+
+        await ctx.db.patch(user._id, {
+            currentTeamId: args.teamId,
+        });
+
+        return { success: true };
+    },
+});

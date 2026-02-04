@@ -29,7 +29,7 @@ export default defineSchema({
         description: v.optional(v.string()),
         projectId: v.id("projects"),
         assigneeId: v.optional(v.id("users")),
-        creatorId: v.optional(v.id("users")), // Optional for migration
+        creatorId: v.optional(v.id("users")),
         status: v.string(), // todo, in_progress, in_review, done, blocked
         priority: v.string(),
         dueDate: v.optional(v.number()),
@@ -37,6 +37,14 @@ export default defineSchema({
         actualHours: v.optional(v.number()),
         tags: v.optional(v.array(v.string())),
         parentTaskId: v.optional(v.id("tasks")),
+        attachments: v.optional(v.array(v.object({
+            name: v.string(),
+            url: v.string(),
+            type: v.string(),
+            size: v.number(),
+            storageId: v.optional(v.id("_storage")),
+            uploadedAt: v.number(),
+        }))),
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
     })
@@ -47,6 +55,21 @@ export default defineSchema({
             searchField: "title",
             filterFields: ["projectId", "status"],
         }),
+
+    subtasks: defineTable({
+        title: v.string(),
+        description: v.optional(v.string()),
+        taskId: v.id("tasks"),
+        assigneeId: v.optional(v.id("users")),
+        completed: v.boolean(),
+        checklist: v.optional(v.array(v.object({
+            text: v.string(),
+            completed: v.boolean(),
+        }))),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_task", ["taskId"]),
 
     approvals: defineTable({
         title: v.string(),
@@ -140,6 +163,14 @@ export default defineSchema({
         taskId: v.id("tasks"),
         userId: v.id("users"),
         content: v.string(),
+        attachments: v.optional(v.array(v.object({
+            name: v.string(),
+            url: v.string(),
+            type: v.string(),
+            size: v.number(),
+            storageId: v.optional(v.id("_storage")),
+            uploadedAt: v.number(),
+        }))),
         parentCommentId: v.optional(v.id("taskComments")),
         createdAt: v.number(),
         updatedAt: v.number(),
@@ -189,7 +220,9 @@ export default defineSchema({
         taskId: v.optional(v.id("tasks")),
         uploadedBy: v.id("users"),
         createdAt: v.number(),
-    }),
+    })
+        .index("by_task", ["taskId"])
+        .index("by_project", ["projectId"]),
 
     verificationTokens: defineTable({
         userId: v.id("users"),
@@ -211,6 +244,54 @@ export default defineSchema({
     })
         .index("by_token", ["token"])
         .index("by_user", ["userId"]),
+
+    notificationPreferences: defineTable({
+        userId: v.id("users"),
+        // Task notifications
+        task_assigned: v.boolean(),
+        deadline_reminder: v.boolean(),
+        deadline_reminder_days: v.number(),
+        status_change: v.boolean(),
+        task_completed: v.boolean(),
+        priority_change: v.boolean(),
+        // Project notifications
+        project_status_change: v.boolean(),
+        project_member_added: v.boolean(),
+        // Comment notifications
+        mention_in_comment: v.boolean(),
+        new_comment: v.boolean(),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_user", ["userId"]),
+
+    customStatuses: defineTable({
+        type: v.string(), // "task" | "project"
+        slug: v.string(), // key, e.g. "in_progress"
+        label: v.string(), // Display name
+        color: v.string(), // Hex code or tailwind class
+        isDefault: v.boolean(),
+        order: v.number(),
+        teamId: v.optional(v.string()), // If scoped to team
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_type", ["type"])
+        .index("by_team", ["teamId"]),
+
+    customPriorities: defineTable({
+        type: v.string(), // "task" | "project"
+        slug: v.string(),
+        label: v.string(),
+        color: v.string(),
+        isDefault: v.boolean(),
+        order: v.number(),
+        teamId: v.optional(v.string()),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_type", ["type"])
+        .index("by_team", ["teamId"]),
 
     activityLogs: defineTable({
         userId: v.id("users"),
