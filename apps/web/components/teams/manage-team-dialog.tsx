@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Trash2, Shield, User, Crown, Plus, X } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface ManageTeamDialogProps {
     open: boolean;
@@ -35,7 +35,7 @@ interface ManageTeamDialogProps {
 }
 
 export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialogProps) {
-    const { toast } = useToast();
+    // const { toast } = useToast(); // Removed
     const team = useQuery(api.teams.get, { teamId: teamId as Id<"teams"> });
     const members = useQuery(api.teams.getMembers, { teamId });
     const currentUser = useQuery(api.users.me);
@@ -71,10 +71,8 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
             // We have `api.users.getByEmail`.
 
             if (!userToAdd) {
-                toast({
-                    title: "Грешка",
+                toast.error("Грешка", {
                     description: "Потребител с този имейл не е намерен.",
-                    variant: "destructive",
                 });
                 return;
             }
@@ -86,12 +84,10 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
             });
 
             setInviteEmail("");
-            toast({ title: "Успешно добавен член" });
+            toast.success("Успешно добавен член");
         } catch (error: any) {
-            toast({
-                title: "Грешка",
+            toast.error("Грешка", {
                 description: error.message || "Неуспешно добавяне.",
-                variant: "destructive",
             });
         } finally {
             setIsSubmitting(false);
@@ -120,7 +116,7 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
         if (!confirm("Сигурни ли сте?")) return;
         try {
             await removeMember({ teamId, userId });
-            toast({ title: "Членът е премахнат" });
+            toast.success("Членът е премахнат");
         } catch (error) {
             console.error(error);
         }
@@ -129,7 +125,7 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
     const handleRoleChange = async (userId: Id<"users">, newRole: string) => {
         try {
             await updateRole({ teamId, userId, role: newRole });
-            toast({ title: "Ролята е обновена" });
+            toast.success("Ролята е обновена");
         } catch (error) {
             console.error(error);
         }
@@ -196,7 +192,7 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
                                             </Select>
                                         </div>
                                         <Button disabled={isSubmitting} onClick={() => {
-                                            toast({ title: "Info", description: "Implementation pending: Requires inviteByEmail mutation." })
+                                            toast.info("Info", { description: "Implementation pending: Requires inviteByEmail mutation." })
                                         }}>
                                             <Plus className="h-4 w-4 mr-2" /> Добави
                                         </Button>
