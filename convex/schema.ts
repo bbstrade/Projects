@@ -62,7 +62,9 @@ export default defineSchema({
         taskId: v.id("tasks"),
         assigneeId: v.optional(v.id("users")),
         completed: v.boolean(),
+        labels: v.optional(v.array(v.string())),
         checklist: v.optional(v.array(v.object({
+            id: v.string(),
             text: v.string(),
             completed: v.boolean(),
         }))),
@@ -151,6 +153,7 @@ export default defineSchema({
         type: v.string(),
         title: v.string(),
         message: v.string(),
+        link: v.optional(v.string()), // URL to navigate when clicked
         entityId: v.optional(v.string()),
         entityType: v.optional(v.string()),
         read: v.boolean(),
@@ -163,6 +166,7 @@ export default defineSchema({
         taskId: v.id("tasks"),
         userId: v.id("users"),
         content: v.string(),
+        mentions: v.optional(v.array(v.id("users"))), // Users mentioned in comment
         attachments: v.optional(v.array(v.object({
             name: v.string(),
             url: v.string(),
@@ -303,4 +307,13 @@ export default defineSchema({
     })
         .index("by_user", ["userId"])
         .index("by_entity", ["entityType", "entityId"]),
+
+    taskDependencies: defineTable({
+        taskId: v.id("tasks"),           // The task that depends on another
+        dependsOnTaskId: v.id("tasks"),  // The task it depends on
+        type: v.string(),                // "FS" | "SS" | "FF" | "SF"
+        createdAt: v.number(),
+    })
+        .index("by_task", ["taskId"])
+        .index("by_depends_on", ["dependsOnTaskId"]),
 });

@@ -223,10 +223,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex h-screen overflow-hidden">
                 {/* Desktop Sidebar */}
                 <aside className="hidden w-64 flex-col border-r bg-white dark:bg-slate-950 md:flex">
-                    <div className="flex h-16 items-center justify-between border-b px-6">
-                        <div className="flex items-center gap-2 w-full">
-                            <TeamSwitcher />
-                        </div>
+                    <div className="flex h-16 items-center gap-3 border-b px-4">
+                        <Image src={logoSrc} alt="Logo" width={36} height={36} />
+                        <span className="font-bold text-lg text-slate-900 dark:text-white">Управление</span>
+                    </div>
+                    <div className="px-3 py-2 border-b">
+                        <TeamSwitcher />
                     </div>
 
 

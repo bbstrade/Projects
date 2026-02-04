@@ -13,6 +13,22 @@ export const get = query({
 });
 
 /**
+ * Get team by string ID (for cases where teamId is stored as string)
+ */
+export const getByStringId = query({
+    args: { teamId: v.string() },
+    handler: async (ctx, args) => {
+        // Try to find team by treating the string as an ID
+        try {
+            const teams = await ctx.db.query("teams").collect();
+            return teams.find(t => t._id === args.teamId) || null;
+        } catch {
+            return null;
+        }
+    },
+});
+
+/**
  * List all teams
  */
 /**

@@ -19,6 +19,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
     Calendar,
     Clock,
     MessageSquare,
@@ -30,12 +43,17 @@ import {
     FileText as FileIcon,
     Upload,
     Download,
-    Loader2
+    Loader2,
+    Link2,
+    CalendarIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { TaskSubtasks } from "./task-subtasks";
+import { TaskDependencies } from "./task-dependencies";
+import { MentionInput } from "@/components/ui/mention-input";
 
 const dict = {
     title: "Детайли за задача",
@@ -45,6 +63,7 @@ const dict = {
     dueDate: "Краен срок",
     subtasks: "Под-задачи",
     comments: "Коментари",
+    dependencies: "Зависимости",
     addComment: "Напишете коментар...",
     addSubtask: "Нова под-задача...",
     noDescription: "Няма предоставено описание.",
@@ -62,6 +81,21 @@ const dict = {
     fileUploaded: "Файлът е прикачен успешно",
     fileRemoved: "Файлът е премахнат",
 };
+
+const STATUS_OPTIONS = [
+    { value: "todo", label: "Предстои" },
+    { value: "in_progress", label: "В прогрес" },
+    { value: "in_review", label: "За преглед" },
+    { value: "done", label: "Завършено" },
+    { value: "blocked", label: "Блокирано" },
+];
+
+const PRIORITY_OPTIONS = [
+    { value: "low", label: "Нисък" },
+    { value: "medium", label: "Среден" },
+    { value: "high", label: "Висок" },
+    { value: "critical", label: "Критичен" },
+];
 
 interface TaskDetailDialogProps {
     taskId: Id<"tasks"> | null;
@@ -93,6 +127,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const removeFile = useMutation(api.files.remove);
 
     const [newComment, setNewComment] = useState("");
+    const [commentMentions, setCommentMentions] = useState<Id<"users">[]>([]);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -110,13 +145,21 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                 taskId,
                 userId: currentUser._id,
                 content: newComment,
+                mentions: commentMentions.length > 0 ? commentMentions : undefined,
             });
             setNewComment("");
+            setCommentMentions([]);
+            toast.success("Коментарът е добавен");
         } catch (error) {
             toast.error("Грешка при добавяне на коментар");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleCommentChange = (value: string, mentions: Id<"users">[]) => {
+        setNewComment(value);
+        setCommentMentions(mentions);
     };
 
     const handleAddSubtask = async (e: React.FormEvent) => {
@@ -220,6 +263,10 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                 <FileIcon className="h-4 w-4 mr-2" />
                                 {dict.files} ({files?.length || 0})
                             </TabsTrigger>
+                            <TabsTrigger value="dependencies" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                <Link2 className="h-4 w-4 mr-2" />
+                                {dict.dependencies}
+                            </TabsTrigger>
                         </TabsList>
                     </div>
 
@@ -235,20 +282,90 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                             </div>
 
                             <div className="grid grid-cols-2 gap-8 pt-4">
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-3 text-sm">
-                                        <Calendar className="h-4 w-4 text-slate-400" />
-                                        <div className="flex flex-col">
-                                            <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.dueDate}</span>
-                                            <span className="text-slate-700 font-medium">
-                                                {task.dueDate ? format(task.dueDate, "PPP", { locale: bg }) : "Няма краен срок"}
-                                            </span>
-                                        </div>
+                                <div className="space-y-4">
+                                    {/* Status */}
+                                    <div className="space-y-2">
+                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.status}</span>
+                                        <Select
+                                            value={task.status}
+                                            onValueChange={async (value) => {
+                                                await updateTask({ id: task._id, status: value });
+                                                toast.success("Статусът е променен");
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {STATUS_OPTIONS.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                    <div className="flex items-center gap-3 text-sm">
-                                        <Clock className="h-4 w-4 text-slate-400" />
-                                        <div className="flex flex-col">
-                                            <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Прогноза</span>
+
+                                    {/* Priority */}
+                                    <div className="space-y-2">
+                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.priority}</span>
+                                        <Select
+                                            value={task.priority}
+                                            onValueChange={async (value) => {
+                                                await updateTask({ id: task._id, priority: value });
+                                                toast.success("Приоритетът е променен");
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {PRIORITY_OPTIONS.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {/* Due Date */}
+                                    <div className="space-y-2">
+                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.dueDate}</span>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !task.dueDate && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {task.dueDate ? format(task.dueDate, "PPP", { locale: bg }) : "Изберете дата"}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <CalendarComponent
+                                                    mode="single"
+                                                    selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                                                    onSelect={async (date) => {
+                                                        await updateTask({ id: task._id, dueDate: date?.getTime() });
+                                                        toast.success("Крайният срок е променен");
+                                                    }}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+
+                                    {/* Estimated Hours */}
+                                    <div className="space-y-2">
+                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Прогноза</span>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4 text-slate-400" />
                                             <span className="text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
                                         </div>
                                     </div>
@@ -256,42 +373,9 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="subtasks" className="m-0 space-y-4">
-                            <form onSubmit={handleAddSubtask} className="flex gap-2 mb-6">
-                                <Input
-                                    placeholder={dict.addSubtask}
-                                    value={newSubtaskTitle}
-                                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                                    className="flex-1"
-                                />
-                                <Button type="submit" size="icon" disabled={!newSubtaskTitle.trim()}>
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                            </form>
 
-                            <div className="space-y-2">
-                                {subtasks && subtasks.length > 0 ? (
-                                    subtasks.map((sub) => (
-                                        <div key={sub._id} className="flex items-center gap-3 p-3 rounded-lg border bg-slate-50 transition-colors hover:bg-white group">
-                                            <Checkbox
-                                                checked={sub.status === "done"}
-                                                onCheckedChange={() => toggleSubtask(sub._id, sub.status)}
-                                            />
-                                            <span className={cn("text-sm flex-1", sub.status === "done" && "line-through text-slate-400")}>
-                                                {sub.title}
-                                            </span>
-                                            <Badge variant="outline" className="text-[10px] py-0 h-4">
-                                                {dict[`prio${sub.priority.charAt(0).toUpperCase() + sub.priority.slice(1)}` as keyof typeof dict]}
-                                            </Badge>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-12 text-slate-400">
-                                        <ListTodo className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                        <p>{dict.noSubtasks}</p>
-                                    </div>
-                                )}
-                            </div>
+                        <TabsContent value="subtasks" className="m-0">
+                            <TaskSubtasks taskId={task._id} />
                         </TabsContent>
 
                         <TabsContent value="comments" className="m-0 flex flex-col h-full space-y-4">
@@ -400,17 +484,23 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                 )}
                             </div>
                         </TabsContent>
+
+                        <TabsContent value="dependencies" className="m-0">
+                            <TaskDependencies taskId={task._id} projectId={task.projectId} />
+                        </TabsContent>
                     </ScrollArea>
 
                     <div className="p-4 border-t bg-slate-50 mt-auto">
                         <div className="relative">
-                            <Textarea
-                                placeholder={dict.addComment}
+                            <MentionInput
                                 value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                className="min-h-[100px] pr-12 pb-12 bg-white resize-none"
+                                onChange={handleCommentChange}
+                                placeholder={dict.addComment}
+                                className="pr-12 pb-12 bg-white resize-none"
+                                teamId={task?.projectId ? undefined : undefined}
+                                disabled={isSubmitting}
                             />
-                            <div className="absolute bottom-3 right-3">
+                            <div className="absolute bottom-8 right-3">
                                 <Button
                                     size="sm"
                                     onClick={handleAddComment}

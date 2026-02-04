@@ -20,6 +20,7 @@ export default function SettingsPage() {
     const dict = {
         title: isBg ? "Настройки" : "Settings",
         subtitle: isBg ? "Управление на вашия профил и настройки на системата" : "Manage your profile and system preferences",
+        loading: isBg ? "Зареждане..." : "Loading...",
         tabs: {
             profile: isBg ? "Профил" : "Profile",
             notifications: isBg ? "Нотификации" : "Notifications",
@@ -30,6 +31,18 @@ export default function SettingsPage() {
 
     // Determine if user has admin access
     const isAdmin = user?.role === 'admin' || user?.role === 'owner'; // Simple check, real logic might need team check
+
+    // Show loading while user is being fetched
+    if (user === undefined) {
+        return (
+            <div className="container max-w-6xl py-8 flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-3">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+                    <p className="text-muted-foreground">{dict.loading}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container max-w-6xl py-8 space-y-8">

@@ -74,8 +74,11 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
             });
             form.reset();
             onOpenChange(false);
+            // Force page reload to refresh team list
+            window.location.reload();
         } catch (error) {
             console.error("Failed to create team:", error);
+            alert("Грешка при създаване на екип: " + (error instanceof Error ? error.message : "Неизвестна грешка"));
         } finally {
             setIsSubmitting(false);
         }

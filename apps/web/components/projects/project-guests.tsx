@@ -39,7 +39,7 @@ export function ProjectGuests({ projectId }: ProjectGuestsProps) {
     const removeGuest = useMutation(api.project_guests.remove);
     const updateGuestPermissions = useMutation(api.project_guests.updatePermissions);
     const project = useQuery(api.projects.get, { id: projectId });
-    const team = useQuery(api.teams.get, project?.teamId ? { teamId: project.teamId as Id<"teams"> } : "skip");
+    const team = useQuery(api.teams.getByStringId, project?.teamId ? { teamId: project.teamId } : "skip");
 
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [email, setEmail] = useState("");

@@ -17,6 +17,7 @@ export const create = mutation({
         title: v.string(),
         description: v.optional(v.string()),
         assigneeId: v.optional(v.id("users")),
+        labels: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
         const now = Date.now();
@@ -37,7 +38,9 @@ export const update = mutation({
         description: v.optional(v.string()),
         assigneeId: v.optional(v.id("users")),
         completed: v.optional(v.boolean()),
+        labels: v.optional(v.array(v.string())),
         checklist: v.optional(v.array(v.object({
+            id: v.string(),
             text: v.string(),
             completed: v.boolean(),
         }))),
