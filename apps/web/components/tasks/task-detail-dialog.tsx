@@ -158,7 +158,6 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                 fileType: file.type,
                 fileSize: file.size,
                 taskId,
-                uploadedBy: currentUser._id,
             });
             toast.success(dict.fileUploaded);
         } catch (error) {
