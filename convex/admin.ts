@@ -64,9 +64,27 @@ export const getAuditLogs = query({
     },
     handler: async (ctx, args) => {
         // Admin check should be here
-        return await ctx.db.query("activityLogs")
+
+        const logs = await ctx.db.query("activityLogs")
             .order("desc") // newest first
             .take(args.limit || 50);
+
+        // Collect unique user IDs
+        const userIds = [...new Set(logs.map(log => log.userId))];
+
+        // Fetch users
+        const users = await Promise.all(userIds.map(id => ctx.db.get(id)));
+        const usersMap = new Map(users.filter(u => u !== null).map(u => [u!._id, u]));
+
+        // Join
+        return logs.map(log => {
+            const user = usersMap.get(log.userId);
+            return {
+                ...log,
+                userName: user?.name || "Unknown User",
+                userAvatar: user?.avatar,
+            };
+        });
     }
 });
 
