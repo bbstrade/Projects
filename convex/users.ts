@@ -61,7 +61,7 @@ export const search = query({
 
         return users.filter(u =>
             (u.name && u.name.toLowerCase().includes(lowerQuery)) ||
-            u.email.toLowerCase().includes(lowerQuery)
+            (u.email && u.email.toLowerCase().includes(lowerQuery))
         ).slice(0, 5);
     },
 });
