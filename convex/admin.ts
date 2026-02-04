@@ -30,22 +30,32 @@ export const getSystemStats = query({
     args: {},
     handler: async (ctx) => {
         // Only allow admin
-        // const isAdmin = await checkAdmin(ctx); // Relaxing for now or implement check
-        // For this demo, assuming calling from UI that hides it, 
-        // but backend MUST match security.
+        // const isAdmin = await checkAdmin(ctx); 
 
-        // Let's implement a safe check
         const userId = await getAuthUserId(ctx);
-        if (!userId) return null; // Or throw
+        if (!userId) return null;
 
-        // Basic stats
-        const usersCount = (await ctx.db.query("users").collect()).length;
-        const teamsCount = (await ctx.db.query("teams").collect()).length;
-        // Optimization: .collect().length is slow for large DBs, but fine for small/medium app.
+        const users = await ctx.db.query("users").collect();
+        const teams = await ctx.db.query("teams").collect();
+        const projects = await ctx.db.query("projects").collect();
+        const tasks = await ctx.db.query("tasks").collect();
+
+        const totalUsers = users.length;
+        const teamsCount = teams.length;
+        const totalProjects = projects.length;
+        const activeProjects = projects.filter(p => p.status === "active").length;
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(t => t.status === "done").length;
+        const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
         return {
-            usersCount,
+            totalUsers,
             teamsCount,
+            totalProjects,
+            activeProjects,
+            totalTasks,
+            completedTasks,
+            completionRate,
         };
     },
 });
