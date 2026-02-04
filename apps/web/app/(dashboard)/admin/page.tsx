@@ -48,8 +48,8 @@ const dict = {
 };
 
 export default function AdminPage() {
-    const stats = useQuery(api.admin.getStats);
-    const logs = useQuery(api.admin.getLogs, { limit: 100 });
+    const stats = useQuery(api.admin.getSystemStats);
+    const logs = useQuery(api.admin.getAuditLogs, { limit: 100 });
     const users = useQuery(api.users.list, {});
     const [logSearch, setLogSearch] = useState("");
 
