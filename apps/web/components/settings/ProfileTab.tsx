@@ -157,7 +157,7 @@ export default function ProfileTab() {
                 <div className="grid gap-4 md:grid-cols-2 max-w-2xl">
                     <div className="space-y-2">
                         <Label>Потребителско име</Label>
-                        <Input value={user.username || user.email?.split('@')[0]} disabled placeholder="Username" />
+                        <Input value={user.email?.split('@')[0]} disabled placeholder="Username" />
                         <p className="text-[0.8rem] text-muted-foreground">Username се генерира автоматично.</p>
                     </div>
 
