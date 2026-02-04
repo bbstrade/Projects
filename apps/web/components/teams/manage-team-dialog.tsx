@@ -221,7 +221,7 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
                                                 {canManage && member.role !== "owner" && member.user?._id !== currentUser?._id ? (
                                                     <Select
                                                         defaultValue={member.role}
-                                                        onValueChange={(val) => handleRoleChange(member.user._id, val)}
+                                                        onValueChange={(val) => member.user && handleRoleChange(member.user._id, val)}
                                                         disabled={!isOwner && member.role === "admin"} // Admins can't degrade other admins usually, or logic is: Admin can manage members.
                                                     >
                                                         <SelectTrigger className="w-[110px] h-8">
@@ -245,7 +245,7 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
                                                         size="icon"
                                                         variant="ghost"
                                                         className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleRemove(member.user._id)}
+                                                        onClick={() => member.user && handleRemove(member.user._id)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
