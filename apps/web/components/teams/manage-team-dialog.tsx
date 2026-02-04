@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
     Dialog,
@@ -131,13 +131,12 @@ export function ManageTeamDialog({ open, onOpenChange, teamId }: ManageTeamDialo
         }
     };
 
-    // Stub for user lookup - we will need to fix this interaction.
-    // For now, we will just comment that this needs a backend support or useConvex.
+    const convex = useConvex();
+
+    // Helper to get user
     const getUserIdByEmail = async (email: string) => {
-        // This is pseudo-code placeholder.
-        // In reality, we'd use `convex.query(api.users.getByEmail, { email })`
-        // We'll leave it as a TODO or handle it via a new mutation `addMemberByEmail`.
-        return null;
+        const user = await convex.query(api.users.getByEmail, { email });
+        return user;
     };
 
     if (!team) return null;
