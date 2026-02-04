@@ -128,6 +128,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
     const [newComment, setNewComment] = useState("");
     const [commentMentions, setCommentMentions] = useState<Id<"users">[]>([]);
+    const [commentFiles, setCommentFiles] = useState<File[]>([]);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -137,21 +138,50 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const currentUser = users?.[0];
 
     const handleAddComment = async () => {
-        if (!newComment.trim() || !taskId || !currentUser) return;
+        if ((!newComment.trim() && commentFiles.length === 0) || !taskId || !currentUser) return;
 
         setIsSubmitting(true);
         try {
+            // Upload files if any
+            const attachments = [];
+            if (commentFiles.length > 0) {
+                for (const file of commentFiles) {
+                    const postUrl = await generateUploadUrl();
+                    const result = await fetch(postUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": file.type },
+                        body: file,
+                    });
+
+                    if (!result.ok) throw new Error("Upload failed");
+                    const { storageId } = await result.json();
+
+                    attachments.push({
+                        name: file.name,
+                        url: "", // We'll rely on storageId
+                        storageId: storageId as Id<"_storage">,
+                        type: file.type,
+                        size: file.size,
+                        uploadedAt: Date.now(),
+                    });
+                }
+            }
+
             await addComment({
                 taskId,
                 userId: currentUser._id,
                 content: newComment,
                 mentions: commentMentions.length > 0 ? commentMentions : undefined,
+                attachments: attachments.length > 0 ? attachments : undefined,
             });
+
             setNewComment("");
             setCommentMentions([]);
+            setCommentFiles([]);
             toast.success("Коментарът е добавен");
         } catch (error) {
             toast.error("Грешка при добавяне на коментар");
+            console.error(error);
         } finally {
             setIsSubmitting(false);
         }
@@ -160,6 +190,17 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const handleCommentChange = (value: string, mentions: Id<"users">[]) => {
         setNewComment(value);
         setCommentMentions(mentions);
+    };
+
+    const handleCommentFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            setCommentFiles((prev) => [...prev, ...Array.from(files)]);
+        }
+    };
+
+    const removeCommentFile = (index: number) => {
+        setCommentFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleAddSubtask = async (e: React.FormEvent) => {
@@ -397,6 +438,19 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                 </div>
                                                 <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none text-sm text-slate-700 leading-relaxed border border-slate-100">
                                                     {comment.content}
+                                                    {/* Attachments */}
+                                                    {comment.attachments && comment.attachments.length > 0 && (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {comment.attachments.map((att: any, idx: number) => (
+                                                                <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded border text-xs">
+                                                                    <FileIcon className="h-3 w-3 text-blue-500" />
+                                                                    <span className="max-w-[150px] truncate" title={att.name}>{att.name}</span>
+                                                                    {/* Simple download/view mechanism if possible, or usually we need to fetch signed URL */}
+                                                                    {/* For now, just display that files exist. Using storageId typically requires a generated URL on backend or separate loading */}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -492,6 +546,18 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
                     <div className="p-4 border-t bg-slate-50 mt-auto">
                         <div className="relative">
+                            {commentFiles.length > 0 && (
+                                <div className="absolute top-[-40px] left-0 w-full flex gap-2 overflow-x-auto px-2 pb-2">
+                                    {commentFiles.map((file, idx) => (
+                                        <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs border border-blue-100">
+                                            <span className="truncate max-w-[100px]">{file.name}</span>
+                                            <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <MentionInput
                                 value={newComment}
                                 onChange={handleCommentChange}
@@ -501,15 +567,41 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                 disabled={isSubmitting}
                             />
                             <div className="absolute bottom-8 right-3">
-                                <Button
-                                    size="sm"
-                                    onClick={handleAddComment}
-                                    disabled={!newComment.trim() || isSubmitting}
-                                    className="rounded-full px-4 h-9"
-                                >
-                                    <Send className="h-4 w-4 mr-2" />
-                                    {dict.send}
-                                </Button>
+                                <input
+                                    type="file"
+                                    id="comment-file-upload"
+                                    className="hidden"
+                                    multiple
+                                    onChange={handleCommentFileUpload}
+                                    disabled={isSubmitting}
+                                />
+                                <div className="flex gap-1">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="rounded-full h-9 w-9 p-0"
+                                        asChild
+                                    >
+                                        <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center justify-center">
+                                            <Upload className="h-4 w-4 text-slate-500" />
+                                        </label>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={handleAddComment}
+                                        disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
+                                        className="rounded-full px-4 h-9"
+                                    >
+                                        {isSubmitting ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Send className="h-4 w-4 mr-2" />
+                                                {dict.send}
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>

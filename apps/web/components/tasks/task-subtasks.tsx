@@ -315,14 +315,14 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
 
                                         {/* Assignee Edit */}
                                         <Select
-                                            value={editData.assigneeId}
-                                            onValueChange={(val) => setEditData({ ...editData, assigneeId: val })}
+                                            value={editData.assigneeId || "unassigned"}
+                                            onValueChange={(val) => setEditData({ ...editData, assigneeId: val === "unassigned" ? "" : val })}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Без отговорник" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">Без отговорник</SelectItem>
+                                                <SelectItem value="unassigned">Без отговорник</SelectItem>
                                                 {users?.map((user) => (
                                                     <SelectItem key={user._id} value={user._id}>
                                                         <div className="flex items-center gap-2">
@@ -572,12 +572,12 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                     {/* Assignee */}
                     <div className="space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">Отговорник</label>
-                        <Select value={newAssigneeId} onValueChange={setNewAssigneeId}>
+                        <Select value={newAssigneeId || "unassigned"} onValueChange={(val) => setNewAssigneeId(val === "unassigned" ? "" : val)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Без отговорник" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Без отговорник</SelectItem>
+                                <SelectItem value="unassigned">Без отговорник</SelectItem>
                                 {users?.map((user) => (
                                     <SelectItem key={user._id} value={user._id}>
                                         <div className="flex items-center gap-2">

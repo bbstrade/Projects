@@ -203,14 +203,39 @@ export default function TaskDetailsPage() {
 
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-muted-foreground">Status</label>
-                                    <div className="font-medium capitalize">{task.status.replace("_", " ")}</div>
+                                    <Select
+                                        defaultValue={task.status}
+                                        onValueChange={(value) => updateTask({ id: taskId, status: value })}
+                                    >
+                                        <SelectTrigger className="h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="todo">To Do</SelectItem>
+                                            <SelectItem value="in_progress">In Progress</SelectItem>
+                                            <SelectItem value="in_review">In Review</SelectItem>
+                                            <SelectItem value="done">Done</SelectItem>
+                                            <SelectItem value="blocked">Blocked</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-muted-foreground">Priority</label>
-                                    <Badge variant={task.priority === "high" || task.priority === "critical" ? "destructive" : "secondary"}>
-                                        {task.priority}
-                                    </Badge>
+                                    <Select
+                                        defaultValue={task.priority}
+                                        onValueChange={(value) => updateTask({ id: taskId, priority: value })}
+                                    >
+                                        <SelectTrigger className="h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">Low</SelectItem>
+                                            <SelectItem value="medium">Medium</SelectItem>
+                                            <SelectItem value="high">High</SelectItem>
+                                            <SelectItem value="critical">Critical</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="space-y-1">
@@ -224,10 +249,28 @@ export default function TaskDetailsPage() {
 
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-muted-foreground">Due Date</label>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span>{task.dueDate ? format(task.dueDate, "MMM d, yyyy") : "No due date"}</span>
-                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full h-8 justify-start text-left font-normal",
+                                                    !task.dueDate && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <Calendar className="mr-2 h-4 w-4" />
+                                                {task.dueDate ? format(task.dueDate, "MMM d, yyyy") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <CalendarComponent
+                                                mode="single"
+                                                selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                                                onSelect={(date) => updateTask({ id: taskId, dueDate: date ? date.getTime() : undefined })}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
 
                                 <Separator />
