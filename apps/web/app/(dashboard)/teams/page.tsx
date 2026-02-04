@@ -168,11 +168,13 @@ export default function TeamsPage() {
                 open={createDialogOpen}
                 onOpenChange={setCreateDialogOpen}
             />
-            <InviteMemberDialog
-                open={inviteDialogOpen}
-                onOpenChange={setInviteDialogOpen}
-                teamId={selectedTeamId}
-            />
+            {selectedTeamId && (
+                <InviteMemberDialog
+                    open={inviteDialogOpen}
+                    onOpenChange={setInviteDialogOpen}
+                    teamId={selectedTeamId}
+                />
+            )}
 
 
             {selectedTeamId && (
