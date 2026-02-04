@@ -129,15 +129,9 @@ export const create = mutation({
         dueDate: v.optional(v.number()),
         estimatedHours: v.optional(v.number()),
         tags: v.optional(v.array(v.string())),
+        labels: v.optional(v.array(v.string())),
         parentTaskId: v.optional(v.id("tasks")),
-        attachments: v.optional(v.array(v.object({
-            name: v.string(),
-            url: v.string(),
-            type: v.string(),
-            size: v.number(),
-            storageId: v.optional(v.id("_storage")),
-            uploadedAt: v.number(),
-        }))),
+        attachments: v.optional(v.array(v.string())), // Storage IDs
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -180,14 +174,8 @@ export const update = mutation({
         estimatedHours: v.optional(v.number()),
         actualHours: v.optional(v.number()),
         tags: v.optional(v.array(v.string())),
-        attachments: v.optional(v.array(v.object({
-            name: v.string(),
-            url: v.string(),
-            type: v.string(),
-            size: v.number(),
-            storageId: v.optional(v.id("_storage")),
-            uploadedAt: v.number(),
-        }))),
+        labels: v.optional(v.array(v.string())),
+        attachments: v.optional(v.array(v.string())), // Storage IDs
     },
     handler: async (ctx, args) => {
         const { id, ...fields } = args;

@@ -36,15 +36,9 @@ export default defineSchema({
         estimatedHours: v.optional(v.number()),
         actualHours: v.optional(v.number()),
         tags: v.optional(v.array(v.string())),
+        labels: v.optional(v.array(v.string())), // Added for task labels UI
         parentTaskId: v.optional(v.id("tasks")),
-        attachments: v.optional(v.array(v.object({
-            name: v.string(),
-            url: v.string(),
-            type: v.string(),
-            size: v.number(),
-            storageId: v.optional(v.id("_storage")),
-            uploadedAt: v.number(),
-        }))),
+        attachments: v.optional(v.array(v.string())), // Storage IDs
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
     })
