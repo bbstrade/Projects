@@ -150,12 +150,25 @@ export const create = mutation({
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new Error("Unauthenticated");
 
-        const user = await ctx.db
+        let user = await ctx.db
             .query("users")
             .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
             .unique();
 
-        if (!user) throw new Error("User not found");
+        // Auto-create user if not exists (sync from better-auth)
+        if (!user) {
+            const now = Date.now();
+            const userId = await ctx.db.insert("users", {
+                name: identity.name || identity.email?.split("@")[0] || "User",
+                email: identity.email,
+                tokenIdentifier: identity.tokenIdentifier,
+                role: "member",
+                createdAt: now,
+                updatedAt: now,
+            });
+            user = await ctx.db.get(userId);
+            if (!user) throw new Error("Failed to create user");
+        }
         const ownerId = user._id;
 
         const now = Date.now();

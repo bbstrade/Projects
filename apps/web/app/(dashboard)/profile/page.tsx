@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useTheme } from "next-themes";
+import { useLanguage } from "@/components/language-provider";
 import {
     User,
     Mail,
@@ -14,7 +16,8 @@ import {
     Globe,
     Save,
     Camera,
-    LogOut
+    LogOut,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const dict = {
     title: "Профил",
@@ -57,6 +61,10 @@ const dict = {
     save: "Запази промените",
     saving: "Запазване...",
     signOut: "Изход",
+    avatarUpdated: "Профилната снимка е обновена",
+    avatarError: "Грешка при качване на снимка",
+    profileUpdated: "Профилът е обновен успешно",
+    profileError: "Грешка при обновяване на профила",
     roles: {
         admin: "Администратор",
         member: "Член",
@@ -68,15 +76,22 @@ const dict = {
 export default function ProfilePage() {
     const { data: session, isPending: isSessionLoading } = useSession();
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Use actual theme and language providers
+    const { theme, setTheme } = useTheme();
+    const { lang, setLang } = useLanguage();
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [name, setName] = useState("");
-    const [theme, setTheme] = useState("system");
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-    const [language, setLanguage] = useState("bg");
+    const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
 
     // Get current user from Convex (if available)
     const convexUser = useQuery(api.users.me);
     const updateUser = useMutation(api.users.update);
+    const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
     // Merge session user and convex user
     const user = convexUser || (session?.user ? {
@@ -86,7 +101,6 @@ export default function ProfilePage() {
         avatar: session.user.image,
         role: "member",
         createdAt: session.user.createdAt ? new Date(session.user.createdAt).getTime() : Date.now(),
-        // Default preferences
         preferences: {
             theme: "system",
             notifications: true,
@@ -98,13 +112,53 @@ export default function ProfilePage() {
     useEffect(() => {
         if (user && !name) {
             setName(user.name || "");
+            setAvatarUrl(user.avatar || undefined);
             if (user.preferences) {
-                setTheme(user.preferences.theme || "system");
                 setNotificationsEnabled(user.preferences.notifications ?? true);
-                setLanguage(user.preferences.language || "bg");
             }
         }
     }, [user, name]);
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user?._id) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Файлът трябва да е по-малък от 5MB");
+            return;
+        }
+
+        setUploading(true);
+        try {
+            // 1. Get upload URL
+            const postUrl = await generateUploadUrl();
+
+            // 2. Upload file
+            const result = await fetch(postUrl, {
+                method: "POST",
+                headers: { "Content-Type": file.type },
+                body: file,
+            });
+
+            if (!result.ok) throw new Error("Upload failed");
+            const { storageId } = await result.json();
+
+            // 3. Update user with new avatar (storageId)
+            await updateUser({
+                userId: user._id as any,
+                avatar: storageId,
+            });
+
+            // Show a preview (optional - might need actual URL from storage)
+            setAvatarUrl(URL.createObjectURL(file));
+            toast.success(dict.avatarUpdated);
+        } catch (error) {
+            console.error(error);
+            toast.error(dict.avatarError);
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSave = async () => {
         if (!user || !user._id) {
@@ -117,13 +171,15 @@ export default function ProfilePage() {
                 userId: user._id as any,
                 name: name,
                 preferences: {
-                    theme,
+                    theme: theme || "system",
                     notifications: notificationsEnabled,
-                    language,
+                    language: lang,
                 },
             });
+            toast.success(dict.profileUpdated);
         } catch (error) {
             console.error("Failed to update profile:", error);
+            toast.error(dict.profileError);
         } finally {
             setIsSubmitting(false);
         }
@@ -156,7 +212,6 @@ export default function ProfilePage() {
     }
 
     if (!user) {
-        // Optionally redirect here or show empty state
         return (
             <div className="p-8 text-center text-muted-foreground">
                 Не е намерен потребител. Моля влезте в системата.
@@ -169,6 +224,15 @@ export default function ProfilePage() {
 
     return (
         <div className="space-y-8 p-8 max-w-7xl mx-auto">
+            {/* Hidden file input for avatar upload */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+            />
+
             {/* Header */}
             <div>
                 <h1 className="text-4xl font-bold tracking-tight text-foreground">{dict.title}</h1>
@@ -183,7 +247,7 @@ export default function ProfilePage() {
                             <div className="flex flex-col items-center text-center">
                                 <div className="relative mb-6">
                                     <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                                        <AvatarImage src={user.avatar || undefined} className="object-cover" />
+                                        <AvatarImage src={avatarUrl || user.avatar || undefined} className="object-cover" />
                                         <AvatarFallback className="text-4xl bg-primary/10 text-primary">
                                             {user.name?.charAt(0) || "U"}
                                         </AvatarFallback>
@@ -192,8 +256,14 @@ export default function ProfilePage() {
                                         size="icon"
                                         variant="secondary"
                                         className="absolute bottom-0 right-0 h-10 w-10 rounded-full shadow-md hover:scale-105 transition-transform"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploading}
                                     >
-                                        <Camera className="h-5 w-5" />
+                                        {uploading ? (
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                        ) : (
+                                            <Camera className="h-5 w-5" />
+                                        )}
                                     </Button>
                                 </div>
                                 <h3 className="text-2xl font-bold">{user.name}</h3>
@@ -301,7 +371,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="space-y-2.5">
                                     <Label className="text-base">{dict.language}</Label>
-                                    <Select value={language} onValueChange={setLanguage}>
+                                    <Select value={lang} onValueChange={(value) => setLang(value as "bg" | "en")}>
                                         <SelectTrigger className="h-11">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -350,7 +420,7 @@ export default function ProfilePage() {
                         </Button>
 
                         <Button onClick={handleSave} disabled={isSubmitting} size="lg" className="h-11 px-8 shadow-lg hover:shadow-xl transition-all">
-                            <Save className="mr-2 h-5 w-5" />
+                            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                             {isSubmitting ? dict.saving : dict.save}
                         </Button>
                     </div>

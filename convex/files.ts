@@ -77,3 +77,18 @@ export const remove = mutation({
         await ctx.db.delete(args.fileId);
     },
 });
+
+// Get URL from storage ID (for avatars, attachments, etc.)
+export const getStorageUrl = query({
+    args: { storageId: v.string() },
+    handler: async (ctx, args) => {
+        try {
+            // Try to get URL from storage ID
+            const url = await ctx.storage.getUrl(args.storageId as any);
+            return url;
+        } catch {
+            return null;
+        }
+    },
+});
+

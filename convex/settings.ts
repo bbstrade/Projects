@@ -1,31 +1,55 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { Id } from "./_generated/dataModel";
+
+// Helper function to get the current user from auth context
+async function getCurrentUser(ctx: any) {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    let user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique();
+
+    // Auto-create user if not exists (sync from better-auth)
+    if (!user) {
+        const now = Date.now();
+        const userId = await ctx.db.insert("users", {
+            name: identity.name || identity.email?.split("@")[0] || "User",
+            email: identity.email,
+            tokenIdentifier: identity.tokenIdentifier,
+            role: "member",
+            createdAt: now,
+            updatedAt: now,
+        });
+        user = await ctx.db.get(userId);
+    }
+
+    return user;
+}
 
 // Profile Management
 export const updateProfile = mutation({
     args: {
-        userId: v.id("users"), // passed from frontend if needed, or derived from context
+        userId: v.id("users"),
         name: v.optional(v.string()),
-        imageUrl: v.optional(v.string()), // For avatar
+        imageUrl: v.optional(v.string()), // For avatar (storage ID or URL)
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const currentUser = await getCurrentUser(ctx);
+        if (!currentUser) throw new Error("Unauthorized");
 
         // Simple security check: ensure user is updating themselves or is admin
-        // For strictness, better to just use userId from auth context
-        if (userId !== args.userId) {
-            // Check if admin? For now, let's enforce self-update only for this specific mutation
-            // unless we want admins to edit others.
-            // Let's stick to "User updates their own profile" for the "Profile" tab.
+        if (currentUser._id !== args.userId && currentUser.role !== "admin") {
             throw new Error("You can only update your own profile");
         }
 
-        await ctx.db.patch(args.userId, {
-            name: args.name,
-            avatar: args.imageUrl, // Mapping imageUrl to avatar field
-        });
+        const updateData: any = { updatedAt: Date.now() };
+        if (args.name !== undefined) updateData.name = args.name;
+        if (args.imageUrl !== undefined) updateData.avatar = args.imageUrl;
+
+        await ctx.db.patch(args.userId, updateData);
     },
 });
 
@@ -33,39 +57,23 @@ export const updateProfile = mutation({
 export const exportUserData = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const user = await getCurrentUser(ctx);
+        if (!user) throw new Error("Unauthorized");
 
-        const user = await ctx.db.get(userId);
-        if (!user) throw new Error("User not found");
+        const userId = user._id;
 
         const preferences = await ctx.db
             .query("notificationPreferences")
             .withIndex("by_user", (q) => q.eq("userId", userId))
             .first();
 
-        // Fetch other related data... this logic can get heavy.
-        // For a full export, we might need to fetch a lot.
-        // Based on specs: Projects, Tasks, TeamMemberships, Comments.
-
-        // Projects where user is a member (via team_members in project)
-        // Stored as "team_members: v.array(v.string())" in schema which is names/emails?
-        // Wait, schema says: team_members: v.optional(v.array(v.string()))
-        // This makes filtering hard. Let's look at `project.ownerId` or just fetch all and filter in memory if dataset is small,
-        // or rely on a better index if available.
-        // Actually, Project Memberships are usually done via `teamMembers` table or `projectGuests`.
-        // The user request says: "Projects (where is member or owner)".
-        // Let's approximate by: Owner OR Team Member of the Team the project belongs to?
-
-        // Let's implement what's explicitly requested in a reasonable way.
         // Fetch projects where ownerId == userId
         const projectsOwned = await ctx.db
             .query("projects")
-            // .withIndex("by_owner", (q) => q.eq("ownerId", userId)) // Schema has no by_owner
             .filter(q => q.eq(q.field("ownerId"), userId))
             .collect();
 
-        // Tasks assigned to user or created by user
+        // Tasks assigned to user
         const tasksAssigned = await ctx.db
             .query("tasks")
             .withIndex("by_assignee", (q) => q.eq("assigneeId", userId))
@@ -87,24 +95,23 @@ export const exportUserData = query({
     },
 });
 
-// ... Notification preferences implementation below ...
+// Notification preferences
 
 export const getNotificationPreferences = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return null;
+        const user = await getCurrentUser(ctx);
+        if (!user) return null;
 
         return await ctx.db
             .query("notificationPreferences")
-            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .withIndex("by_user", (q) => q.eq("userId", user._id))
             .unique();
     },
 });
 
 export const updateNotificationPreferences = mutation({
     args: {
-        // We accept all fields as optional to allow partial updates
         task_assigned: v.optional(v.boolean()),
         deadline_reminder: v.optional(v.boolean()),
         deadline_reminder_days: v.optional(v.number()),
@@ -117,16 +124,20 @@ export const updateNotificationPreferences = mutation({
         new_comment: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const user = await getCurrentUser(ctx);
+        if (!user) throw new Error("Unauthorized");
+
+        const userId = user._id;
 
         const existing = await ctx.db
             .query("notificationPreferences")
             .withIndex("by_user", (q) => q.eq("userId", userId))
             .unique();
 
+        const now = Date.now();
+
         if (existing) {
-            await ctx.db.patch(existing._id, args);
+            await ctx.db.patch(existing._id, { ...args, updatedAt: now });
         } else {
             // Create with defaults merged with args
             const defaults = {
@@ -146,9 +157,9 @@ export const updateNotificationPreferences = mutation({
                 userId,
                 ...defaults,
                 ...args,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            } as any); // Type assertion if needed due to optionality mismatch in strictly typed args
+                createdAt: now,
+                updatedAt: now,
+            } as any);
         }
     },
 });
