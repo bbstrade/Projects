@@ -76,15 +76,25 @@ export default defineSchema({
         taskId: v.optional(v.id("tasks")),
         requesterId: v.id("users"),
         type: v.string(), // document, decision, budget, other
-        status: v.string(), // pending, approved, rejected, cancelled
+        status: v.string(), // pending, approved, rejected, cancelled, revision
         workflowType: v.string(), // sequential, parallel
         currentStepIndex: v.number(),
+        budget: v.optional(v.number()),
+        priority: v.optional(v.string()), // low, medium, high, critical
+        attachments: v.optional(v.array(v.object({
+            name: v.string(),
+            url: v.string(),
+            type: v.string(),
+            storageId: v.optional(v.id("_storage")),
+            uploadedAt: v.number(),
+        }))),
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index("by_project", ["projectId"])
         .index("by_status", ["status"])
-        .index("by_requester", ["requesterId"]),
+        .index("by_requester", ["requesterId"])
+        .index("by_task", ["taskId"]),
 
     approvalSteps: defineTable({
         approvalId: v.id("approvals"),
@@ -158,6 +168,22 @@ export default defineSchema({
     })
         .index("by_user", ["userId"])
         .index("by_user_read", ["userId", "read"]),
+
+    approvalComments: defineTable({
+        approvalId: v.id("approvals"),
+        userId: v.id("users"),
+        content: v.string(),
+        attachments: v.optional(v.array(v.object({
+            name: v.string(),
+            url: v.string(),
+            type: v.string(),
+            storageId: v.optional(v.id("_storage")),
+            uploadedAt: v.number(),
+        }))),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_approval", ["approvalId"]),
 
     taskComments: defineTable({
         taskId: v.id("tasks"),
