@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { Resend } from "resend";
 
+// Email sending action using Resend
 export const sendEmail = internalAction({
     args: {
         to: v.union(v.string(), v.array(v.string())),
