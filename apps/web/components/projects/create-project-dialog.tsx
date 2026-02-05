@@ -171,7 +171,6 @@ export function CreateProjectDialog({
                     status: values.status,
                     priority: values.priority,
                     endDate: values.endDate?.getTime(),
-                    endDate: values.endDate?.getTime(),
                     team_members: selectedMembers,
                     color: values.color,
                 });
@@ -183,7 +182,6 @@ export function CreateProjectDialog({
                     description: values.description,
                     status: values.status,
                     priority: values.priority,
-                    endDate: values.endDate?.getTime(),
                     endDate: values.endDate?.getTime(),
                     team_members: selectedMembers,
                     color: values.color,
