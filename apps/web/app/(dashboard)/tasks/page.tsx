@@ -7,6 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { KanbanBoard } from "@/components/tasks/kanban-board";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskCard } from "@/components/tasks/task-card";
+import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog"; // Import TaskDetailDialog
 import { StatsCards } from "@/components/shared/stats-cards";
 import { GanttView } from "@/components/shared/gantt-view";
 import { CalendarView } from "@/components/shared/calendar-view";
@@ -80,6 +81,15 @@ export default function TasksPage() {
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+
+    // Detail Dialog State
+    const [selectedTaskId, setSelectedTaskId] = useState<Id<"tasks"> | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+    const openTask = (taskId: Id<"tasks">) => {
+        setSelectedTaskId(taskId);
+        setIsDetailOpen(true);
+    };
 
     // Fetch data
     const projects = useQuery(api.projects.list, {});
@@ -333,6 +343,7 @@ export default function TasksPage() {
                                     tasks={processedTasks}
                                     projects={projects || []}
                                     users={users || []}
+                                    onTaskClick={openTask} // Pass handler
                                 />
                             ) : (
                                 <div className="flex flex-col gap-3">
@@ -350,6 +361,8 @@ export default function TasksPage() {
                                                 viewMode={viewMode}
                                                 assignee={{ name: assignee?.name, image: assignee?.avatar }}
                                                 color={task.color}
+                                                // @ts-ignore - TaskCard update pending
+                                                onClick={() => openTask(task._id)} // Pass handler
                                             />
                                         );
                                     })}
@@ -396,6 +409,14 @@ export default function TasksPage() {
                     open={createDialogOpen}
                     onOpenChange={setCreateDialogOpen}
                     projectId={projectFilter !== "all" ? (projectFilter as Id<"projects">) : firstProjectId}
+                />
+            )}
+            {/* Detail Dialog */}
+            {selectedTaskId && (
+                <TaskDetailDialog
+                    taskId={selectedTaskId}
+                    open={isDetailOpen}
+                    onOpenChange={setIsDetailOpen}
                 />
             )}
         </div>

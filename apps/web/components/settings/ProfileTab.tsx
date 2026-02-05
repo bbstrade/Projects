@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Camera, Loader2, Save } from "lucide-react";
+import { Camera, Loader2, Save, User } from "lucide-react";
 
 export default function ProfileTab() {
     const { data: session } = useSession();
@@ -71,45 +71,16 @@ export default function ProfileTab() {
             if (!result.ok) throw new Error("Upload failed");
             const { storageId } = await result.json();
 
-            // 3. Update profile with new storage ID (assuming we store storageId or get URL from it)
-            // Wait, schema says `avatar: v.optional(v.string())`. Ideally we store URL or Storage ID.
-            // If we store Storage ID, we need a way to serve it.
-            // Let's assume we store the Storage ID string for now or a served URL.
-            // But standard Convex pattern is storing ID.
-            // However, `updateProfile` takes `imageUrl`.
-            // Let's rely on a helper to get URL or just store the ID if the frontend `<Avatar>` can handle it (it can't usually without a query).
-            // Actually, best practice: `updateProfile` takes storageId and backend generates URL to store, or frontend generates URL.
-            // Let's update `updateProfile` in our minds to accept `imageUrl` which could be a convex served URL.
-
-            // For now, let's assume we can get the URL:
-            // Actually, we usually save the storageId in the DB, and use `api.files.getUrl` (if we had it) or similar.
-            // Re-reading `files.ts` content or assuming standard:
-            // Since I don't see `files.ts`, I'll assume we can't easily get the public URL synchronously without another call.
-            // Let's pass the storageId to the mutation and let backend handle it?
-            // The `updateProfile` in `settings.ts` takes `imageUrl`.
-            // I'll try to just pass the storage ID as the "image url" for now, but that's risky.
-            // BETTER: Use the `base44.integrations.Core.UploadFile` pattern requested?
-            // "3. Upload чрез base44.integrations.Core.UploadFile" -> This was the user prompt.
-            // Since I don't have that library, I am doing standard Convex.
-            // Let's pass the storageID and assume the avatar component handles it or we fix it later.
-            // ACTUALLY, I will update `updateProfile` logic to just save what I send.
-
-            // Let's fetch the URL for the storage ID (if possible) or just use the ID.
-            // Since `generateUploadUrl` is standard, `storageId` is returned.
-            // I'll update the profile with `imageUrl` = storageId. 
-            // Then in `AvatarImage`, if it starts with `http` use it, else treat as storage ID (needs a query to resolve).
-            // Simpler: I'll assume `updateProfile` handles it or I'll just skip URL generation complexity for this step 
-            // and assume `user.avatar` can be a storage ID.
-
+            // The backend `users.me` query automatically converts storage ID to URL
             await updateProfile({
                 userId: user!._id,
-                imageUrl: storageId
+                imageUrl: storageId // We pass storageId, but argument name is imageUrl in mutation
             });
 
-            toast.success("Avatar updated");
+            toast.success("Профилната снимка е обновена");
         } catch (error) {
             console.error(error);
-            toast.error("Failed to upload avatar");
+            toast.error("Неуспешно качване на снимка");
         } finally {
             setUploading(false);
         }
@@ -118,71 +89,84 @@ export default function ProfileTab() {
     if (!user) return <div className="p-8 flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Лична информация</CardTitle>
-                <CardDescription>Редактирайте вашата лична информация и профилна снимка</CardDescription>
+            <CardHeader className="pb-4 border-b">
+                <CardTitle className="text-xl">Лична информация</CardTitle>
+                <CardDescription>Управлявайте личните си данни и предпочитания</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
-                    <div className="relative group">
-                        <Avatar className="h-24 w-24 border-2 border-border">
-                            {/* Primitive check: if it looks like a URL use it, else we might need a `useQuery(api.files.getUrl, ...)` wrapper */}
-                            <AvatarImage src={user.avatar} className="object-cover" />
-                            <AvatarFallback className="text-2xl">{user.name?.charAt(0) || "U"}</AvatarFallback>
-                        </Avatar>
-                        <Label
-                            htmlFor="avatar-upload"
-                            className="absolute inset-0 flex items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
-                        >
-                            <Camera className="h-6 w-6" />
-                        </Label>
-                        <Input
-                            id="avatar-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleAvatarUpload}
-                            disabled={uploading}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="font-medium">Профилна снимка</h3>
-                        <p className="text-sm text-muted-foreground">
-                            Поддържани формати: JPG, PNG. Макс. размер: 5MB.
+            <CardContent className="space-y-8 pt-6">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="relative group">
+                            <Avatar className="h-32 w-32 border-4 border-muted shadow-sm">
+                                <AvatarImage src={user.avatar} className="object-cover" />
+                                <AvatarFallback className="text-4xl bg-muted">{user.name?.charAt(0) || "U"}</AvatarFallback>
+                            </Avatar>
+                            <Label
+                                htmlFor="avatar-upload"
+                                className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer backdrop-blur-sm"
+                            >
+                                <Camera className="h-8 w-8" />
+                            </Label>
+                            <Input
+                                id="avatar-upload"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleAvatarUpload}
+                                disabled={uploading}
+                            />
+                        </div>
+                        {uploading && <span className="text-xs text-muted-foreground animate-pulse">Качване...</span>}
+                        <p className="text-xs text-muted-foreground text-center max-w-[150px]">
+                            Кликнете върху снимката, за да я промените
                         </p>
                     </div>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2 max-w-2xl">
-                    <div className="space-y-2">
-                        <Label>Потребителско име</Label>
-                        <Input value={user.email?.split('@')[0]} disabled placeholder="Username" />
-                        <p className="text-[0.8rem] text-muted-foreground">Username се генерира автоматично.</p>
+                    <div className="flex-1 w-full space-y-6 max-w-2xl">
+                        <div className="grid gap-6 md:grid-cols-2">
+                             <div className="space-y-2">
+                                <Label>Потребителско име</Label>
+                                <div className="relative">
+                                    <Input value={user.email?.split('@')[0]} disabled className="bg-muted pl-9" placeholder="Username" />
+                                    <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <p className="text-[0.8rem] text-muted-foreground">Генерирано автоматично от вашия имейл.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Email адрес</Label>
+                                <Input value={user.email} disabled className="bg-muted" />
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <Label>Пълно име</Label>
+                                <Input
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Вашето име"
+                                    className="max-w-md"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-start pt-4">
+                            <Button onClick={handleSave} disabled={isSubmitting} className="min-w-[120px]">
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Запазване...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Запази промените
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-
-                    <div className="space-y-2">
-                        <Label>Пълно име</Label>
-                        <Input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Вашето име"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Email</Label>
-                        <Input value={user.email} disabled className="bg-muted" />
-                    </div>
-                </div>
-
-                <div className="flex justify-end">
-                    <Button onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Запази промените
-                    </Button>
                 </div>
             </CardContent>
-        </Card>
+        </Card >
     );
 }

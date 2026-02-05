@@ -23,6 +23,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConvex } from "convex/react";
+import StatusManagement from "./StatusManagement";
+import PriorityManagement from "./PriorityManagement";
 
 export default function AdministrationTab() {
     return (
@@ -157,38 +159,7 @@ function UsersManagement() {
     );
 }
 
-function StatusManagement() {
-    // Placeholder as full CRUD UI is complex
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Статуси</CardTitle>
-                <CardDescription>Конфигурирайте статусите за задачи и проекти</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="text-muted-foreground text-sm">
-                    Функционалността за управление на custom статуси е подготвена в базата данни, но интерфейсът е в процес на разработка.
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
-function PriorityManagement() {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Приоритети</CardTitle>
-                <CardDescription>Конфигурирайте приоритетите за задачи</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="text-muted-foreground text-sm">
-                    Функционалността за управление на custom приоритети е подготвена в базата данни, но интерфейсът е в процес на разработка.
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
+// StatusManagement and PriorityManagement functions removed in favor of imported components
 
 function AuditLogViewer() {
     const logs = useQuery(api.admin.getAuditLogs, { limit: 100 });

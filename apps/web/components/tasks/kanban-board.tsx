@@ -32,9 +32,10 @@ interface KanbanBoardProps {
     tasks: any[];
     projects: any[];
     users: any[];
+    onTaskClick?: (id: Id<"tasks">) => void;
 }
 
-export function KanbanBoard({ tasks: initialTasks, projects, users }: KanbanBoardProps) {
+export function KanbanBoard({ tasks: initialTasks, projects, users, onTaskClick }: KanbanBoardProps) {
     const [tasks, setTasks] = useState(initialTasks);
     const updateTaskStatus = useMutation(api.tasks.update);
 
@@ -190,6 +191,7 @@ export function KanbanBoard({ tasks: initialTasks, projects, users }: KanbanBoar
                             color={columnColors[colId]}
                             projects={projects}
                             users={users}
+                            onTaskClick={onTaskClick}
                         />
                     ))}
                 </SortableContext>

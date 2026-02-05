@@ -14,9 +14,10 @@ interface KanbanColumnProps {
     color: string;
     projects: any[];
     users: any[];
+    onTaskClick?: (id: any) => void;
 }
 
-export function KanbanColumn({ id, title, tasks, color, projects, users }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, tasks, color, projects, users, onTaskClick }: KanbanColumnProps) {
     const {
         attributes,
         listeners,
@@ -110,6 +111,7 @@ export function KanbanColumn({ id, title, tasks, color, projects, users }: Kanba
                                     task={task}
                                     projectName={project?.name}
                                     assignee={assignee}
+                                    onTaskClick={onTaskClick}
                                 />
                             );
                         })

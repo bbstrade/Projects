@@ -46,11 +46,13 @@ import {
     Loader2,
     Link2,
     CalendarIcon,
+    ArrowRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress"; // Import Progress
 import { TaskSubtasks } from "./task-subtasks";
 import { TaskDependencies } from "./task-dependencies";
 import { MentionInput } from "@/components/ui/mention-input";
@@ -277,6 +279,10 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
         critical: "bg-red-100 text-red-700",
     };
 
+    const subtasksTotal = subtasks?.length || 0;
+    const subtasksCompleted = subtasks?.filter(t => t.status === "done").length || 0;
+    const progress = subtasksTotal === 0 ? 0 : Math.round((subtasksCompleted / subtasksTotal) * 100);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col p-0">
@@ -308,6 +314,14 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                             <DialogTitle className="text-2xl leading-tight">
                                 {task.title}
                             </DialogTitle>
+
+                            {/* Progress Bar */}
+                            {subtasksTotal > 0 && (
+                                <div className="mt-4 flex items-center gap-4">
+                                    <Progress value={progress} className="h-2 w-full max-w-[200px]" />
+                                    <span className="text-xs font-medium text-muted-foreground">{progress}% завършени ({subtasksCompleted}/{subtasksTotal})</span>
+                                </div>
+                            )}
                         </DialogHeader>
 
                         <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">

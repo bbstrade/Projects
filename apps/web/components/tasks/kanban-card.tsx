@@ -5,18 +5,48 @@ import { CSS } from "@dnd-kit/utilities";
 import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreVertical, Paperclip, Calendar, Info, Clock } from "lucide-react";
+import { MoreVertical, Paperclip, Calendar, Info, Clock, CheckCircle2, Edit, Trash2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 
 interface KanbanCardProps {
     id: Id<"tasks">;
     task: any;
     projectName?: string;
     assignee?: any;
+    onTaskClick?: (id: Id<"tasks">) => void;
 }
 
-export function KanbanCard({ id, task, projectName, assignee }: KanbanCardProps) {
+export function KanbanCard({ id, task, projectName, assignee, onTaskClick }: KanbanCardProps) {
+    const removeTask = useMutation(api.tasks.remove);
+    const updateTask = useMutation(api.tasks.update);
+
+    const handleDelete = async () => {
+        try {
+            await removeTask({ id });
+            toast.success("Задачата беше изтрита");
+        } catch (error) {
+            toast.error("Грешка при изтриване на задачата");
+        }
+    };
+
+    const handleMarkDone = async () => {
+        try {
+            await updateTask({ id, status: "done" });
+            toast.success("Задачата е маркирана като завършена");
+        } catch (error) {
+            toast.error("Грешка при обновяване на задачата");
+        }
+    };
     const {
         attributes,
         listeners,
@@ -69,14 +99,37 @@ export function KanbanCard({ id, task, projectName, assignee }: KanbanCardProps)
             {...attributes}
             {...listeners}
             className="group relative flex flex-col gap-3 p-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 cursor-grab active:cursor-grabbing"
+            onClick={() => onTaskClick?.(id)}
         >
             <div className="flex items-start justify-between gap-3">
                 <h4 className="font-bold text-[13px] leading-snug text-slate-900 dark:text-slate-100 line-clamp-2">
                     {task.title}
                 </h4>
-                <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 flex-shrink-0">
-                    <MoreVertical className="h-3.5 w-3.5" />
-                </button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 flex-shrink-0">
+                            <MoreVertical className="h-3.5 w-3.5" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onTaskClick?.(id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Преглед
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleMarkDone}>
+                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            Маркирай като завършена
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onTaskClick?.(id)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Редактирай
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Изтрий
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {task.description && (

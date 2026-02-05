@@ -60,6 +60,7 @@ interface TaskCardProps {
     assignee?: { name?: string; image?: string };
     color?: string; // Added color prop
     onEdit?: (id: Id<"tasks">) => void;
+    onClick?: (id: Id<"tasks">) => void; // Added onClick prop
 }
 
 export function TaskCard({
@@ -73,10 +74,12 @@ export function TaskCard({
     assignee,
     color: customColor, // Added color prop
     onEdit,
+    onClick, // Destructure onClick
 }: TaskCardProps) {
     const removeTask = useMutation(api.tasks.remove);
     const updateTask = useMutation(api.tasks.update);
-    const [detailOpen, setDetailOpen] = useState(false);
+    // Removed internal state
+
 
     const handleDelete = async () => {
         try {
@@ -109,7 +112,7 @@ export function TaskCard({
             <>
                 <div
                     className="flex flex-col md:flex-row md:items-center gap-4 px-5 py-4 border rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all cursor-pointer group shadow-sm hover:shadow-md"
-                    onClick={() => setDetailOpen(true)}
+                    onClick={() => onClick?.(id)}
                     style={cardStyle}
                 >
                     <div className="flex flex-1 items-start gap-4 min-w-0">
@@ -181,7 +184,7 @@ export function TaskCard({
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDetailOpen(true); }}>
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick?.(id); }}>
                                         <Eye className="mr-2 h-4 w-4" />
                                         Преглед
                                     </DropdownMenuItem>
@@ -202,11 +205,8 @@ export function TaskCard({
                         </div>
                     </div>
                 </div>
-                <TaskDetailDialog
-                    taskId={id}
-                    open={detailOpen}
-                    onOpenChange={setDetailOpen}
-                />
+            </div >
+                {/* Removed internal Dialog */ }
             </>
         );
     }
@@ -215,7 +215,7 @@ export function TaskCard({
         <>
             <Card
                 className="hover:shadow-md transition-shadow cursor-pointer group"
-                onClick={() => setDetailOpen(true)}
+                onClick={() => onClick?.(id)}
                 style={cardStyle}
             >
                 <CardHeader className="pb-3 pt-4">
@@ -230,7 +230,7 @@ export function TaskCard({
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDetailOpen(true); }}>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick?.(id); }}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     Преглед
                                 </DropdownMenuItem>
@@ -286,11 +286,7 @@ export function TaskCard({
                     </div>
                 </CardContent>
             </Card>
-            <TaskDetailDialog
-                taskId={id}
-                open={detailOpen}
-                onOpenChange={setDetailOpen}
-            />
+            {/* Removed internal Dialog */}
         </>
     );
 }
