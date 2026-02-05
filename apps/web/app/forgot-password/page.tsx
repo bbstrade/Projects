@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
 
 const dict = {
     title: "Забравена парола",
@@ -28,7 +27,6 @@ const dict = {
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const { signIn } = useAuthActions();
     const [mounted, setMounted] = useState(false);
     const { resolvedTheme } = useTheme();
 
@@ -43,11 +41,15 @@ export default function ForgotPasswordPage() {
         setIsLoading(true);
 
         try {
-            // Using "resend" provider for magic link as generic "forgot password" / passwordless login
-            // Or typically "password-reset" if configured manually.
-            // For now, let's assume sending a magic link is a good "recovery" mechanism.
-            // User logs in via magic link, then can set new password in settings.
-            await signIn("resend", { email });
+            const { data, error } = await authClient.forgetPassword({
+                email,
+                redirectTo: "/reset-password",
+            });
+
+            if (error) {
+                throw error;
+            }
+
             toast.success(dict.successMessage);
         } catch (error) {
             console.error("Forgot password error:", error);
