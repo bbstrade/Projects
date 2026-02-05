@@ -260,7 +260,12 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
         });
     };
 
-    if (!task) return null;
+    // Instead of returning null deeply, we should render the Dialog shell and show loading state
+    // if (!task) return null; 
+
+    // Helper to determine content
+    const isLoading = task === undefined;
+    const notFound = task === null;
 
     const priorityColors = {
         low: "bg-slate-100 text-slate-700",
@@ -272,356 +277,371 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col p-0">
-                <DialogHeader className="p-6 pb-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className={cn("text-xs font-normal capitalize", priorityColors[task.priority as keyof typeof priorityColors])}>
-                            {dict[`prio${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}` as keyof typeof dict]}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs font-normal">
-                            {task.status.replace("_", " ")}
-                        </Badge>
-                        {task.color && (
-                            <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
-                        )}
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        <p className="text-muted-foreground">Зареждане на задача...</p>
                     </div>
-                    <DialogTitle className="text-2xl leading-tight">
-                        {task.title}
-                    </DialogTitle>
-                </DialogHeader>
-
-                <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
-                    <div className="px-6 border-b">
-                        <TabsList className="w-full justify-start bg-transparent h-12 p-0 gap-6">
-                            <TabsTrigger value="details" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                <Info className="h-4 w-4 mr-2" />
-                                Описание
-                            </TabsTrigger>
-                            <TabsTrigger value="subtasks" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                <ListTodo className="h-4 w-4 mr-2" />
-                                {dict.subtasks} ({subtasks?.length || 0})
-                            </TabsTrigger>
-                            <TabsTrigger value="comments" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                <MessageSquare className="h-4 w-4 mr-2" />
-                                {dict.comments} ({comments?.length || 0})
-                            </TabsTrigger>
-                            <TabsTrigger value="files" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                <FileIcon className="h-4 w-4 mr-2" />
-                                {dict.files} ({files?.length || 0})
-                            </TabsTrigger>
-                            <TabsTrigger value="dependencies" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                <Link2 className="h-4 w-4 mr-2" />
-                                {dict.dependencies}
-                            </TabsTrigger>
-                        </TabsList>
+                ) : notFound ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <Info className="w-12 h-12 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground font-medium">Задачата не е намерена или е изтрита.</p>
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>Затвори</Button>
                     </div>
+                ) : (
+                    <>
+                        <DialogHeader className="p-6 pb-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className={cn("text-xs font-normal capitalize", priorityColors[task.priority as keyof typeof priorityColors])}>
+                                    {dict[`prio${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}` as keyof typeof dict]}
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs font-normal">
+                                    {task.status.replace("_", " ")}
+                                </Badge>
+                                {task.color && (
+                                    <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
+                                )}
+                            </div>
+                            <DialogTitle className="text-2xl leading-tight">
+                                {task.title}
+                            </DialogTitle>
+                        </DialogHeader>
 
-                    <ScrollArea className="flex-1 p-6">
-                        <TabsContent value="details" className="m-0 space-y-6">
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-semibold flex items-center gap-2 text-slate-900 border-b pb-1">
-                                    {dict.description}
-                                </h4>
-                                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                    {task.description || dict.noDescription}
-                                </p>
+                        <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
+                            <div className="px-6 border-b">
+                                <TabsList className="w-full justify-start bg-transparent h-12 p-0 gap-6">
+                                    <TabsTrigger value="details" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                        <Info className="h-4 w-4 mr-2" />
+                                        Описание
+                                    </TabsTrigger>
+                                    <TabsTrigger value="subtasks" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                        <ListTodo className="h-4 w-4 mr-2" />
+                                        {dict.subtasks} ({subtasks?.length || 0})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="comments" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                        <MessageSquare className="h-4 w-4 mr-2" />
+                                        {dict.comments} ({comments?.length || 0})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="files" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                        <FileIcon className="h-4 w-4 mr-2" />
+                                        {dict.files} ({files?.length || 0})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="dependencies" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
+                                        <Link2 className="h-4 w-4 mr-2" />
+                                        {dict.dependencies}
+                                    </TabsTrigger>
+                                </TabsList>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-8 pt-4">
-                                <div className="space-y-4">
-                                    {/* Status */}
+                            <ScrollArea className="flex-1 p-6">
+                                <TabsContent value="details" className="m-0 space-y-6">
                                     <div className="space-y-2">
-                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.status}</span>
-                                        <Select
-                                            value={task.status}
-                                            onValueChange={async (value) => {
-                                                await updateTask({ id: task._id, status: value });
-                                                toast.success("Статусът е променен");
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {STATUS_OPTIONS.map((opt) => (
-                                                    <SelectItem key={opt.value} value={opt.value}>
-                                                        {opt.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <h4 className="text-sm font-semibold flex items-center gap-2 text-slate-900 border-b pb-1">
+                                            {dict.description}
+                                        </h4>
+                                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
+                                            {task.description || dict.noDescription}
+                                        </p>
                                     </div>
 
-                                    {/* Priority */}
-                                    <div className="space-y-2">
-                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.priority}</span>
-                                        <Select
-                                            value={task.priority}
-                                            onValueChange={async (value) => {
-                                                await updateTask({ id: task._id, priority: value });
-                                                toast.success("Приоритетът е променен");
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {PRIORITY_OPTIONS.map((opt) => (
-                                                    <SelectItem key={opt.value} value={opt.value}>
-                                                        {opt.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {/* Due Date */}
-                                    <div className="space-y-2">
-                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.dueDate}</span>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className={cn(
-                                                        "w-full justify-start text-left font-normal",
-                                                        !task.dueDate && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {task.dueDate ? format(task.dueDate, "PPP", { locale: bg }) : "Изберете дата"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <CalendarComponent
-                                                    mode="single"
-                                                    selected={task.dueDate ? new Date(task.dueDate) : undefined}
-                                                    onSelect={async (date) => {
-                                                        await updateTask({ id: task._id, dueDate: date?.getTime() });
-                                                        toast.success("Крайният срок е променен");
+                                    <div className="grid grid-cols-2 gap-8 pt-4">
+                                        <div className="space-y-4">
+                                            {/* Status */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.status}</span>
+                                                <Select
+                                                    value={task.status}
+                                                    onValueChange={async (value) => {
+                                                        await updateTask({ id: task._id, status: value });
+                                                        toast.success("Статусът е променен");
                                                     }}
-                                                    initialFocus
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {STATUS_OPTIONS.map((opt) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {/* Priority */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.priority}</span>
+                                                <Select
+                                                    value={task.priority}
+                                                    onValueChange={async (value) => {
+                                                        await updateTask({ id: task._id, priority: value });
+                                                        toast.success("Приоритетът е променен");
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {PRIORITY_OPTIONS.map((opt) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {/* Due Date */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.dueDate}</span>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            className={cn(
+                                                                "w-full justify-start text-left font-normal",
+                                                                !task.dueDate && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {task.dueDate ? format(task.dueDate, "PPP", { locale: bg }) : "Изберете дата"}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <CalendarComponent
+                                                            mode="single"
+                                                            selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                                                            onSelect={async (date) => {
+                                                                await updateTask({ id: task._id, dueDate: date?.getTime() });
+                                                                toast.success("Крайният срок е променен");
+                                                            }}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+
+                                            {/* Estimated Hours */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Прогноза</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="h-4 w-4 text-slate-400" />
+                                                    <span className="text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Color */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Цвят</span>
+                                                <ColorPicker
+                                                    value={task.color}
+                                                    onChange={async (value) => {
+                                                        await updateTask({ id: task._id, color: value });
+                                                        toast.success("Цветът е променен");
+                                                    }}
                                                 />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-
-                                    {/* Estimated Hours */}
-                                    <div className="space-y-2">
-                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Прогноза</span>
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="h-4 w-4 text-slate-400" />
-                                            <span className="text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Color */}
-                                    <div className="space-y-2">
-                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Цвят</span>
-                                        <ColorPicker
-                                            value={task.color}
-                                            onChange={async (value) => {
-                                                await updateTask({ id: task._id, color: value });
-                                                toast.success("Цветът е променен");
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </TabsContent>
+                                </TabsContent>
 
 
-                        <TabsContent value="subtasks" className="m-0">
-                            <TaskSubtasks taskId={task._id} />
-                        </TabsContent>
+                                <TabsContent value="subtasks" className="m-0">
+                                    <TaskSubtasks taskId={task._id} />
+                                </TabsContent>
 
-                        <TabsContent value="comments" className="m-0 flex flex-col h-full space-y-4">
-                            <div className="space-y-6">
-                                {comments && comments.length > 0 ? (
-                                    // ... existing comment mapping ...
-                                    comments.map((comment: any) => (
-                                        <div key={comment._id} className="flex gap-3 group">
-                                            <Avatar className="h-8 w-8 mt-1">
-                                                <AvatarImage src={comment.userAvatar} />
-                                                <AvatarFallback className="text-[10px]">{comment.userName?.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 space-y-1">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-semibold text-slate-900">{comment.userName}</span>
-                                                    <span className="text-[10px] text-slate-400">
-                                                        {format(comment.createdAt, "HH:mm, d MMM", { locale: bg })}
-                                                    </span>
-                                                </div>
-                                                <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none text-sm text-slate-700 leading-relaxed border border-slate-100">
-                                                    {comment.content}
-                                                    {/* Attachments */}
-                                                    {comment.attachments && comment.attachments.length > 0 && (
-                                                        <div className="mt-3 flex flex-wrap gap-2">
-                                                            {comment.attachments.map((att: any, idx: number) => (
-                                                                <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded border text-xs">
-                                                                    <FileIcon className="h-3 w-3 text-blue-500" />
-                                                                    <span className="max-w-[150px] truncate" title={att.name}>{att.name}</span>
-                                                                    {/* Simple download/view mechanism if possible, or usually we need to fetch signed URL */}
-                                                                    {/* For now, just display that files exist. Using storageId typically requires a generated URL on backend or separate loading */}
-                                                                </div>
-                                                            ))}
+                                <TabsContent value="comments" className="m-0 flex flex-col h-full space-y-4">
+                                    <div className="space-y-6">
+                                        {comments && comments.length > 0 ? (
+                                            // ... existing comment mapping ...
+                                            comments.map((comment: any) => (
+                                                <div key={comment._id} className="flex gap-3 group">
+                                                    <Avatar className="h-8 w-8 mt-1">
+                                                        <AvatarImage src={comment.userAvatar} />
+                                                        <AvatarFallback className="text-[10px]">{comment.userName?.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 space-y-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-sm font-semibold text-slate-900">{comment.userName}</span>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                {format(comment.createdAt, "HH:mm, d MMM", { locale: bg })}
+                                                            </span>
                                                         </div>
-                                                    )}
+                                                        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none text-sm text-slate-700 leading-relaxed border border-slate-100">
+                                                            {comment.content}
+                                                            {/* Attachments */}
+                                                            {comment.attachments && comment.attachments.length > 0 && (
+                                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                                    {comment.attachments.map((att: any, idx: number) => (
+                                                                        <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded border text-xs">
+                                                                            <FileIcon className="h-3 w-3 text-blue-500" />
+                                                                            <span className="max-w-[150px] truncate" title={att.name}>{att.name}</span>
+                                                                            {/* Simple download/view mechanism if possible, or usually we need to fetch signed URL */}
+                                                                            {/* For now, just display that files exist. Using storageId typically requires a generated URL on backend or separate loading */}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-12 text-slate-400">
-                                        <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                        <p>{dict.noComments}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="files" className="m-0 space-y-4">
-                            <div className="flex items-center justify-between mb-6">
-                                <h4 className="text-sm font-semibold">{dict.files}</h4>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="file-upload"
-                                        className="hidden"
-                                        onChange={handleFileUpload}
-                                        disabled={isUploading}
-                                    />
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isUploading}
-                                        asChild
-                                    >
-                                        <label htmlFor="file-upload" className="cursor-pointer">
-                                            {isUploading ? (
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            ) : (
-                                                <Upload className="h-4 w-4 mr-2" />
-                                            )}
-                                            {isUploading ? dict.uploading : "Качи файл"}
-                                        </label>
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-2">
-                                {files && files.length > 0 ? (
-                                    files.map((file: any) => (
-                                        <div key={file._id} className="flex items-center justify-between p-3 rounded-lg border bg-slate-50 group hover:bg-white transition-colors">
-                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                <div className="p-2 bg-blue-100 rounded text-blue-600">
-                                                    <FileIcon className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="text-sm font-medium truncate max-w-[200px]" title={file.fileName}>
-                                                        {file.fileName}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-400">
-                                                        {(file.fileSize / 1024).toFixed(1)} KB • {format(file.createdAt, "d MMM", { locale: bg })}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button size="icon" variant="ghost" className="h-8 w-8" asChild>
-                                                    <a href={file.url} target="_blank" rel="noopener noreferrer" download>
-                                                        <Download className="h-4 w-4 text-slate-500" />
-                                                    </a>
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                    onClick={async () => {
-                                                        await removeFile({ fileId: file._id });
-                                                        toast.success(dict.fileRemoved);
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-12 text-slate-400">
-                                        <FileIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                        <p>{dict.noFiles}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="dependencies" className="m-0">
-                            <TaskDependencies taskId={task._id} projectId={task.projectId} />
-                        </TabsContent>
-                    </ScrollArea>
-
-                    <div className="p-4 border-t bg-slate-50 mt-auto">
-                        <div className="relative">
-                            {commentFiles.length > 0 && (
-                                <div className="absolute top-[-40px] left-0 w-full flex gap-2 overflow-x-auto px-2 pb-2">
-                                    {commentFiles.map((file, idx) => (
-                                        <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs border border-blue-100">
-                                            <span className="truncate max-w-[100px]">{file.name}</span>
-                                            <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
-                                                <Trash2 className="h-3 w-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <MentionInput
-                                value={newComment}
-                                onChange={handleCommentChange}
-                                placeholder={dict.addComment}
-                                className="pr-12 pb-12 bg-white resize-none"
-                                teamId={task?.projectId ? undefined : undefined}
-                                disabled={isSubmitting}
-                            />
-                            <div className="absolute bottom-8 right-3">
-                                <input
-                                    type="file"
-                                    id="comment-file-upload"
-                                    className="hidden"
-                                    multiple
-                                    onChange={handleCommentFileUpload}
-                                    disabled={isSubmitting}
-                                />
-                                <div className="flex gap-1">
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="rounded-full h-9 w-9 p-0"
-                                        asChild
-                                    >
-                                        <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center justify-center">
-                                            <Upload className="h-4 w-4 text-slate-500" />
-                                        </label>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        onClick={handleAddComment}
-                                        disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
-                                        className="rounded-full px-4 h-9"
-                                    >
-                                        {isSubmitting ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            ))
                                         ) : (
-                                            <>
-                                                <Send className="h-4 w-4 mr-2" />
-                                                {dict.send}
-                                            </>
+                                            <div className="text-center py-12 text-slate-400">
+                                                <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                                <p>{dict.noComments}</p>
+                                            </div>
                                         )}
-                                    </Button>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="files" className="m-0 space-y-4">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h4 className="text-sm font-semibold">{dict.files}</h4>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="file-upload"
+                                                className="hidden"
+                                                onChange={handleFileUpload}
+                                                disabled={isUploading}
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={isUploading}
+                                                asChild
+                                            >
+                                                <label htmlFor="file-upload" className="cursor-pointer">
+                                                    {isUploading ? (
+                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    ) : (
+                                                        <Upload className="h-4 w-4 mr-2" />
+                                                    )}
+                                                    {isUploading ? dict.uploading : "Качи файл"}
+                                                </label>
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {files && files.length > 0 ? (
+                                            files.map((file: any) => (
+                                                <div key={file._id} className="flex items-center justify-between p-3 rounded-lg border bg-slate-50 group hover:bg-white transition-colors">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className="p-2 bg-blue-100 rounded text-blue-600">
+                                                            <FileIcon className="h-5 w-5" />
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-sm font-medium truncate max-w-[200px]" title={file.fileName}>
+                                                                {file.fileName}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                {(file.fileSize / 1024).toFixed(1)} KB • {format(file.createdAt, "d MMM", { locale: bg })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8" asChild>
+                                                            <a href={file.url} target="_blank" rel="noopener noreferrer" download>
+                                                                <Download className="h-4 w-4 text-slate-500" />
+                                                            </a>
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                            onClick={async () => {
+                                                                await removeFile({ fileId: file._id });
+                                                                toast.success(dict.fileRemoved);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-12 text-slate-400">
+                                                <FileIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                                <p>{dict.noFiles}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="dependencies" className="m-0">
+                                    <TaskDependencies taskId={task._id} projectId={task.projectId} />
+                                </TabsContent>
+                            </ScrollArea>
+
+                            <div className="p-4 border-t bg-slate-50 mt-auto">
+                                <div className="relative">
+                                    {commentFiles.length > 0 && (
+                                        <div className="absolute top-[-40px] left-0 w-full flex gap-2 overflow-x-auto px-2 pb-2">
+                                            {commentFiles.map((file, idx) => (
+                                                <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs border border-blue-100">
+                                                    <span className="truncate max-w-[100px]">{file.name}</span>
+                                                    <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <MentionInput
+                                        value={newComment}
+                                        onChange={handleCommentChange}
+                                        placeholder={dict.addComment}
+                                        className="pr-12 pb-12 bg-white resize-none"
+                                        teamId={task?.projectId ? undefined : undefined}
+                                        disabled={isSubmitting}
+                                    />
+                                    <div className="absolute bottom-8 right-3">
+                                        <input
+                                            type="file"
+                                            id="comment-file-upload"
+                                            className="hidden"
+                                            multiple
+                                            onChange={handleCommentFileUpload}
+                                            disabled={isSubmitting}
+                                        />
+                                        <div className="flex gap-1">
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="rounded-full h-9 w-9 p-0"
+                                                asChild
+                                            >
+                                                <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center justify-center">
+                                                    <Upload className="h-4 w-4 text-slate-500" />
+                                                </label>
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                onClick={handleAddComment}
+                                                disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
+                                                className="rounded-full px-4 h-9"
+                                            >
+                                                {isSubmitting ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <Send className="h-4 w-4 mr-2" />
+                                                        {dict.send}
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </Tabs>
+                        </Tabs>
+                    </>
+                )}
             </DialogContent>
         </Dialog>
     );

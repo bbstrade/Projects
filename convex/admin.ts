@@ -64,7 +64,15 @@ export const getAllUsers = query({
     args: {},
     handler: async (ctx) => {
         // Should rely on checkAdmin
-        return await ctx.db.query("users").collect();
+        const users = await ctx.db.query("users").collect();
+
+        return await Promise.all(users.map(async (user) => {
+            if (user.avatar && !user.avatar.startsWith("http")) {
+                const url = await ctx.storage.getUrl(user.avatar);
+                if (url) return { ...user, avatar: url };
+            }
+            return user;
+        }));
     },
 });
 
@@ -87,14 +95,20 @@ export const getAuditLogs = query({
         const usersMap = new Map(users.filter(u => u !== null).map(u => [u!._id, u]));
 
         // Join
-        return logs.map(log => {
+        return await Promise.all(logs.map(async (log) => {
             const user = usersMap.get(log.userId);
+            let userAvatar = user?.avatar;
+
+            if (userAvatar && !userAvatar.startsWith("http")) {
+                userAvatar = await ctx.storage.getUrl(userAvatar) || undefined;
+            }
+
             return {
                 ...log,
                 userName: user?.name || "Unknown User",
-                userAvatar: user?.avatar,
+                userAvatar,
             };
-        });
+        }));
     }
 });
 

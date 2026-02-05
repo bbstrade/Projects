@@ -249,6 +249,23 @@ export function CreateTaskDialog({ open, onOpenChange, projectId }: CreateTaskDi
                             />
                         </div>
 
+                        <FormField
+                            control={form.control}
+                            name="color"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Цвят</FormLabel>
+                                    <FormControl>
+                                        <ColorPicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                                 Отказ

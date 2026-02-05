@@ -127,10 +127,19 @@ export const me = query({
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return null;
 
-        return await ctx.db
+        const user = await ctx.db
             .query("users")
             .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
             .unique();
+
+        if (user && user.avatar && !user.avatar.startsWith("http")) {
+            const url = await ctx.storage.getUrl(user.avatar);
+            if (url) {
+                return { ...user, avatar: url };
+            }
+        }
+
+        return user;
     },
 });
 

@@ -422,6 +422,7 @@ export default function ProjectsPage() {
                                             type="finance"
                                             description={project.description}
                                             lang={lang}
+                                            color={project.color}
                                             onEdit={handleEdit}
                                         />
                                     ))}

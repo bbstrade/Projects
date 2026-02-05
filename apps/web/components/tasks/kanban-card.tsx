@@ -35,6 +35,7 @@ export function KanbanCard({ id, task, projectName, assignee }: KanbanCardProps)
     const style = {
         transform: CSS.Translate.toString(transform),
         transition,
+        ...(task.color ? { borderLeftColor: task.color, borderLeftWidth: '4px' } : {})
     };
 
     if (isDragging) {
