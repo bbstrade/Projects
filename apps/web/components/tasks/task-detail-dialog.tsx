@@ -53,7 +53,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TaskSubtasks } from "./task-subtasks";
 import { TaskDependencies } from "./task-dependencies";
-import { TaskDependencies } from "./task-dependencies";
 import { MentionInput } from "@/components/ui/mention-input";
 import { ColorPicker } from "@/components/ui/color-picker";
 
