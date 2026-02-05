@@ -4,7 +4,36 @@ import { query, mutation } from "./_generated/server";
 export const list = query({
     args: {},
     handler: async (ctx) => {
-        return await ctx.db.query("projects").order("desc").collect();
+        const projects = await ctx.db.query("projects").order("desc").collect();
+
+        return await Promise.all(projects.map(async (p) => {
+            // Calculate Progress
+            const tasks = await ctx.db
+                .query("tasks")
+                .withIndex("by_project", (q) => q.eq("projectId", p._id))
+                .collect();
+
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(t => t.status === "done").length;
+            const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            // Calculate Team Count
+            // Note: 'teamId' is on the project. We count members of that team.
+            let teamCount = 0;
+            if (p.teamId) {
+                const members = await ctx.db
+                    .query("teamMembers")
+                    .withIndex("by_team", (q) => q.eq("teamId", p.teamId))
+                    .collect();
+                teamCount = members.length;
+            }
+
+            return {
+                ...p,
+                progress,
+                teamCount,
+            };
+        }));
     },
 });
 

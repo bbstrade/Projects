@@ -59,9 +59,9 @@ export default function ProjectsPage() {
     const { theme, setTheme } = useTheme();
 
     // Helper for deterministic mock data
-    const productIdentifier = (id: string) => {
-        return id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    };
+    // const productIdentifier = (id: string) => {
+    //    return id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    // };
 
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
@@ -417,8 +417,8 @@ export default function ProjectsPage() {
                                             date={project.endDate
                                                 ? format(new Date(project.endDate), "MMM dd, yyyy")
                                                 : (lang === 'bg' ? "Очаква се" : "TBD")}
-                                            teamCount={5}
-                                            progress={(productIdentifier(project._id) % 100) || 50}
+                                            teamCount={project.teamCount || 0}
+                                            progress={project.progress || 0}
                                             type="finance"
                                             description={project.description}
                                             lang={lang}
@@ -436,7 +436,7 @@ export default function ProjectsPage() {
                                         title: p.name,
                                         startDate: p.startDate || p._creationTime,
                                         endDate: p.endDate || (p.startDate || p._creationTime) + (30 * 86400000),
-                                        progress: (productIdentifier(p._id) % 100) || 50,
+                                        progress: p.progress || 0,
                                         color: p.priority === "high" ? "bg-amber-500" :
                                             p.priority === "critical" ? "bg-rose-500" : "bg-blue-500"
                                     }))}

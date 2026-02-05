@@ -61,6 +61,7 @@ const dict = {
     description: "Описание",
     priority: "Приоритет",
     status: "Статус",
+    assignee: "Отговорник",
     dueDate: "Краен срок",
     subtasks: "Под-задачи",
     comments: "Коментари",
@@ -105,10 +106,12 @@ interface TaskDetailDialogProps {
 }
 
 export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialogProps) {
-    const task = useQuery(api.tasks.get, taskId ? { id: taskId } : "skip");
-    const subtasks = useQuery(api.tasks.listSubtasks, taskId ? { parentTaskId: taskId } : "skip");
+    const shouldFetch = !!taskId && open;
+
+    const task = useQuery(api.tasks.get, shouldFetch ? { id: taskId! } : "skip");
+    const subtasks = useQuery(api.tasks.listSubtasks, shouldFetch ? { parentTaskId: taskId! } : "skip");
     // @ts-ignore - Convex API types might be lagging
-    const comments = useQuery(api.comments.list, taskId ? { taskId: taskId } : "skip");
+    const comments = useQuery(api.comments.list, shouldFetch ? { taskId: taskId! } : "skip");
 
     const updateTask = useMutation(api.tasks.update);
     const createSubtask = useMutation(api.tasks.create);
@@ -119,7 +122,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
     // Phase 5: Files
     // @ts-ignore
-    const files = useQuery(api.files.listByTask, taskId ? { taskId } : "skip");
+    const files = useQuery(api.files.listByTask, shouldFetch ? { taskId: taskId! } : "skip");
     // @ts-ignore
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
     // @ts-ignore
@@ -363,6 +366,37 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         {STATUS_OPTIONS.map((opt) => (
                                                             <SelectItem key={opt.value} value={opt.value}>
                                                                 {opt.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {/* Assignee */}
+                                            <div className="space-y-2">
+                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.assignee}</span>
+                                                <Select
+                                                    value={task.assigneeId || "unassigned"}
+                                                    onValueChange={async (value) => {
+                                                        const assigneeId = value === "unassigned" ? undefined : value as Id<"users">;
+                                                        await updateTask({ id: task._id, assigneeId });
+                                                        toast.success("Отговорникът е променен");
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Избери..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="unassigned">-- Няма --</SelectItem>
+                                                        {users?.map((u) => (
+                                                            <SelectItem key={u._id} value={u._id}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Avatar className="h-5 w-5">
+                                                                        <AvatarImage src={u.avatar} />
+                                                                        <AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    <span>{u.name || u.email}</span>
+                                                                </div>
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
