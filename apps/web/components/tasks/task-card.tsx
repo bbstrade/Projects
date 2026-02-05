@@ -258,13 +258,13 @@ export function TaskCard({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6 border border-border/50">
-                                <AvatarImage src={assigneeAvatar} />
+                                <AvatarImage src={assignee?.image} />
                                 <AvatarFallback className="text-[10px] bg-slate-100 uppercase">
-                                    {assigneeName?.substring(0, 2) || "??"}
+                                    {assignee?.name?.substring(0, 2) || "??"}
                                 </AvatarFallback>
                             </Avatar>
                             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                                {assigneeName?.split(' ')[0] || "---"}
+                                {assignee?.name?.split(' ')[0] || "---"}
                             </span>
                         </div>
 
