@@ -57,8 +57,8 @@ interface TaskCardProps {
     priority: string;
     dueDate?: number;
     viewMode?: "grid" | "list";
-    assigneeName?: string;
-    assigneeAvatar?: string;
+    assignee?: { name?: string; image?: string };
+    color?: string; // Added color prop
     onEdit?: (id: Id<"tasks">) => void;
 }
 
@@ -70,8 +70,8 @@ export function TaskCard({
     priority,
     dueDate,
     viewMode = "grid",
-    assigneeName,
-    assigneeAvatar,
+    assignee,
+    color: customColor, // Added color prop
     onEdit,
 }: TaskCardProps) {
     const removeTask = useMutation(api.tasks.remove);
@@ -99,12 +99,18 @@ export function TaskCard({
     const priorityKey = priority?.toLowerCase() || "medium";
     const statusKey = status || "todo";
 
+    const cardStyle = customColor ? {
+        borderLeftColor: customColor,
+        borderLeftWidth: '4px',
+    } : {};
+
     if (viewMode === "list") {
         return (
             <>
                 <div
                     className="flex flex-col md:flex-row md:items-center gap-4 px-5 py-4 border rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all cursor-pointer group shadow-sm hover:shadow-md"
                     onClick={() => setDetailOpen(true)}
+                    style={cardStyle}
                 >
                     <div className="flex flex-1 items-start gap-4 min-w-0">
                         {/* Status Checkbox */}
@@ -144,13 +150,13 @@ export function TaskCard({
                         {/* Assignee */}
                         <div className="flex items-center gap-2 min-w-[140px]">
                             <Avatar className="h-7 w-7 border border-border/50">
-                                <AvatarImage src={assigneeAvatar} />
+                                <AvatarImage src={assignee?.image} />
                                 <AvatarFallback className="text-[10px] bg-slate-100 dark:bg-slate-800 uppercase font-bold">
-                                    {assigneeName?.substring(0, 2) || "??"}
+                                    {assignee?.name?.substring(0, 2) || "??"}
                                 </AvatarFallback>
                             </Avatar>
                             <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[100px]">
-                                {assigneeName || "Неразпределена"}
+                                {assignee?.name || "Неразпределена"}
                             </span>
                         </div>
 
@@ -210,6 +216,7 @@ export function TaskCard({
             <Card
                 className="hover:shadow-md transition-shadow cursor-pointer group"
                 onClick={() => setDetailOpen(true)}
+                style={cardStyle}
             >
                 <CardHeader className="pb-3 pt-4">
                     <div className="flex items-start justify-between gap-2">

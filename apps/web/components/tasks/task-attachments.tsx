@@ -23,7 +23,7 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    if (files === undefined) return <div>Loading attachments...</div>;
+    if (files === undefined) return <div>Зареждане на файлове...</div>;
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -55,10 +55,10 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
                 projectId,
             });
 
-            toast.success("File uploaded");
+            toast.success("Файлът е качен успешно");
         } catch (error) {
             console.error(error);
-            toast.error("Failed to upload file");
+            toast.error("Грешка при качване на файл");
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -66,9 +66,9 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
     };
 
     const handleDelete = async (fileId: Id<"files">) => {
-        if (confirm("Delete this file?")) {
+        if (confirm("Изтриване на този файл?")) {
             await removeFile({ fileId });
-            toast.success("File deleted");
+            toast.success("Файлът е изтрит");
         }
     };
 
@@ -85,7 +85,7 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Paperclip className="w-5 h-5" /> Attachments
+                        <Paperclip className="w-5 h-5" /> Прикачени файлове
                     </h3>
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                         {files.length}
@@ -106,7 +106,7 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
                         disabled={isUploading}
                     >
                         {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Paperclip className="w-4 h-4 mr-2" />}
-                        {isUploading ? "Uploading..." : "Add File"}
+                        {isUploading ? "Качване..." : "Добави файл"}
                     </Button>
                 </div>
             </div>
@@ -116,7 +116,7 @@ export function TaskAttachments({ taskId, projectId }: TaskAttachmentsProps) {
                     <div className="flex justify-center mb-2">
                         <FileIcon className="w-8 h-8 text-muted-foreground/50" />
                     </div>
-                    <p className="text-sm">No attachments yet</p>
+                    <p className="text-sm">Няма прикачени файлове</p>
                 </div>
             )}
 

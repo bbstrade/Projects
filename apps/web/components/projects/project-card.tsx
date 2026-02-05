@@ -40,6 +40,7 @@ export interface ProjectCardProps {
     type?: "finance" | "mobile" | "server" | "marketing" | "tool" | "security";
     description?: string;
     lang?: "bg" | "en";
+    color?: string; // Added color prop
     onEdit?: (id: string) => void;
 }
 
@@ -108,6 +109,7 @@ export function ProjectCard({
     type = "finance",
     description,
     lang = "bg",
+    color: customColor, // Get color prop
     onEdit
 }: ProjectCardProps) {
     const router = useRouter();
@@ -138,6 +140,24 @@ export function ProjectCard({
     };
 
     const { icon: Icon, color } = typeConfig[type] || typeConfig.finance;
+
+    // If customColor is provided, use it for accent. Otherwise use the type-based color logic existing, or fallback.
+    // The requirement says "visualize colors... borrowing design from photo".
+    // Photo shows a left border colored and the icon background colored.
+
+    // We will override the icon background logic if customColor exists?
+    // Let's create a style object for dynamic colors.
+
+    const cardStyle = customColor ? {
+        borderLeftColor: customColor,
+        borderLeftWidth: '4px',
+    } : {};
+
+    const iconStyle = customColor ? {
+        color: customColor,
+        backgroundColor: `${customColor}1A`, // 10% opacity approx
+        borderColor: `${customColor}33`, // 20% opacity approx
+    } : undefined;
 
     // Status Badge Logic
     const getStatusStyles = (status: string) => {
@@ -183,10 +203,14 @@ export function ProjectCard({
         <article
             onClick={handleCardClick}
             className="flex flex-col bg-white dark:bg-card border border-border rounded-xl p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/20 group cursor-pointer"
+            style={cardStyle}
         >
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
-                    <div className={cn("size-10 rounded-lg flex items-center justify-center border", iconColorClasses[color])}>
+                    <div
+                        className={cn("size-10 rounded-lg flex items-center justify-center border", !customColor && iconColorClasses[color])}
+                        style={iconStyle}
+                    >
                         <Icon className="w-5 h-5" />
                     </div>
                     <div>

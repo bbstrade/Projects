@@ -57,9 +57,9 @@ export function TaskAssigneeSelector({ taskId, projectId, currentAssigneeId, rea
                 assigneeId: userId,
             });
             setOpen(false);
-            toast.success("Assignee updated");
+            toast.success("Отговорникът е обновен");
         } catch (error) {
-            toast.error("Failed to update assignee");
+            toast.error("Грешка при обновяване на отговорника");
         }
     };
 
@@ -93,7 +93,7 @@ export function TaskAssigneeSelector({ taskId, projectId, currentAssigneeId, rea
                     ) : (
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <User className="h-4 w-4" />
-                            <span>Unassigned</span>
+                            <span>Няма отговорник</span>
                         </div>
                     )}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -101,9 +101,9 @@ export function TaskAssigneeSelector({ taskId, projectId, currentAssigneeId, rea
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-0" align="start">
                 <Command>
-                    <CommandInput placeholder="Search team member..." />
+                    <CommandInput placeholder="Търси член на екипа..." />
                     <CommandList>
-                        <CommandEmpty>No team member found.</CommandEmpty>
+                        <CommandEmpty>Няма намерени резултати.</CommandEmpty>
                         <CommandGroup>
                             {teamMembers?.map((member) => (
                                 <CommandItem

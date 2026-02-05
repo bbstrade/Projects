@@ -7,6 +7,10 @@ import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
+if (siteUrl === "http://localhost:3000" && process.env.CONVEX_ENV === "production") {
+    console.error("WARNING: SITE_URL not set in production. Authentication redirects will fail.");
+}
+
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {

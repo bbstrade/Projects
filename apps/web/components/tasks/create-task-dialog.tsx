@@ -40,13 +40,17 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+import { ColorPicker } from "@/components/ui/color-picker";
+
 const formSchema = z.object({
     title: z.string().min(3, "Заглавието трябва да бъде поне 3 символа").max(200),
     description: z.string().max(10000).optional(),
     priority: z.enum(["low", "medium", "high", "critical"]),
     status: z.enum(["todo", "in_progress", "in_review", "done", "blocked"]),
     dueDate: z.date().optional(),
-    estimatedHours: z.number().min(0).max(1000).optional(),
+    estimatedHours: z.string().optional(),
+    tags: z.string().optional(),
+    color: z.string().optional(),
 });
 
 interface CreateTaskDialogProps {
@@ -70,16 +74,18 @@ export function CreateTaskDialog({ open, onOpenChange, projectId }: CreateTaskDi
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
-            await createTask({
-                projectId,
+            const taskId = await createTask({
                 title: values.title,
                 description: values.description,
+                projectId: projectId as Id<"projects">,
                 priority: values.priority,
                 status: values.status,
+                assigneeId: undefined as Id<"users"> | undefined, // Assuming assigneeId is not yet in schema/UI, setting to undefined
                 dueDate: values.dueDate?.getTime(),
-                estimatedHours: values.estimatedHours,
+                estimatedHours: values.estimatedHours ? parseFloat(values.estimatedHours) : undefined,
+                tags: values.tags ? values.tags.split(",").map((t) => t.trim()) : undefined,
+                color: values.color,
             });
-
             toast.success("Задачата беше създадена успешно!");
             onOpenChange(false);
             form.reset();

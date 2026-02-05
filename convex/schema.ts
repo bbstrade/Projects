@@ -16,6 +16,7 @@ export default defineSchema({
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
         team_members: v.optional(v.array(v.string())), // Array of names/emails as strings per requirements
+        color: v.optional(v.string()), // Added for project color customization
     })
         .index("by_team", ["teamId"])
         .index("by_status", ["status"])
@@ -41,6 +42,7 @@ export default defineSchema({
         attachments: v.optional(v.array(v.string())), // Storage IDs
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
+        color: v.optional(v.string()), // Added for task color customization
     })
         .index("by_project", ["projectId"])
         .index("by_assignee", ["assigneeId"])

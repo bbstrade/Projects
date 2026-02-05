@@ -71,9 +71,9 @@ export default function TaskDetailsPage() {
     if (task === null) {
         return (
             <div className="flex h-screen items-center justify-center flex-col gap-4">
-                <h2 className="text-xl font-semibold">Task not found</h2>
+                <h2 className="text-xl font-semibold">Задачата не е намерена</h2>
                 <Button variant="link" onClick={() => router.back()}>
-                    Go back
+                    Назад
                 </Button>
             </div>
         );
@@ -82,7 +82,7 @@ export default function TaskDetailsPage() {
     const handleUpdateTitle = async () => {
         if (title !== task.title) {
             await updateTask({ id: taskId, title });
-            toast.success("Title updated");
+            toast.success("Заглавието е обновено");
         }
         setIsEditingTitle(false);
     };
@@ -90,15 +90,15 @@ export default function TaskDetailsPage() {
     const handleUpdateDesc = async () => {
         if (description !== task.description) {
             await updateTask({ id: taskId, description });
-            toast.success("Description updated");
+            toast.success("Описанието е обновено");
         }
         setIsEditingDesc(false);
     };
 
     const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this task?")) {
+        if (confirm("Сигурни ли сте, че искате да изтриете тази задача?")) {
             await removeTask({ id: taskId });
-            toast.success("Task deleted");
+            toast.success("Задачата е изтрита");
             router.back();
         }
     };
@@ -111,10 +111,10 @@ export default function TaskDetailsPage() {
                     <div className="flex items-center gap-2 text-muted-foreground mb-4">
                         <Button variant="ghost" size="sm" onClick={() => router.back()}>
                             <ArrowLeft className="w-4 h-4 mr-1" />
-                            Back
+                            Назад
                         </Button>
                         <Separator orientation="vertical" className="h-4" />
-                        <span className="text-sm">Task Details</span>
+                        <span className="text-sm">Детайли за задача</span>
                     </div>
 
                     {/* Title Section */}
@@ -140,8 +140,8 @@ export default function TaskDetailsPage() {
                         </div>
                         <div className="flex gap-2">
                             {/* Placeholder for Quick Actions */}
-                            <Button variant="outline" size="sm">Share</Button>
-                            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+                            <Button variant="outline" size="sm">Сподели</Button>
+                            <Button variant="destructive" size="sm" onClick={handleDelete}>Изтрий</Button>
                         </div>
                     </div>
 
@@ -154,7 +154,7 @@ export default function TaskDetailsPage() {
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2">
                                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                                        Description
+                                        Описание
                                     </h3>
                                 </div>
                                 {isEditingDesc ? (
@@ -166,8 +166,8 @@ export default function TaskDetailsPage() {
                                             className="resize-none"
                                         />
                                         <div className="flex gap-2 justify-end">
-                                            <Button size="sm" variant="ghost" onClick={() => setIsEditingDesc(false)}>Cancel</Button>
-                                            <Button size="sm" onClick={handleUpdateDesc}>Save</Button>
+                                            <Button size="sm" variant="ghost" onClick={() => setIsEditingDesc(false)}>Отказ</Button>
+                                            <Button size="sm" onClick={handleUpdateDesc}>Запази</Button>
                                         </div>
                                     </div>
                                 ) : (
@@ -175,7 +175,7 @@ export default function TaskDetailsPage() {
                                         className="min-h-[100px] p-4 rounded-md border bg-card hover:bg-accent/10 cursor-pointer transition-colors whitespace-pre-wrap text-sm"
                                         onClick={() => setIsEditingDesc(true)}
                                     >
-                                        {task.description || <span className="text-muted-foreground italic">No description provided. Click to add...</span>}
+                                        {task.description || <span className="text-muted-foreground italic">Няма описание. Кликнете за добавяне...</span>}
                                     </div>
                                 )}
                             </div>
@@ -200,10 +200,10 @@ export default function TaskDetailsPage() {
                         {/* Right Column (Sidebar) */}
                         <div className="space-y-6">
                             <div className="p-4 rounded-lg border bg-card space-y-4">
-                                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Details</h3>
+                                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Детайли</h3>
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Status</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Статус</label>
                                     <Select
                                         defaultValue={task.status}
                                         onValueChange={(value) => updateTask({ id: taskId, status: value })}
@@ -212,17 +212,17 @@ export default function TaskDetailsPage() {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="todo">To Do</SelectItem>
-                                            <SelectItem value="in_progress">In Progress</SelectItem>
-                                            <SelectItem value="in_review">In Review</SelectItem>
-                                            <SelectItem value="done">Done</SelectItem>
-                                            <SelectItem value="blocked">Blocked</SelectItem>
+                                            <SelectItem value="todo">За изпълнение</SelectItem>
+                                            <SelectItem value="in_progress">В процес</SelectItem>
+                                            <SelectItem value="in_review">В преглед</SelectItem>
+                                            <SelectItem value="done">Завършена</SelectItem>
+                                            <SelectItem value="blocked">Блокирана</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Priority</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Приоритет</label>
                                     <Select
                                         defaultValue={task.priority}
                                         onValueChange={(value) => updateTask({ id: taskId, priority: value })}
@@ -231,16 +231,16 @@ export default function TaskDetailsPage() {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="low">Low</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
-                                            <SelectItem value="high">High</SelectItem>
-                                            <SelectItem value="critical">Critical</SelectItem>
+                                            <SelectItem value="low">Нисък</SelectItem>
+                                            <SelectItem value="medium">Среден</SelectItem>
+                                            <SelectItem value="high">Висок</SelectItem>
+                                            <SelectItem value="critical">Критичен</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Assignee</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Отговорник</label>
                                     <TaskAssigneeSelector
                                         taskId={taskId}
                                         projectId={task.projectId}
@@ -249,7 +249,7 @@ export default function TaskDetailsPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Project</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Проект</label>
                                     <TaskProjectSelector
                                         taskId={taskId}
                                         currentProjectId={task.projectId}
@@ -257,7 +257,7 @@ export default function TaskDetailsPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Due Date</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Краен срок</label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
@@ -268,7 +268,7 @@ export default function TaskDetailsPage() {
                                                 )}
                                             >
                                                 <Calendar className="mr-2 h-4 w-4" />
-                                                {task.dueDate ? format(task.dueDate, "MMM d, yyyy") : <span>Pick a date</span>}
+                                                {task.dueDate ? format(task.dueDate, "dd MMM yyyy") : <span>Изберете дата</span>}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
@@ -285,8 +285,8 @@ export default function TaskDetailsPage() {
                                 <Separator />
 
                                 <div className="text-xs text-muted-foreground space-y-1">
-                                    <div>Created {task.createdAt && format(task.createdAt, "MMM d, yyyy HH:mm")}</div>
-                                    <div>Updated {task.updatedAt && format(task.updatedAt, "MMM d, yyyy HH:mm")}</div>
+                                    <div>Създадена {task.createdAt && format(task.createdAt, "dd MMM yyyy HH:mm")}</div>
+                                    <div>Обновена {task.updatedAt && format(task.updatedAt, "dd MMM yyyy HH:mm")}</div>
                                 </div>
                             </div>
                         </div>

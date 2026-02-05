@@ -132,6 +132,7 @@ export const create = mutation({
         labels: v.optional(v.array(v.string())),
         parentTaskId: v.optional(v.id("tasks")),
         attachments: v.optional(v.array(v.string())), // Storage IDs
+        color: v.optional(v.string()), // Added color arg
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -177,6 +178,7 @@ export const update = mutation({
         tags: v.optional(v.array(v.string())),
         labels: v.optional(v.array(v.string())),
         attachments: v.optional(v.array(v.string())), // Storage IDs
+        color: v.optional(v.string()), // Added color arg
     },
     handler: async (ctx, args) => {
         const { id, ...fields } = args;

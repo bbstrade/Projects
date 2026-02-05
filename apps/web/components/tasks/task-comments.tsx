@@ -25,7 +25,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    if (comments === undefined) return <div>Loading comments...</div>;
+    if (comments === undefined) return <div>Зареждане на коментари...</div>;
 
     const handleSubmit = async () => {
         if (!comment.trim()) return;
@@ -36,18 +36,18 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                 content: comment,
             });
             setComment("");
-            toast.success("Comment added");
+            toast.success("Коментарът е добавен");
         } catch (error) {
-            toast.error("Failed to add comment");
+            toast.error("Грешка при добавяне на коментар");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async (id: Id<"taskComments">) => {
-        if (confirm("Delete this comment?")) {
+        if (confirm("Изтриване на този коментар?")) {
             await removeComment({ id });
-            toast.success("Comment deleted");
+            toast.success("Коментарът е изтрит");
         }
     };
 
@@ -55,7 +55,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" /> Comments
+                    <MessageSquare className="w-5 h-5" /> Коментари
                 </h3>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {comments.length}
@@ -72,7 +72,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                         <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-sm">{c.user?.name || "Unknown User"}</span>
+                                    <span className="font-semibold text-sm">{c.user?.name || "Неизвестен потребител"}</span>
                                     <span className="text-xs text-muted-foreground">
                                         {formatDistanceToNow(c.createdAt, { addSuffix: true })}
                                     </span>
@@ -99,7 +99,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
 
                 {comments.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground text-sm italic">
-                        No comments yet. Be the first to start the discussion.
+                        Все още няма коментари. Бъдете първият, който ще започне дискусията.
                     </div>
                 )}
             </div>
@@ -157,7 +157,7 @@ function MentionInput({ value, onChange, onSubmit, isSubmitting }: any) {
             {showMentions && users && users.length > 0 && (
                 <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border rounded-md shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-1">
-                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">Suggested users</div>
+                        <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">Предложени потребители</div>
                         {users.map((user) => (
                             <button
                                 key={user._id}
@@ -175,7 +175,7 @@ function MentionInput({ value, onChange, onSubmit, isSubmitting }: any) {
                 </div>
             )}
             <Textarea
-                placeholder="Write a comment... (Type @ to mention)"
+                placeholder="Напишете коментар... (Използвайте @ за споменаване)"
                 value={value}
                 onChange={handleChange}
                 className="min-h-[80px]"
@@ -188,7 +188,7 @@ function MentionInput({ value, onChange, onSubmit, isSubmitting }: any) {
             />
             <div className="flex justify-end mt-2">
                 <Button size="sm" onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
-                    <Send className="w-4 h-4 mr-2" /> Comment
+                    <Send className="w-4 h-4 mr-2" /> Коментар
                 </Button>
             </div>
         </div>

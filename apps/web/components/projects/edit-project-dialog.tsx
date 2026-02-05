@@ -39,6 +39,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 const formSchema = z.object({
     name: z.string().min(3, "Името трябва да бъде поне 3 символа").max(100),
@@ -47,6 +48,7 @@ const formSchema = z.object({
     status: z.enum(["active", "draft", "completed", "review", "in_progress"]).optional(), // Added status
     startDate: z.date().optional(),
     endDate: z.date().optional(),
+    color: z.string().optional(),
 }).refine(
     (data) => !data.endDate || !data.startDate || data.endDate >= data.startDate,
     { message: "Крайният срок трябва да е след началната дата", path: ["endDate"] }
@@ -63,6 +65,7 @@ interface EditProjectDialogProps {
         status?: string;
         startDate?: number;
         endDate?: number;
+        color?: string;
     } | null;
 }
 
@@ -76,6 +79,7 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
             description: "",
             priority: "medium",
             status: "active",
+            color: "#3b82f6",
         },
     });
 
@@ -91,6 +95,7 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
                 status: (project.status as any) || "active",
                 startDate: project.startDate ? new Date(project.startDate) : undefined,
                 endDate: project.endDate ? new Date(project.endDate) : undefined,
+                color: project.color || "#3b82f6",
             });
         }
     }, [project, form]);
@@ -107,6 +112,7 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
                 status: values.status,
                 startDate: values.startDate?.getTime(),
                 endDate: values.endDate?.getTime(),
+                color: values.color,
             });
 
             toast.success("Проектът беше обновен успешно!");
@@ -210,6 +216,23 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
                                 )}
                             />
                         </div>
+
+                        <FormField
+                            control={form.control}
+                            name="color"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Цвят</FormLabel>
+                                    <FormControl>
+                                        <ColorPicker
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
                         <div className="grid grid-cols-2 gap-4">
                             <FormField

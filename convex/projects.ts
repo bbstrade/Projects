@@ -50,6 +50,7 @@ export const create = mutation({
         endDate: v.optional(v.number()),
         teamId: v.string(),
         team_members: v.optional(v.array(v.string())),
+        color: v.optional(v.string()), // Added color arg
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -88,6 +89,7 @@ export const update = mutation({
         startDate: v.optional(v.number()),
         endDate: v.optional(v.number()),
         team_members: v.optional(v.array(v.string())),
+        color: v.optional(v.string()), // Added color arg
     },
     handler: async (ctx, args) => {
         const { id, ...fields } = args;

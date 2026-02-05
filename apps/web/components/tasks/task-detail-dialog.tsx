@@ -53,7 +53,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TaskSubtasks } from "./task-subtasks";
 import { TaskDependencies } from "./task-dependencies";
+import { TaskDependencies } from "./task-dependencies";
 import { MentionInput } from "@/components/ui/mention-input";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 const dict = {
     title: "Детайли за задача",
@@ -279,6 +281,9 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                         <Badge variant="secondary" className="text-xs font-normal">
                             {task.status.replace("_", " ")}
                         </Badge>
+                        {task.color && (
+                            <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
+                        )}
                     </div>
                     <DialogTitle className="text-2xl leading-tight">
                         {task.title}
@@ -409,6 +414,18 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             <Clock className="h-4 w-4 text-slate-400" />
                                             <span className="text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
                                         </div>
+                                    </div>
+
+                                    {/* Color */}
+                                    <div className="space-y-2">
+                                        <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Цвят</span>
+                                        <ColorPicker
+                                            value={task.color}
+                                            onChange={async (value) => {
+                                                await updateTask({ id: task._id, color: value });
+                                                toast.success("Цветът е променен");
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </div>

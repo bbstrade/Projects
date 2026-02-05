@@ -49,9 +49,9 @@ export function TaskProjectSelector({ taskId, currentProjectId, readonly }: Task
                 projectId: projectId,
             });
             setOpen(false);
-            toast.success("Task moved to new project");
+            toast.success("Задачата е преместена в новия проект");
         } catch (error) {
-            toast.error("Failed to move task");
+            toast.error("Грешка при преместване на задачата");
         }
     };
 
@@ -68,7 +68,7 @@ export function TaskProjectSelector({ taskId, currentProjectId, readonly }: Task
                     <div className="flex items-center gap-2 text-left overflow-hidden">
                         <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-sm font-medium truncate">
-                            {getProject?.name || "Unknown Project"}
+                            {getProject?.name || "Неизвестен проект"}
                         </span>
                     </div>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -76,9 +76,9 @@ export function TaskProjectSelector({ taskId, currentProjectId, readonly }: Task
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-0" align="start">
                 <Command>
-                    <CommandInput placeholder="Search project..." />
+                    <CommandInput placeholder="Търси проект..." />
                     <CommandList>
-                        <CommandEmpty>No project found.</CommandEmpty>
+                        <CommandEmpty>Няма намерени проекти.</CommandEmpty>
                         <CommandGroup>
                             {projects.map((project) => (
                                 <CommandItem

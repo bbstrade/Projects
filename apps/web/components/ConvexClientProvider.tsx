@@ -2,7 +2,7 @@
 
 import { ReactNode, Suspense } from "react";
 import { ConvexReactClient } from "convex/react";
-import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
+import { ConvexAuthProvider } from "@convex-dev/better-auth/react";
 import { Loading } from "./loading";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -14,9 +14,9 @@ export default function ConvexClientProvider({
 }) {
     return (
         <Suspense fallback={<Loading />}>
-            <ConvexAuthNextjsProvider client={convex}>
+            <ConvexAuthProvider client={convex}>
                 {children}
-            </ConvexAuthNextjsProvider>
+            </ConvexAuthProvider>
         </Suspense>
     );
 }

@@ -43,6 +43,7 @@ import { CalendarIcon, Plus, Tag, X, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -170,7 +171,9 @@ export function CreateProjectDialog({
                     status: values.status,
                     priority: values.priority,
                     endDate: values.endDate?.getTime(),
+                    endDate: values.endDate?.getTime(),
                     team_members: selectedMembers,
+                    color: values.color,
                 });
                 toast.success("Проектът е обновен успешно!");
             } else {
@@ -181,7 +184,9 @@ export function CreateProjectDialog({
                     status: values.status,
                     priority: values.priority,
                     endDate: values.endDate?.getTime(),
+                    endDate: values.endDate?.getTime(),
                     team_members: selectedMembers,
+                    color: values.color,
                 });
                 toast.success("Проектът е създаден успешно!");
             }
@@ -353,20 +358,10 @@ export function CreateProjectDialog({
                                     <FormItem>
                                         <FormLabel>Цвят</FormLabel>
                                         <FormControl>
-                                            <div className="flex items-center gap-2">
-                                                <Input
-                                                    type="color"
-                                                    className="h-10 w-14 p-1 cursor-pointer"
-                                                    {...field}
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                    className="flex-1"
-                                                    placeholder="#3b82f6"
-                                                />
-                                            </div>
+                                            <ColorPicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

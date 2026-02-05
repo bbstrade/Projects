@@ -348,8 +348,8 @@ export default function TasksPage() {
                                                 priority={task.priority}
                                                 dueDate={task.dueDate}
                                                 viewMode={viewMode}
-                                                assigneeName={assignee?.name}
-                                                assigneeAvatar={assignee?.avatar}
+                                                assignee={{ name: assignee?.name, image: assignee?.avatar }}
+                                                color={task.color}
                                             />
                                         );
                                     })}
