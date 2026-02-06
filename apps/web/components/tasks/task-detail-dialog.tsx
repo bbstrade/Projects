@@ -75,14 +75,14 @@ const dict = {
     status: "Статус",
     assignee: "Отговорник",
     dueDate: "Краен срок",
-    subtasks: "Под-задачи",
+    subtasks: "Подзадачи",
     comments: "Коментари",
     dependencies: "Зависимости",
     addComment: "Напишете коментар...",
     addSubtask: "Нова под-задача...",
     noDescription: "Няма предоставено описание.",
     noComments: "Все още няма коментари.",
-    noSubtasks: "Няма добавени под-задачи.",
+    noSubtasks: "Няма добавени подзадачи.",
     send: "Изпрати",
     delete: "Изтрий",
     prioLow: "Нисък",
@@ -155,6 +155,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [estimatedHours, setEstimatedHours] = useState<number | string>(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [isChecklistHelpOpen, setIsChecklistHelpOpen] = useState(false);
 
     // Sync state with task data
     useEffect(() => {
@@ -460,19 +461,40 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
                                     {/* Subtasks */}
                                     <div className="space-y-3">
-                                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                            <ListTodo className="h-4 w-4 text-slate-400" />
-                                            {dict.subtasks}
-                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                <ListTodo className="h-4 w-4 text-slate-400" />
+                                                {dict.subtasks}
+                                            </h3>
+                                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                                {subtasks?.length || 0}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 text-xs ml-auto text-muted-foreground"
+                                                onClick={() => setIsChecklistHelpOpen(!isChecklistHelpOpen)}
+                                            >
+                                                <Info className="h-3 w-3 mr-1" />
+                                                Помощ
+                                            </Button>
+                                        </div>
+                                        {isChecklistHelpOpen && (
+                                            <div className="text-xs text-muted-foreground space-y-1 p-3 bg-muted/50 rounded-lg animate-in fade-in slide-in-from-top-1">
+                                                <p className="font-semibold mb-2">Как работят подзадачите:</p>
+                                                <div className="space-y-1">
+                                                    <p>• <strong>Подзадачи</strong> - самостоятелни задачи с описание, етикети и отговорник</p>
+                                                    <p>• <strong>Чеклисти</strong> - прости елементи за отбелязване в рамките на подзадача</p>
+                                                    <p>• Кликнете върху подзадача за да я разширите и видите чеклиста</p>
+                                                    <p>• Използвайте "+" за добавяне на нови елементи</p>
+                                                </div>
+                                            </div>
+                                        )}
                                         <TaskSubtasks taskId={task._id} />
                                     </div>
 
                                     {/* Dependencies */}
                                     <div className="space-y-3">
-                                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                            <Link2 className="h-4 w-4 text-slate-400" />
-                                            {dict.dependencies}
-                                        </h3>
                                         <TaskDependencies taskId={task._id} projectId={task.projectId} />
                                     </div>
 
@@ -860,9 +882,9 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                     onDragOver={(e) => e.preventDefault()}
                                     onDrop={onCommentDrop}
                                 >
-                                    <div className="relative">
+                                    <div className="space-y-2">
                                         {commentFiles.length > 0 && (
-                                            <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
+                                            <div className="flex gap-2 overflow-x-auto pb-2">
                                                 {commentFiles.map((file, idx) => (
                                                     <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] border border-blue-100 flex-shrink-0">
                                                         <span className="truncate max-w-[80px]">{file.name}</span>
@@ -878,45 +900,50 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             value={newComment}
                                             onChange={handleCommentChange}
                                             placeholder={dict.addComment}
-                                            className="min-h-[80px] pr-2 pb-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                                            className="min-h-[80px] text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                                             teamId={task?.projectId ? undefined : undefined}
                                             disabled={isSubmitting}
                                         />
 
-                                        <div className="absolute bottom-2 right-2 flex items-center gap-1">
-                                            <input
-                                                type="file"
-                                                id="comment-file-upload"
-                                                className="hidden"
-                                                multiple
-                                                onChange={handleCommentFileUpload}
-                                                disabled={isSubmitting}
-                                            />
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="rounded-full h-7 w-7 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-                                                asChild
-                                            >
-                                                <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center justify-center">
-                                                    <Upload className="h-3 w-3" />
-                                                </label>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={handleAddComment}
-                                                disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
-                                                className="rounded-full h-7 px-3 text-xs"
-                                            >
-                                                {isSubmitting ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        <Send className="h-3 w-3 mr-1.5" />
-                                                        {dict.send}
-                                                    </>
-                                                )}
-                                            </Button>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] text-slate-400">
+                                                Напишете @ за да споменете колега
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="file"
+                                                    id="comment-file-upload"
+                                                    className="hidden"
+                                                    multiple
+                                                    onChange={handleCommentFileUpload}
+                                                    disabled={isSubmitting}
+                                                />
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-7 px-2 text-slate-500"
+                                                    asChild
+                                                >
+                                                    <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center gap-1">
+                                                        <Upload className="h-3 w-3" />
+                                                    </label>
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={handleAddComment}
+                                                    disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
+                                                    className="h-7 px-3 text-xs"
+                                                >
+                                                    {isSubmitting ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Send className="h-3 w-3 mr-1.5" />
+                                                            {dict.send}
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

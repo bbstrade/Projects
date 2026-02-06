@@ -28,7 +28,9 @@ import {
     ListTodo,
     FileCheck,
     Download,
-    Filter
+    Filter,
+    Calendar,
+    HardDrive
 } from "lucide-react";
 import {
     PieChart,
@@ -101,8 +103,12 @@ export default function ReportsPage() {
     const metrics = useQuery(api.analytics.dashboardMetrics, queryArgs);
     const projectsByStatus = useQuery(api.analytics.projectsByStatus, queryArgs);
     const taskTrend = useQuery(api.analytics.taskCompletionTrend, {}); // Not filtered by date yet as it's trend data
+    const projectTimeline = useQuery(api.analytics.projectTimeline, {});
+    const fileStats = useQuery(api.analytics.fileStatistics, {});
 
-    if (metrics === undefined || projectsByStatus === undefined || taskTrend === undefined) {
+    const isLoading = metrics === undefined || projectsByStatus === undefined || taskTrend === undefined;
+
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
@@ -258,7 +264,7 @@ export default function ReportsPage() {
 
             {/* Detailed Tabs */}
             <Tabs defaultValue="projects" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="projects" className="gap-2">
                         <FolderKanban className="h-4 w-4" />
                         {dict.projects}
@@ -270,6 +276,10 @@ export default function ReportsPage() {
                     <TabsTrigger value="approvals" className="gap-2">
                         <FileCheck className="h-4 w-4" />
                         {dict.approvals}
+                    </TabsTrigger>
+                    <TabsTrigger value="files" className="gap-2">
+                        <HardDrive className="h-4 w-4" />
+                        Файлове
                     </TabsTrigger>
                 </TabsList>
 
@@ -462,6 +472,113 @@ export default function ReportsPage() {
                                         <div className="h-full bg-red-500 w-full" />
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="files" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Project Timeline */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Calendar className="h-5 w-5" />
+                                    Времева линия на проекти
+                                </CardTitle>
+                                <CardDescription>Продължителност на активни проекти</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(projectTimeline || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={projectTimeline} layout="vertical" margin={{ left: 40 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                            <XAxis type="number" hide />
+                                            <YAxis
+                                                dataKey="name"
+                                                type="category"
+                                                width={120}
+                                                tick={{ fontSize: 11 }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '8px' }}
+                                                formatter={(value?: number) => {
+                                                    if (value === undefined) return '';
+                                                    const days = Math.ceil(value / (1000 * 60 * 60 * 24));
+                                                    return `${days} дни`;
+                                                }}
+                                            />
+                                            <Bar
+                                                dataKey={(entry: { startDate: number; endDate: number }) => entry.endDate - entry.startDate}
+                                                name="Продължителност"
+                                                fill="#3b82f6"
+                                                radius={[0, 4, 4, 0]}
+                                                barSize={24}
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за проекти
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* File Statistics */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <HardDrive className="h-5 w-5" />
+                                    Статистика на файлове
+                                </CardTitle>
+                                <CardDescription>Качени файлове по месеци</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(fileStats || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={fileStats} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorFiles" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                            <YAxis />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '8px' }}
+                                                formatter={(value?: number, name?: string) => {
+                                                    if (value === undefined) return '';
+                                                    if (name === 'files') return [`${value} файла`, 'Брой'];
+                                                    if (name === 'sizeMB') return [`${value} MB`, 'Размер'];
+                                                    return [String(value), name || ''];
+                                                }}
+                                            />
+                                            <Legend />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="files"
+                                                name="Брой файлове"
+                                                stroke="#8b5cf6"
+                                                fillOpacity={1}
+                                                fill="url(#colorFiles)"
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="sizeMB"
+                                                name="Размер (MB)"
+                                                stroke="#f59e0b"
+                                                strokeWidth={2}
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за файлове
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

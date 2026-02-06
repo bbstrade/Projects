@@ -151,3 +151,191 @@ export const taskCompletionTrend = query({
         return weeks;
     },
 });
+
+/**
+ * Get tasks breakdown by priority
+ */
+export const tasksByPriority = query({
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+
+        // If teamId filter, get project IDs for that team first
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
+
+        const priorityCounts: Record<string, number> = {};
+        for (const task of tasks) {
+            priorityCounts[task.priority] = (priorityCounts[task.priority] || 0) + 1;
+        }
+
+        const colors: Record<string, string> = {
+            low: "#94a3b8",
+            medium: "#f59e0b",
+            high: "#ef4444",
+            critical: "#dc2626",
+        };
+
+        return Object.entries(priorityCounts).map(([priority, count]) => ({
+            name: priority,
+            value: count,
+            fill: colors[priority] || "#8884d8",
+        }));
+    },
+});
+
+/**
+ * Get team performance - tasks completed per user
+ */
+export const teamPerformance = query({
+    args: {
+        limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const users = await ctx.db.query("users").collect();
+
+        const completedByUser: Record<string, number> = {};
+        const inProgressByUser: Record<string, number> = {};
+
+        for (const task of tasks) {
+            if (task.assigneeId) {
+                const id = task.assigneeId;
+                if (task.status === "done") {
+                    completedByUser[id] = (completedByUser[id] || 0) + 1;
+                } else if (task.status === "in_progress") {
+                    inProgressByUser[id] = (inProgressByUser[id] || 0) + 1;
+                }
+            }
+        }
+
+        const userMap = new Map(users.map((u) => [u._id, u.name || u.email || "Unknown"]));
+
+        const results = Object.keys(completedByUser).map((userId) => ({
+            name: userMap.get(userId as any) || "Unknown",
+            completed: completedByUser[userId] || 0,
+            inProgress: inProgressByUser[userId] || 0,
+        }));
+
+        // Sort by completed desc and limit
+        results.sort((a, b) => b.completed - a.completed);
+        return args.limit ? results.slice(0, args.limit) : results;
+    },
+});
+
+/**
+ * Get recent activity from activity logs
+ */
+export const recentActivity = query({
+    args: {
+        limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const limit = args.limit || 10;
+        const logs = await ctx.db.query("activityLogs").order("desc").take(limit);
+        const users = await ctx.db.query("users").collect();
+        const userMap = new Map(users.map((u) => [u._id, u.name || u.email || "Unknown"]));
+
+        return logs.map((log) => ({
+            id: log._id,
+            action: log.action,
+            entityType: log.entityType,
+            userName: userMap.get(log.userId) || "Unknown",
+            createdAt: log.createdAt,
+        }));
+    },
+});
+
+/**
+ * Get task workload per assignee
+ */
+export const tasksByAssignee = query({
+    args: {},
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const users = await ctx.db.query("users").collect();
+
+        const workload: Record<string, { total: number; todo: number; inProgress: number; done: number }> = {};
+
+        for (const task of tasks) {
+            if (task.assigneeId) {
+                const id = task.assigneeId;
+                if (!workload[id]) {
+                    workload[id] = { total: 0, todo: 0, inProgress: 0, done: 0 };
+                }
+                workload[id].total++;
+                if (task.status === "todo") workload[id].todo++;
+                else if (task.status === "in_progress") workload[id].inProgress++;
+                else if (task.status === "done") workload[id].done++;
+            }
+        }
+
+        const userMap = new Map(users.map((u) => [u._id, u.name || u.email || "Unknown"]));
+
+        return Object.entries(workload).map(([userId, data]) => ({
+            name: userMap.get(userId as any) || "Unknown",
+            ...data,
+        }));
+    },
+});
+
+/**
+ * Get project timeline data
+ */
+export const projectTimeline = query({
+    args: {},
+    handler: async (ctx) => {
+        const projects = await ctx.db.query("projects").collect();
+
+        return projects
+            .filter((p) => p.startDate || p.endDate)
+            .map((p) => ({
+                id: p._id,
+                name: p.name,
+                status: p.status,
+                startDate: p.startDate || p._creationTime,
+                endDate: p.endDate || Date.now(),
+            }))
+            .sort((a, b) => a.startDate - b.startDate);
+    },
+});
+
+/**
+ * Get file statistics
+ */
+export const fileStatistics = query({
+    args: {},
+    handler: async (ctx) => {
+        const files = await ctx.db.query("files").collect();
+
+        // Group by month
+        const monthlyData: Record<string, { count: number; size: number }> = {};
+
+        for (const file of files) {
+            const date = new Date(file.createdAt);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = { count: 0, size: 0 };
+            }
+            monthlyData[monthKey].count++;
+            monthlyData[monthKey].size += file.fileSize || 0;
+        }
+
+        // Last 6 months
+        const sortedMonths = Object.keys(monthlyData).sort().slice(-6);
+
+        return sortedMonths.map((month) => ({
+            month,
+            files: monthlyData[month].count,
+            sizeMB: Math.round(monthlyData[month].size / (1024 * 1024) * 100) / 100,
+        }));
+    },
+});

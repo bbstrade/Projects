@@ -16,8 +16,9 @@ import {
     AlertTriangle,
     FileCheck,
     TrendingUp,
-    PieChart as PieChartIcon,
-    BarChart3
+    Users,
+    Activity,
+    Clock
 } from "lucide-react";
 import {
     PieChart,
@@ -30,8 +31,17 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Legend
+    Legend,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    Radar,
+    AreaChart,
+    Area
 } from "recharts";
+import { formatDistanceToNow } from "date-fns";
+import { bg } from "date-fns/locale";
 
 // Локализирани етикети
 const dict = {
@@ -39,6 +49,7 @@ const dict = {
     subtitle: "Преглед на проекти и задачи",
     overview: "Общ преглед",
     analytics: "Анализи",
+    performance: "Производителност",
     totalProjects: "Общо проекти",
     activeProjects: "активни",
     totalTasks: "Общо задачи",
@@ -51,26 +62,63 @@ const dict = {
     statusDistribution: "Разпределение по статус",
     taskProgress: "Прогрес на задачите",
     weeklyCompletion: "Седмично завършване",
+    tasksByPriority: "Задачи по приоритет",
+    priorityDistribution: "Разпределение по приоритет",
+    teamPerformance: "Екипна производителност",
+    tasksPerMember: "Задачи на човек",
+    recentActivity: "Последна активност",
+    latestActions: "Последни действия",
+    teamWorkload: "Натовареност на екипа",
+    workloadByMember: "Задачи по член",
     loading: "Зареждане...",
 };
 
 const COLORS = {
-    draft: "#94a3b8", // slate-400
-    active: "#3b82f6", // blue-500
-    in_progress: "#f59e0b", // amber-500
-    completed: "#22c55e", // green-500
-    on_hold: "#f97316", // orange-500
-    archived: "#64748b", // slate-500
+    draft: "#94a3b8",
+    active: "#3b82f6",
+    in_progress: "#f59e0b",
+    completed: "#22c55e",
+    on_hold: "#f97316",
+    archived: "#64748b",
     todo: "#64748b",
     done: "#22c55e",
+    low: "#94a3b8",
+    medium: "#f59e0b",
+    high: "#ef4444",
+    critical: "#dc2626",
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+    low: "Нисък",
+    medium: "Среден",
+    high: "Висок",
+    critical: "Критичен",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+    created: "създаде",
+    updated: "актуализира",
+    deleted: "изтри",
+    completed: "завърши",
+    assigned: "назначи",
 };
 
 export default function DashboardPage() {
     const metrics = useQuery(api.analytics.dashboardMetrics, {});
     const projectsByStatus = useQuery(api.analytics.projectsByStatus, {});
     const taskTrend = useQuery(api.analytics.taskCompletionTrend, {});
+    const tasksByPriority = useQuery(api.analytics.tasksByPriority, {});
+    const teamPerformance = useQuery(api.analytics.teamPerformance, { limit: 5 });
+    const recentActivity = useQuery(api.analytics.recentActivity, { limit: 8 });
+    const workload = useQuery(api.analytics.tasksByAssignee, {});
 
-    if (metrics === undefined || projectsByStatus === undefined || taskTrend === undefined) {
+    const isLoading =
+        metrics === undefined ||
+        projectsByStatus === undefined ||
+        taskTrend === undefined ||
+        tasksByPriority === undefined;
+
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
@@ -82,10 +130,18 @@ export default function DashboardPage() {
     }
 
     // Format data for Recharts
-    const projectStatusData = projectsByStatus.map(item => ({
+    const projectStatusData = projectsByStatus.map((item) => ({
         name: item.name,
         value: item.value,
-        fill: COLORS[item.name.toLowerCase().replace(" ", "_") as keyof typeof COLORS] || "#8884d8"
+        fill:
+            COLORS[item.name.toLowerCase().replace(" ", "_") as keyof typeof COLORS] ||
+            "#8884d8",
+    }));
+
+    const priorityData = (tasksByPriority || []).map((item) => ({
+        name: PRIORITY_LABELS[item.name] || item.name,
+        value: item.value,
+        fill: item.fill,
     }));
 
     return (
@@ -97,7 +153,7 @@ export default function DashboardPage() {
 
             {/* Metrics Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.totalProjects}
@@ -112,7 +168,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-md transition-shadow bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.totalTasks}
@@ -127,7 +183,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-md transition-shadow bg-gradient-to-br from-red-50 to-white dark:from-red-950/20 dark:to-background">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.overdueTasks}
@@ -144,7 +200,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-md transition-shadow bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-background">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.pendingApprovals}
@@ -160,11 +216,12 @@ export default function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Tabs for Overview/Analytics */}
+            {/* Tabs for Overview/Analytics/Performance */}
             <Tabs defaultValue="overview" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="overview">{dict.overview}</TabsTrigger>
                     <TabsTrigger value="analytics">{dict.analytics}</TabsTrigger>
+                    <TabsTrigger value="performance">{dict.performance}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -216,34 +273,115 @@ export default function DashboardPage() {
                                 <div className="h-[300px] w-full">
                                     {taskTrend.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={taskTrend}>
+                                            <AreaChart data={taskTrend}>
+                                                <defs>
+                                                    <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                                    </linearGradient>
+                                                    <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8} />
+                                                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                <XAxis
-                                                    dataKey="name"
-                                                    stroke="#888888"
-                                                    fontSize={12}
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                />
-                                                <YAxis
-                                                    stroke="#888888"
-                                                    fontSize={12}
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    tickFormatter={(value) => `${value}`}
-                                                />
-                                                <Tooltip
-                                                    cursor={{ fill: 'transparent' }}
-                                                    contentStyle={{ borderRadius: '8px' }}
-                                                />
+                                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
                                                 <Legend />
-                                                <Bar dataKey="completed" name="Завършени" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                                                <Bar dataKey="pending" name="Чакащи" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                                            </BarChart>
+                                                <Area type="monotone" dataKey="completed" name="Завършени" stroke="#22c55e" fillOpacity={1} fill="url(#colorCompleted)" />
+                                                <Area type="monotone" dataKey="pending" name="Чакащи" stroke="#94a3b8" fillOpacity={1} fill="url(#colorPending)" />
+                                            </AreaChart>
                                         </ResponsiveContainer>
                                     ) : (
                                         <div className="flex h-full items-center justify-center text-muted-foreground">
                                             Няма данни за задачи
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Second Row: Priority + Recent Activity */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Tasks by Priority */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                    {dict.tasksByPriority}
+                                </CardTitle>
+                                <CardDescription>{dict.priorityDistribution}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[280px]">
+                                    {priorityData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={priorityData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={50}
+                                                    outerRadius={90}
+                                                    paddingAngle={3}
+                                                    dataKey="value"
+                                                    label={({ name, percent }: { name?: string | number; percent?: number }) =>
+                                                        `${name} ${((percent || 0) * 100).toFixed(0)}%`
+                                                    }
+                                                >
+                                                    {priorityData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                                            Няма данни
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Recent Activity */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Activity className="h-5 w-5 text-green-500" />
+                                    {dict.recentActivity}
+                                </CardTitle>
+                                <CardDescription>{dict.latestActions}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                                    {(recentActivity || []).length > 0 ? (
+                                        (recentActivity || []).map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                                            >
+                                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <Clock className="h-4 w-4 text-primary" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm truncate">
+                                                        <span className="font-medium">{item.userName}</span>{" "}
+                                                        {ACTION_LABELS[item.action] || item.action}{" "}
+                                                        <span className="text-muted-foreground">{item.entityType}</span>
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {formatDistanceToNow(item.createdAt, { addSuffix: true, locale: bg })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground py-8">
+                                            Няма скорошна активност
                                         </div>
                                     )}
                                 </div>
@@ -334,6 +472,74 @@ export default function DashboardPage() {
                                     <span className="font-bold text-red-600">
                                         {metrics.rejectedApprovals}
                                     </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="performance" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Team Performance Bar Chart */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-blue-500" />
+                                    {dict.teamPerformance}
+                                </CardTitle>
+                                <CardDescription>{dict.tasksPerMember}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px]">
+                                    {(teamPerformance || []).length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={teamPerformance} layout="vertical">
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                <XAxis type="number" />
+                                                <YAxis dataKey="name" type="category" width={100} fontSize={12} />
+                                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                                <Legend />
+                                                <Bar dataKey="completed" name="Завършени" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                                                <Bar dataKey="inProgress" name="В процес" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                                            Няма данни за производителност
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Team Workload Radar */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <TrendingUp className="h-5 w-5 text-purple-500" />
+                                    {dict.teamWorkload}
+                                </CardTitle>
+                                <CardDescription>{dict.workloadByMember}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px]">
+                                    {(workload || []).length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart data={workload}>
+                                                <PolarGrid />
+                                                <PolarAngleAxis dataKey="name" fontSize={11} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
+                                                <Radar name="Общо" dataKey="total" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                                                <Radar name="Завършени" dataKey="done" stroke="#22c55e" fill="#22c55e" fillOpacity={0.3} />
+                                                <Legend />
+                                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                                            Няма данни за натовареност
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
