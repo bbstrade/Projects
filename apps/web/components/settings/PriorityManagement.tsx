@@ -30,7 +30,8 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PriorityManagement() {
-    const priorities = useQuery(api.admin.getCustomPriorities, { type: "task" });
+    const [selectedType, setSelectedType] = useState<"task" | "project">("task");
+    const priorities = useQuery(api.admin.getCustomPriorities, { type: selectedType });
     const managePriority = useMutation(api.admin.manageCustomPriority);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingPriority, setEditingPriority] = useState<any>(null);
@@ -63,7 +64,7 @@ export default function PriorityManagement() {
                 label: "",
                 slug: "",
                 color: "#808080",
-                type: "task",
+                type: selectedType,
                 order: priorities ? priorities.length + 1 : 0,
                 isDefault: false,
             });
@@ -84,7 +85,7 @@ export default function PriorityManagement() {
             } else {
                 await managePriority({
                     action: "create",
-                    data: formData,
+                    data: { ...formData, type: selectedType },
                 });
                 toast.success("Приоритетът е създаден успешно");
             }
@@ -115,8 +116,8 @@ export default function PriorityManagement() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Приоритети на задачи</CardTitle>
-                    <CardDescription>Управлявайте нивата на приоритизация.</CardDescription>
+                    <CardTitle>Приоритети</CardTitle>
+                    <CardDescription>Управлявайте нивата на приоритизация за задачи и проекти.</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenDialog()}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -124,6 +125,21 @@ export default function PriorityManagement() {
                 </Button>
             </CardHeader>
             <CardContent>
+                <div className="flex gap-4 mb-4">
+                    <Button
+                        variant={selectedType === "task" ? "default" : "outline"}
+                        onClick={() => setSelectedType("task")}
+                    >
+                        Задачи
+                    </Button>
+                    <Button
+                        variant={selectedType === "project" ? "default" : "outline"}
+                        onClick={() => setSelectedType("project")}
+                    >
+                        Проекти
+                    </Button>
+                </div>
+
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -139,7 +155,7 @@ export default function PriorityManagement() {
                         {priorities.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    Няма дефинирани приоритети
+                                    Няма дефинирани приоритети за {selectedType === 'task' ? 'задачи' : 'проекти'}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -189,7 +205,7 @@ export default function PriorityManagement() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingPriority ? "Редактиране на приоритет" : "Нов приоритет"}</DialogTitle>
+                        <DialogTitle>{editingPriority ? "Редактиране на приоритет" : "Нов приоритет"} ({selectedType === 'task' ? 'Задача' : 'Проект'})</DialogTitle>
                         <DialogDescription>
                             Дефинирайте цветове и етикети за приоритет.
                         </DialogDescription>

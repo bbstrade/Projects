@@ -37,7 +37,8 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function StatusManagement() {
-    const statuses = useQuery(api.admin.getCustomStatuses, { type: "task" });
+    const [selectedType, setSelectedType] = useState<"task" | "project">("task");
+    const statuses = useQuery(api.admin.getCustomStatuses, { type: selectedType });
     const manageStatus = useMutation(api.admin.manageCustomStatus);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStatus, setEditingStatus] = useState<any>(null);
@@ -70,7 +71,7 @@ export default function StatusManagement() {
                 label: "",
                 slug: "",
                 color: "#808080",
-                type: "task",
+                type: selectedType,
                 order: statuses ? statuses.length + 1 : 0,
                 isDefault: false,
             });
@@ -91,7 +92,7 @@ export default function StatusManagement() {
             } else {
                 await manageStatus({
                     action: "create",
-                    data: formData,
+                    data: { ...formData, type: selectedType },
                 });
                 toast.success("Статусът е създаден успешно");
             }
@@ -114,16 +115,12 @@ export default function StatusManagement() {
         }
     };
 
-    if (statuses === undefined) {
-        return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
-    }
-
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Статуси на задачи</CardTitle>
-                    <CardDescription>Управлявайте възможните статуси за задачите в системата.</CardDescription>
+                    <CardTitle>Статуси</CardTitle>
+                    <CardDescription>Управлявайте статусите за задачи и проекти.</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenDialog()}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -131,67 +128,86 @@ export default function StatusManagement() {
                 </Button>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[50px]"></TableHead>
-                            <TableHead>Име</TableHead>
-                            <TableHead>Slug</TableHead>
-                            <TableHead>Цвят</TableHead>
-                            <TableHead>Default</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {statuses.length === 0 ? (
+                <div className="flex gap-4 mb-4">
+                    <Button
+                        variant={selectedType === "task" ? "default" : "outline"}
+                        onClick={() => setSelectedType("task")}
+                    >
+                        Задачи
+                    </Button>
+                    <Button
+                        variant={selectedType === "project" ? "default" : "outline"}
+                        onClick={() => setSelectedType("project")}
+                    >
+                        Проекти
+                    </Button>
+                </div>
+
+                {statuses === undefined ? (
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+                ) : (
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    Няма дефинирани статуси
-                                </TableCell>
+                                <TableHead className="w-[50px]"></TableHead>
+                                <TableHead>Име</TableHead>
+                                <TableHead>Slug</TableHead>
+                                <TableHead>Цвят</TableHead>
+                                <TableHead>Default</TableHead>
+                                <TableHead className="text-right">Действия</TableHead>
                             </TableRow>
-                        ) : (
-                            statuses.sort((a, b) => a.order - b.order).map((status: any) => (
-                                <TableRow key={status._id}>
-                                    <TableCell>
-                                        <div className="cursor-move text-muted-foreground">
-                                            <GripVertical className="h-4 w-4" />
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="font-medium">{status.label}</TableCell>
-                                    <TableCell className="font-mono text-xs text-muted-foreground">{status.slug}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <div
-                                                className="w-4 h-4 rounded-full border border-border"
-                                                style={{ backgroundColor: status.color }}
-                                            />
-                                            <span className="text-xs text-muted-foreground">{status.color}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {status.isDefault && <Badge variant="secondary">Default</Badge>}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(status)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(status._id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                        </TableHeader>
+                        <TableBody>
+                            {statuses.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        Няма дефинирани статуси за {selectedType === 'task' ? 'задачи' : 'проекти'}
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                statuses.sort((a, b) => a.order - b.order).map((status: any) => (
+                                    <TableRow key={status._id}>
+                                        <TableCell>
+                                            <div className="cursor-move text-muted-foreground">
+                                                <GripVertical className="h-4 w-4" />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="font-medium">{status.label}</TableCell>
+                                        <TableCell className="font-mono text-xs text-muted-foreground">{status.slug}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-4 rounded-full border border-border"
+                                                    style={{ backgroundColor: status.color }}
+                                                />
+                                                <span className="text-xs text-muted-foreground">{status.color}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {status.isDefault && <Badge variant="secondary">Default</Badge>}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(status)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(status._id)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingStatus ? "Редактиране на статус" : "Нов статус"}</DialogTitle>
+                        <DialogTitle>{editingStatus ? "Редактиране на статус" : "Нов статус"} ({selectedType === 'task' ? 'Задача' : 'Проект'})</DialogTitle>
                         <DialogDescription>
                             Дефинирайте параметрите на статуса.
                         </DialogDescription>
@@ -262,7 +278,7 @@ export default function StatusManagement() {
                                     onCheckedChange={(c) => setFormData({ ...formData, isDefault: c })}
                                 />
                                 <span className="text-xs text-muted-foreground">
-                                    Ако е включено, този статус ще се избира автоматично за нови задачи.
+                                    Ако е включено, този статус ще се избира автоматично за нови {selectedType === 'task' ? 'задачи' : 'проекти'}.
                                 </span>
                             </div>
                         </div>
