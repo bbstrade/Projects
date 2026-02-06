@@ -50,7 +50,6 @@ const formSchema = z.object({
     approverIds: z.array(z.string()).min(1, "Изберете поне един одобряващ"),
     budget: z.coerce.number().optional(),
     priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-    files: z.custom<FileList>().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,6 +77,7 @@ export function CreateApprovalDialog({ trigger, projectId, taskId }: CreateAppro
             type: "document",
             workflowType: "sequential",
             approverIds: [],
+            priority: "medium",
         },
     });
 
