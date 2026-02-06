@@ -89,6 +89,7 @@ export default function ProfileTab() {
     if (!user) return <div className="p-8 flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
     return (
+        <Card>
             <CardHeader className="pb-4 border-b">
                 <CardTitle className="text-xl">Лична информация</CardTitle>
                 <CardDescription>Управлявайте личните си данни и предпочитания</CardDescription>
@@ -124,7 +125,7 @@ export default function ProfileTab() {
 
                     <div className="flex-1 w-full space-y-6 max-w-2xl">
                         <div className="grid gap-6 md:grid-cols-2">
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label>Потребителско име</Label>
                                 <div className="relative">
                                     <Input value={user.email?.split('@')[0]} disabled className="bg-muted pl-9" placeholder="Username" />

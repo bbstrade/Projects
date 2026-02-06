@@ -205,8 +205,6 @@ export function TaskCard({
                         </div>
                     </div>
                 </div>
-            </div >
-                {/* Removed internal Dialog */ }
             </>
         );
     }
