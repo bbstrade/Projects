@@ -260,7 +260,13 @@ export function CreateApprovalDialog({ trigger, projectId, taskId }: CreateAppro
                                     <FormItem>
                                         <FormLabel>Бюджет (лв.)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="0.00" {...field} />
+                                            <Input
+                                                type="number"
+                                                placeholder="0.00"
+                                                {...field}
+                                                value={field.value ?? ""}
+                                                onChange={(e) => field.onChange(e)}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
