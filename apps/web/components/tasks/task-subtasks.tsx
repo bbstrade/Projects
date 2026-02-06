@@ -30,6 +30,7 @@ import {
     Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ChecklistItem } from "./checklist-item";
 import { cn } from "@/lib/utils";
 
 interface TaskSubtasksProps {
@@ -464,43 +465,20 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                 {subtask.checklist && subtask.checklist.length > 0 ? (
                                                     <div className="space-y-1">
                                                         {subtask.checklist.map((item) => (
-                                                            <div
+                                                            <ChecklistItem
                                                                 key={item.id}
-                                                                className="flex items-center gap-2 group/item"
-                                                            >
-                                                                <Checkbox
-                                                                    checked={item.completed}
-                                                                    onCheckedChange={() =>
-                                                                        handleToggleChecklistItem(subtask._id, subtask, item.id)
-                                                                    }
-                                                                />
-                                                                <Input
-                                                                    value={item.text}
-                                                                    placeholder="Описание..."
-                                                                    onChange={(e) =>
-                                                                        handleUpdateChecklistItem(
-                                                                            subtask._id,
-                                                                            subtask,
-                                                                            item.id,
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    className={cn(
-                                                                        "h-7 text-sm flex-1 bg-transparent border-none shadow-none focus-visible:ring-0",
-                                                                        item.completed && "line-through text-muted-foreground"
-                                                                    )}
-                                                                />
-                                                                <Button
-                                                                    size="icon"
-                                                                    variant="ghost"
-                                                                    className="h-6 w-6 opacity-0 group-hover/item:opacity-100 text-destructive hover:text-destructive"
-                                                                    onClick={() =>
-                                                                        handleRemoveChecklistItem(subtask._id, subtask, item.id)
-                                                                    }
-                                                                >
-                                                                    <X className="h-3 w-3" />
-                                                                </Button>
-                                                            </div>
+                                                                item={item}
+                                                                subtaskId={subtask._id}
+                                                                onUpdate={(itemId, newText) =>
+                                                                    handleUpdateChecklistItem(subtask._id, subtask, itemId, newText)
+                                                                }
+                                                                onToggle={(itemId) =>
+                                                                    handleToggleChecklistItem(subtask._id, subtask, itemId)
+                                                                }
+                                                                onRemove={(itemId) =>
+                                                                    handleRemoveChecklistItem(subtask._id, subtask, itemId)
+                                                                }
+                                                            />
                                                         ))}
                                                     </div>
                                                 ) : (

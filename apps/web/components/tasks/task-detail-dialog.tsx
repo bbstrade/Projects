@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -46,8 +46,17 @@ import {
     Loader2,
     Link2,
     CalendarIcon,
-    ArrowRight,
+    Check,
+    ChevronsUpDown,
 } from "lucide-react";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { toast } from "sonner";
@@ -138,6 +147,24 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Editable fields state
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [estimatedHours, setEstimatedHours] = useState<number | string>(0); // Use string for input handling
+
+    // Sync state with task data
+    useEffect(() => {
+        if (task) {
+            setTitle(task.title);
+            setDescription(task.description || "");
+            setEstimatedHours(task.estimatedHours || 0);
+        }
+    }, [task]);
+
+    // Fetch team members for assignee selector
+    const project = useQuery(api.projects.get, task?.projectId ? { id: task.projectId } : "skip");
+    const teamMembers = useQuery(api.teams.getMembers, project?.teamId ? { teamId: project.teamId } : "skip");
 
     // Get current user (mocking for now as we don't have full auth session access in this component easily)
     const users = useQuery(api.users.list, {});
@@ -307,16 +334,26 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                         {dict[`prio${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}` as keyof typeof dict]}
                                     </Badge>
                                     <Badge variant="secondary" className="text-xs font-normal">
-                                        {task.status.replace("_", " ")}
+                                        {STATUS_OPTIONS.find((o) => o.value === task.status)?.label || task.status}
                                     </Badge>
                                     {task.color && (
                                         <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
                                     )}
                                 </div>
                             </div>
-                            <DialogTitle className="text-2xl leading-tight font-bold text-slate-900">
-                                {task.title}
-                            </DialogTitle>
+                            <div className="flex-1 mr-4">
+                                <Input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    onBlur={() => {
+                                        if (title !== task.title) {
+                                            updateTask({ id: task._id, title });
+                                            toast.success("Заглавието е обновено");
+                                        }
+                                    }}
+                                    className="text-2xl leading-tight font-bold text-slate-900 border-none shadow-none px-0 focus-visible:ring-0 h-auto"
+                                />
+                            </div>
                             <DialogDescription className="sr-only">
                                 Детайли за задача {task.title}
                             </DialogDescription>
@@ -341,8 +378,19 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             <Info className="h-4 w-4 text-slate-400" />
                                             {dict.description}
                                         </h3>
-                                        <div className="text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-100/50">
-                                            {task.description || <span className="text-slate-400 italic">{dict.noDescription}</span>}
+                                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100/50">
+                                            <Textarea
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                onBlur={() => {
+                                                    if (description !== (task.description || "")) {
+                                                        updateTask({ id: task._id, description });
+                                                        toast.success("Описанието е обновено");
+                                                    }
+                                                }}
+                                                className="min-h-[100px] border-none shadow-none bg-transparent resize-none focus-visible:ring-0 p-2 text-slate-700 leading-relaxed"
+                                                placeholder={dict.noDescription}
+                                            />
                                         </div>
                                     </div>
 
@@ -499,35 +547,94 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                 </Select>
                                             </div>
 
-                                            {/* Assignee */}
+                                            {/* Assignee - using Team Members */}
                                             <div className="space-y-1.5">
                                                 <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{dict.assignee}</span>
-                                                <Select
-                                                    value={task.assigneeId || "unassigned"}
-                                                    onValueChange={async (value) => {
-                                                        const assigneeId = value === "unassigned" ? undefined : value as Id<"users">;
-                                                        await updateTask({ id: task._id, assigneeId });
-                                                        toast.success("Отговорникът е променен");
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="w-full h-9 bg-slate-50 border-slate-200">
-                                                        <SelectValue placeholder="Избери..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="unassigned">-- Няма --</SelectItem>
-                                                        {users?.map((u) => (
-                                                            <SelectItem key={u._id} value={u._id}>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Avatar className="h-5 w-5">
-                                                                        <AvatarImage src={u.avatar} />
-                                                                        <AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    <span className="text-sm">{u.name || u.email}</span>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            className="w-full justify-between h-9 bg-slate-50 border-slate-200 px-3 font-normal"
+                                                        >
+                                                            {task.assigneeId ? (
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    {(() => {
+                                                                        const member = teamMembers?.find(m => m.user?._id === task.assigneeId);
+                                                                        const user = member?.user || users?.find(u => u._id === task.assigneeId);
+                                                                        if (!user) return <span>Непознат потребител</span>;
+                                                                        return (
+                                                                            <>
+                                                                                <Avatar className="h-5 w-5">
+                                                                                    <AvatarImage src={user.avatar} />
+                                                                                    <AvatarFallback className="text-[10px]">{user.name?.charAt(0)}</AvatarFallback>
+                                                                                </Avatar>
+                                                                                <span className="truncate text-sm">{user.name || user.email}</span>
+                                                                            </>
+                                                                        );
+                                                                    })()}
                                                                 </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">-- Няма --</span>
+                                                            )}
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[300px] p-0" align="start">
+                                                        <Command>
+                                                            <CommandInput placeholder="Търси..." />
+                                                            <CommandList>
+                                                                <CommandEmpty>Няма намерени резултати.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    <CommandItem
+                                                                        value="unassigned"
+                                                                        onSelect={async () => {
+                                                                            await updateTask({ id: task._id, assigneeId: undefined });
+                                                                            toast.success("Отговорникът е премахнат");
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                !task.assigneeId ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        -- Няма --
+                                                                    </CommandItem>
+                                                                    {teamMembers?.map((member) => (
+                                                                        <CommandItem
+                                                                            key={member.userId}
+                                                                            value={member.user?.name || member.user?.email || ""}
+                                                                            onSelect={async () => {
+                                                                                if (member.user?._id) {
+                                                                                    await updateTask({ id: task._id, assigneeId: member.user._id });
+                                                                                    toast.success("Отговорникът е променен");
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    task.assigneeId === member.userId ? "opacity-100" : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Avatar className="h-6 w-6">
+                                                                                    <AvatarImage src={member.user?.image} />
+                                                                                    <AvatarFallback className="text-[10px]">{member.user?.name?.[0]}</AvatarFallback>
+                                                                                </Avatar>
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-sm font-medium">{member.user?.name}</span>
+                                                                                    <span className="text-xs text-muted-foreground">{member.role}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
                                             </div>
 
                                             {/* Due Date */}
@@ -562,10 +669,23 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
                                             {/* Estimated Hours */}
                                             <div className="space-y-1.5">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Прогноза</span>
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Прогноза (часове)</span>
                                                 <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 bg-slate-50">
                                                     <Clock className="h-4 w-4 text-slate-400" />
-                                                    <span className="text-sm text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
+                                                    <Input
+                                                        type="number"
+                                                        value={estimatedHours}
+                                                        onChange={(e) => setEstimatedHours(e.target.value)}
+                                                        onBlur={() => {
+                                                            const val = Number(estimatedHours);
+                                                            if (!isNaN(val) && val !== task.estimatedHours) {
+                                                                updateTask({ id: task._id, estimatedHours: val });
+                                                                toast.success("Прогнозата е обновена");
+                                                            }
+                                                        }}
+                                                        className="h-full border-none shadow-none bg-transparent focus-visible:ring-0 p-0 text-sm font-medium"
+                                                        min={0}
+                                                    />
                                                 </div>
                                             </div>
 
