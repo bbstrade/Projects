@@ -9,8 +9,8 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,7 +285,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col p-0">
+            <DialogContent className="sm:max-w-[1200px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-white">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -299,73 +299,163 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                     </div>
                 ) : (
                     <>
-                        <DialogHeader className="p-6 pb-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className={cn("text-xs font-normal capitalize", priorityColors[task.priority as keyof typeof priorityColors])}>
-                                    {dict[`prio${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}` as keyof typeof dict]}
-                                </Badge>
-                                <Badge variant="secondary" className="text-xs font-normal">
-                                    {task.status.replace("_", " ")}
-                                </Badge>
-                                {task.color && (
-                                    <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
-                                )}
+                        {/* Header Section */}
+                        <div className="flex-none p-6 pb-4 border-b">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className={cn("text-xs font-normal capitalize", priorityColors[task.priority as keyof typeof priorityColors])}>
+                                        {dict[`prio${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}` as keyof typeof dict]}
+                                    </Badge>
+                                    <Badge variant="secondary" className="text-xs font-normal">
+                                        {task.status.replace("_", " ")}
+                                    </Badge>
+                                    {task.color && (
+                                        <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
+                                    )}
+                                </div>
                             </div>
-                            <DialogTitle className="text-2xl leading-tight">
+                            <DialogTitle className="text-2xl leading-tight font-bold text-slate-900">
                                 {task.title}
                             </DialogTitle>
-
-                            {/* Progress Bar */}
+                            <DialogDescription className="sr-only">
+                                Детайли за задача {task.title}
+                            </DialogDescription>
+                            {/* Progress Bar - Only if subtasks exist */}
                             {subtasksTotal > 0 && (
                                 <div className="mt-4 flex items-center gap-4">
-                                    <Progress value={progress} className="h-2 w-full max-w-[200px]" />
+                                    <Progress value={progress} className="h-2 w-[200px]" />
                                     <span className="text-xs font-medium text-muted-foreground">{progress}% завършени ({subtasksCompleted}/{subtasksTotal})</span>
                                 </div>
                             )}
-                        </DialogHeader>
+                        </div>
 
-                        <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
-                            <div className="px-6 border-b">
-                                <TabsList className="w-full justify-start bg-transparent h-12 p-0 gap-6">
-                                    <TabsTrigger value="details" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                        <Info className="h-4 w-4 mr-2" />
-                                        Описание
-                                    </TabsTrigger>
-                                    <TabsTrigger value="subtasks" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                        <ListTodo className="h-4 w-4 mr-2" />
-                                        {dict.subtasks} ({subtasks?.length || 0})
-                                    </TabsTrigger>
-                                    <TabsTrigger value="comments" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                        <MessageSquare className="h-4 w-4 mr-2" />
-                                        {dict.comments} ({comments?.length || 0})
-                                    </TabsTrigger>
-                                    <TabsTrigger value="files" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                        <FileIcon className="h-4 w-4 mr-2" />
-                                        {dict.files} ({files?.length || 0})
-                                    </TabsTrigger>
-                                    <TabsTrigger value="dependencies" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-full px-0">
-                                        <Link2 className="h-4 w-4 mr-2" />
-                                        {dict.dependencies}
-                                    </TabsTrigger>
-                                </TabsList>
-                            </div>
+                        {/* Main Layout - 2 Columns */}
+                        <div className="flex-1 flex overflow-hidden">
+                            {/* LEFT COLUMN - Main Content */}
+                            <ScrollArea className="flex-1 border-r">
+                                <div className="p-6 space-y-8 max-w-3xl mx-auto">
 
-                            <ScrollArea className="flex-1 p-6">
-                                <TabsContent value="details" className="m-0 space-y-6">
-                                    <div className="space-y-2">
-                                        <h4 className="text-sm font-semibold flex items-center gap-2 text-slate-900 border-b pb-1">
+                                    {/* Description */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Info className="h-4 w-4 text-slate-400" />
                                             {dict.description}
-                                        </h4>
-                                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                            {task.description || dict.noDescription}
-                                        </p>
+                                        </h3>
+                                        <div className="text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-100/50">
+                                            {task.description || <span className="text-slate-400 italic">{dict.noDescription}</span>}
+                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-8 pt-4">
-                                        <div className="space-y-4">
+                                    {/* Subtasks */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                            <ListTodo className="h-4 w-4 text-slate-400" />
+                                            {dict.subtasks}
+                                        </h3>
+                                        <TaskSubtasks taskId={task._id} />
+                                    </div>
+
+                                    {/* Dependencies */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                            <Link2 className="h-4 w-4 text-slate-400" />
+                                            {dict.dependencies}
+                                        </h3>
+                                        <TaskDependencies taskId={task._id} projectId={task.projectId} />
+                                    </div>
+
+                                    {/* Files */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                <FileIcon className="h-4 w-4 text-slate-400" />
+                                                {dict.files}
+                                            </h3>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    id="file-upload"
+                                                    className="hidden"
+                                                    onChange={handleFileUpload}
+                                                    disabled={isUploading}
+                                                />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={isUploading}
+                                                    asChild
+                                                    className="h-7 text-xs"
+                                                >
+                                                    <label htmlFor="file-upload" className="cursor-pointer">
+                                                        {isUploading ? (
+                                                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                                        ) : (
+                                                            <Upload className="h-3 w-3 mr-2" />
+                                                        )}
+                                                        {isUploading ? dict.uploading : "Качи"}
+                                                    </label>
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {files && files.length > 0 ? (
+                                                files.map((file: any) => (
+                                                    <div key={file._id} className="flex items-center justify-between p-3 rounded-lg border bg-white shadow-sm group hover:border-blue-200 transition-colors">
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="p-2 bg-blue-50 rounded text-blue-600">
+                                                                <FileIcon className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className="text-xs font-medium truncate max-w-[120px]" title={file.fileName}>
+                                                                    {file.fileName}
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-400">
+                                                                    {(file.fileSize / 1024).toFixed(1)} KB
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Button size="icon" variant="ghost" className="h-6 w-6" asChild>
+                                                                <a href={file.url} target="_blank" rel="noopener noreferrer" download>
+                                                                    <Download className="h-3 w-3 text-slate-400 hover:text-blue-600" />
+                                                                </a>
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="h-6 w-6 hover:bg-red-50"
+                                                                onClick={async () => {
+                                                                    await removeFile({ fileId: file._id });
+                                                                    toast.success(dict.fileRemoved);
+                                                                }}
+                                                            >
+                                                                <Trash2 className="h-3 w-3 text-slate-400 hover:text-red-600" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="col-span-2 text-center py-8 border-2 border-dashed rounded-lg border-slate-100">
+                                                    <p className="text-xs text-slate-400">{dict.noFiles}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </ScrollArea>
+
+                            {/* RIGHT COLUMN - Sidebar */}
+                            <div className="w-[350px] flex-none flex flex-col bg-slate-50/50">
+                                <ScrollArea className="flex-1">
+                                    <div className="p-6 space-y-6">
+
+                                        {/* Properties Block */}
+                                        <div className="space-y-4 bg-white p-4 rounded-xl border shadow-sm">
                                             {/* Status */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.status}</span>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{dict.status}</span>
                                                 <Select
                                                     value={task.status}
                                                     onValueChange={async (value) => {
@@ -373,7 +463,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         toast.success("Статусът е променен");
                                                     }}
                                                 >
-                                                    <SelectTrigger className="w-full">
+                                                    <SelectTrigger className="w-full h-9 bg-slate-50 border-slate-200">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -386,40 +476,9 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                 </Select>
                                             </div>
 
-                                            {/* Assignee */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.assignee}</span>
-                                                <Select
-                                                    value={task.assigneeId || "unassigned"}
-                                                    onValueChange={async (value) => {
-                                                        const assigneeId = value === "unassigned" ? undefined : value as Id<"users">;
-                                                        await updateTask({ id: task._id, assigneeId });
-                                                        toast.success("Отговорникът е променен");
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="Избери..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="unassigned">-- Няма --</SelectItem>
-                                                        {users?.map((u) => (
-                                                            <SelectItem key={u._id} value={u._id}>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Avatar className="h-5 w-5">
-                                                                        <AvatarImage src={u.avatar} />
-                                                                        <AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    <span>{u.name || u.email}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
                                             {/* Priority */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.priority}</span>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{dict.priority}</span>
                                                 <Select
                                                     value={task.priority}
                                                     onValueChange={async (value) => {
@@ -427,7 +486,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         toast.success("Приоритетът е променен");
                                                     }}
                                                 >
-                                                    <SelectTrigger className="w-full">
+                                                    <SelectTrigger className="w-full h-9 bg-slate-50 border-slate-200">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -439,18 +498,47 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                        </div>
 
-                                        <div className="space-y-4">
+                                            {/* Assignee */}
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{dict.assignee}</span>
+                                                <Select
+                                                    value={task.assigneeId || "unassigned"}
+                                                    onValueChange={async (value) => {
+                                                        const assigneeId = value === "unassigned" ? undefined : value as Id<"users">;
+                                                        await updateTask({ id: task._id, assigneeId });
+                                                        toast.success("Отговорникът е променен");
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-full h-9 bg-slate-50 border-slate-200">
+                                                        <SelectValue placeholder="Избери..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="unassigned">-- Няма --</SelectItem>
+                                                        {users?.map((u) => (
+                                                            <SelectItem key={u._id} value={u._id}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Avatar className="h-5 w-5">
+                                                                        <AvatarImage src={u.avatar} />
+                                                                        <AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    <span className="text-sm">{u.name || u.email}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
                                             {/* Due Date */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">{dict.dueDate}</span>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{dict.dueDate}</span>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <Button
                                                             variant="outline"
                                                             className={cn(
-                                                                "w-full justify-start text-left font-normal",
+                                                                "w-full justify-start text-left font-normal h-9 bg-slate-50 border-slate-200",
                                                                 !task.dueDate && "text-muted-foreground"
                                                             )}
                                                         >
@@ -473,212 +561,134 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             </div>
 
                                             {/* Estimated Hours */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Прогноза</span>
-                                                <div className="flex items-center gap-2">
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Прогноза</span>
+                                                <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 bg-slate-50">
                                                     <Clock className="h-4 w-4 text-slate-400" />
-                                                    <span className="text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
+                                                    <span className="text-sm text-slate-700 font-medium">{task.estimatedHours || 0} часа</span>
                                                 </div>
                                             </div>
 
                                             {/* Color */}
-                                            <div className="space-y-2">
-                                                <span className="text-slate-400 text-xs uppercase font-medium tracking-wider">Цвят</span>
-                                                <ColorPicker
-                                                    value={task.color}
-                                                    onChange={async (value) => {
-                                                        await updateTask({ id: task._id, color: value });
-                                                        toast.success("Цветът е променен");
-                                                    }}
-                                                />
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Цвят</span>
+                                                <div className="pt-1">
+                                                    <ColorPicker
+                                                        value={task.color}
+                                                        onChange={async (value) => {
+                                                            await updateTask({ id: task._id, color: value });
+                                                            toast.success("Цветът е променен");
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </TabsContent>
 
+                                        {/* Comments List */}
+                                        <div className="space-y-3">
+                                            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                                <MessageSquare className="h-4 w-4 text-slate-400" />
+                                                {dict.comments} ({comments?.length || 0})
+                                            </h3>
 
-                                <TabsContent value="subtasks" className="m-0">
-                                    <TaskSubtasks taskId={task._id} />
-                                </TabsContent>
-
-                                <TabsContent value="comments" className="m-0 flex flex-col h-full space-y-4">
-                                    <div className="space-y-6">
-                                        {comments && comments.length > 0 ? (
-                                            // ... existing comment mapping ...
-                                            comments.map((comment: any) => (
-                                                <div key={comment._id} className="flex gap-3 group">
-                                                    <Avatar className="h-8 w-8 mt-1">
-                                                        <AvatarImage src={comment.userAvatar} />
-                                                        <AvatarFallback className="text-[10px]">{comment.userName?.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 space-y-1">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-semibold text-slate-900">{comment.userName}</span>
-                                                            <span className="text-[10px] text-slate-400">
-                                                                {format(comment.createdAt, "HH:mm, d MMM", { locale: bg })}
-                                                            </span>
-                                                        </div>
-                                                        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none text-sm text-slate-700 leading-relaxed border border-slate-100">
-                                                            {comment.content}
-                                                            {/* Attachments */}
-                                                            {comment.attachments && comment.attachments.length > 0 && (
-                                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                                    {comment.attachments.map((att: any, idx: number) => (
-                                                                        <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded border text-xs">
-                                                                            <FileIcon className="h-3 w-3 text-blue-500" />
-                                                                            <span className="max-w-[150px] truncate" title={att.name}>{att.name}</span>
-                                                                            {/* Simple download/view mechanism if possible, or usually we need to fetch signed URL */}
-                                                                            {/* For now, just display that files exist. Using storageId typically requires a generated URL on backend or separate loading */}
-                                                                        </div>
-                                                                    ))}
+                                            <div className="space-y-4 min-h-[100px]">
+                                                {comments && comments.length > 0 ? (
+                                                    comments.map((comment: any) => (
+                                                        <div key={comment._id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                            <Avatar className="h-6 w-6 mt-1 flex-shrink-0">
+                                                                <AvatarImage src={comment.userAvatar} />
+                                                                <AvatarFallback className="text-[10px] bg-slate-100 text-slate-500">{comment.userName?.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex-1 min-w-0 space-y-1">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-semibold text-slate-700 truncate">{comment.userName}</span>
+                                                                    <span className="text-[10px] text-slate-300 flex-shrink-0">
+                                                                        {format(comment.createdAt, "d MMM, HH:mm", { locale: bg })}
+                                                                    </span>
                                                                 </div>
-                                                            )}
+                                                                <div className="bg-white p-2.5 rounded-2xl rounded-tl-none text-xs text-slate-600 leading-relaxed border shadow-sm">
+                                                                    {comment.content}
+                                                                    {/* Attachments */}
+                                                                    {comment.attachments && comment.attachments.length > 0 && (
+                                                                        <div className="mt-2 flex flex-wrap gap-2">
+                                                                            {comment.attachments.map((att: any, idx: number) => (
+                                                                                <div key={idx} className="flex items-center gap-1.5 p-1.5 bg-slate-50 rounded border border-slate-100 text-[10px]">
+                                                                                    <FileIcon className="h-3 w-3 text-blue-500" />
+                                                                                    <span className="max-w-[100px] truncate" title={att.name}>{att.name}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
                                                         </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-8 text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                                                        <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-10" />
+                                                        <p className="text-xs">{dict.noComments}</p>
                                                     </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-12 text-slate-400">
-                                                <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                                <p>{dict.noComments}</p>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </TabsContent>
-
-                                <TabsContent value="files" className="m-0 space-y-4">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h4 className="text-sm font-semibold">{dict.files}</h4>
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                id="file-upload"
-                                                className="hidden"
-                                                onChange={handleFileUpload}
-                                                disabled={isUploading}
-                                            />
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={isUploading}
-                                                asChild
-                                            >
-                                                <label htmlFor="file-upload" className="cursor-pointer">
-                                                    {isUploading ? (
-                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                    ) : (
-                                                        <Upload className="h-4 w-4 mr-2" />
-                                                    )}
-                                                    {isUploading ? dict.uploading : "Качи файл"}
-                                                </label>
-                                            </Button>
                                         </div>
                                     </div>
+                                </ScrollArea>
 
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {files && files.length > 0 ? (
-                                            files.map((file: any) => (
-                                                <div key={file._id} className="flex items-center justify-between p-3 rounded-lg border bg-slate-50 group hover:bg-white transition-colors">
-                                                    <div className="flex items-center gap-3 overflow-hidden">
-                                                        <div className="p-2 bg-blue-100 rounded text-blue-600">
-                                                            <FileIcon className="h-5 w-5" />
-                                                        </div>
-                                                        <div className="flex flex-col min-w-0">
-                                                            <span className="text-sm font-medium truncate max-w-[200px]" title={file.fileName}>
-                                                                {file.fileName}
-                                                            </span>
-                                                            <span className="text-[10px] text-slate-400">
-                                                                {(file.fileSize / 1024).toFixed(1)} KB • {format(file.createdAt, "d MMM", { locale: bg })}
-                                                            </span>
-                                                        </div>
+                                {/* Comment Input (Sticky Bottom of Sidebar) */}
+                                <div className="p-4 border-t bg-white">
+                                    <div className="relative">
+                                        {commentFiles.length > 0 && (
+                                            <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
+                                                {commentFiles.map((file, idx) => (
+                                                    <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] border border-blue-100 flex-shrink-0">
+                                                        <span className="truncate max-w-[80px]">{file.name}</span>
+                                                        <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
                                                     </div>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button size="icon" variant="ghost" className="h-8 w-8" asChild>
-                                                            <a href={file.url} target="_blank" rel="noopener noreferrer" download>
-                                                                <Download className="h-4 w-4 text-slate-500" />
-                                                            </a>
-                                                        </Button>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                            onClick={async () => {
-                                                                await removeFile({ fileId: file._id });
-                                                                toast.success(dict.fileRemoved);
-                                                            }}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-12 text-slate-400">
-                                                <FileIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                                <p>{dict.noFiles}</p>
+                                                ))}
                                             </div>
                                         )}
-                                    </div>
-                                </TabsContent>
 
-                                <TabsContent value="dependencies" className="m-0">
-                                    <TaskDependencies taskId={task._id} projectId={task.projectId} />
-                                </TabsContent>
-                            </ScrollArea>
-
-                            <div className="p-4 border-t bg-slate-50 mt-auto">
-                                <div className="relative">
-                                    {commentFiles.length > 0 && (
-                                        <div className="absolute top-[-40px] left-0 w-full flex gap-2 overflow-x-auto px-2 pb-2">
-                                            {commentFiles.map((file, idx) => (
-                                                <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs border border-blue-100">
-                                                    <span className="truncate max-w-[100px]">{file.name}</span>
-                                                    <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <MentionInput
-                                        value={newComment}
-                                        onChange={handleCommentChange}
-                                        placeholder={dict.addComment}
-                                        className="pr-12 pb-12 bg-white resize-none"
-                                        teamId={task?.projectId ? undefined : undefined}
-                                        disabled={isSubmitting}
-                                    />
-                                    <div className="absolute bottom-8 right-3">
-                                        <input
-                                            type="file"
-                                            id="comment-file-upload"
-                                            className="hidden"
-                                            multiple
-                                            onChange={handleCommentFileUpload}
+                                        <MentionInput
+                                            value={newComment}
+                                            onChange={handleCommentChange}
+                                            placeholder={dict.addComment}
+                                            className="min-h-[80px] pr-2 pb-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                                            teamId={task?.projectId ? undefined : undefined}
                                             disabled={isSubmitting}
                                         />
-                                        <div className="flex gap-1">
+
+                                        <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                                            <input
+                                                type="file"
+                                                id="comment-file-upload"
+                                                className="hidden"
+                                                multiple
+                                                onChange={handleCommentFileUpload}
+                                                disabled={isSubmitting}
+                                            />
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                className="rounded-full h-9 w-9 p-0"
+                                                className="rounded-full h-7 w-7 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
                                                 asChild
                                             >
                                                 <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center justify-center">
-                                                    <Upload className="h-4 w-4 text-slate-500" />
+                                                    <Upload className="h-3 w-3" />
                                                 </label>
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 onClick={handleAddComment}
                                                 disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
-                                                className="rounded-full px-4 h-9"
+                                                className="rounded-full h-7 px-3 text-xs"
                                             >
                                                 {isSubmitting ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    <Loader2 className="h-3 w-3 animate-spin" />
                                                 ) : (
                                                     <>
-                                                        <Send className="h-4 w-4 mr-2" />
+                                                        <Send className="h-3 w-3 mr-1.5" />
                                                         {dict.send}
                                                     </>
                                                 )}
@@ -687,7 +697,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                     </div>
                                 </div>
                             </div>
-                        </Tabs>
+                        </div>
                     </>
                 )}
             </DialogContent>

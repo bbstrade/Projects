@@ -51,7 +51,7 @@ export default function SettingsPage() {
                 <p className="text-muted-foreground">{dict.subtitle}</p>
             </div>
 
-            <Tabs defaultValue="profile" className="flex flex-col lg:flex-row gap-8">
+            <Tabs defaultValue="profile" orientation="vertical" className="flex flex-col lg:flex-row gap-8">
                 <TabsList className="flex flex-col w-full lg:w-64 h-auto bg-transparent space-y-1 p-0 justify-start mb-8 lg:mb-0">
                     <TabsTrigger
                         value="profile"

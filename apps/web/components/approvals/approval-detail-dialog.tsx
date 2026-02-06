@@ -9,6 +9,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -231,9 +232,9 @@ export function ApprovalDetailDialog({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="sr-only">Зареждане</DialogTitle>
-                        {/* <DialogDescription className="sr-only">
+                        <DialogDescription className="sr-only">
                             Зареждане на детайли за одобрение
-                        </DialogDescription> */}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center justify-center py-8">
                         <div className="animate-pulse text-muted-foreground">
@@ -255,15 +256,11 @@ export function ApprovalDetailDialog({
                         </div>
                         <div className="flex-1">
                             <DialogTitle className="text-lg">{approval.title}</DialogTitle>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                <span>{typeLabels[approval.type] || approval.type}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span>
-                                    {format(new Date(approval.createdAt), "d MMM yyyy", {
-                                        locale: bg,
-                                    })}
-                                </span>
-                            </div>
+                            <DialogDescription className="text-xs text-muted-foreground mt-1">
+                                {typeLabels[approval.type] || approval.type} • {format(new Date(approval.createdAt), "d MMM yyyy", {
+                                    locale: bg,
+                                })}
+                            </DialogDescription>
                         </div>
                         <Badge variant={statusLabels[approval.status]?.variant || "secondary"}>
                             {statusLabels[approval.status]?.label || approval.status}
