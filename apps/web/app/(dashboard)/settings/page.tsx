@@ -1,36 +1,30 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useLanguage } from "@/components/language-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Download } from "lucide-react";
+import { User, Bell, Download } from "lucide-react";
 import ProfileTab from "@/components/settings/ProfileTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
-import AdministrationTab from "@/components/settings/AdministrationTab";
 import DataExportTab from "@/components/settings/DataExportTab";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 export default function SettingsPage() {
-    const { lang } = useLanguage();
+    const { lang, t } = useLanguage();
     const isBg = lang === "bg";
 
     const user = useQuery(api.users.me);
 
     const dict = {
-        title: isBg ? "Настройки" : "Settings",
+        title: t("settings") || (isBg ? "Настройки" : "Settings"),
         subtitle: isBg ? "Управление на вашия профил и настройки на системата" : "Manage your profile and system preferences",
         loading: isBg ? "Зареждане..." : "Loading...",
         tabs: {
-            profile: isBg ? "Профил" : "Profile",
+            profile: t("profile") || (isBg ? "Профил" : "Profile"),
             notifications: isBg ? "Нотификации" : "Notifications",
-            admin: isBg ? "Администрация" : "Administration",
             export: isBg ? "Експорт на данни" : "Data Export",
         }
     };
-
-    // Determine if user has admin access
-    const isAdmin = user?.role === 'admin' || user?.role === 'owner'; // Simple check, real logic might need team check
 
     // Show loading while user is being fetched
     if (user === undefined) {
@@ -67,15 +61,6 @@ export default function SettingsPage() {
                         <Bell className="h-4 w-4" />
                         {dict.tabs.notifications}
                     </TabsTrigger>
-                    {isAdmin && (
-                        <TabsTrigger
-                            value="admin"
-                            className="w-full justify-start px-4 py-3 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted transition-colors gap-3 font-medium"
-                        >
-                            <Shield className="h-4 w-4" />
-                            {dict.tabs.admin}
-                        </TabsTrigger>
-                    )}
                     <TabsTrigger
                         value="export"
                         className="w-full justify-start px-4 py-3 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted transition-colors gap-3 font-medium"
@@ -93,12 +78,6 @@ export default function SettingsPage() {
                     <TabsContent value="notifications" className="m-0 space-y-6">
                         <NotificationsTab />
                     </TabsContent>
-
-                    {isAdmin && (
-                        <TabsContent value="admin" className="m-0 space-y-6">
-                            <AdministrationTab />
-                        </TabsContent>
-                    )}
 
                     <TabsContent value="export" className="m-0 space-y-6">
                         <DataExportTab />

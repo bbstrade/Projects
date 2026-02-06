@@ -812,3 +812,149 @@ export const budgetOverview = query({
     },
 });
 
+/**
+ * Get upcoming tasks for the current user
+ */
+export const myUpcomingTasks = query({
+    args: { limit: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) return [];
+
+        const now = Date.now();
+        const limit = args.limit || 5;
+
+        // Get tasks assigned to user that are not done
+        const tasks = await ctx.db
+            .query("tasks")
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("assigneeId"), user._id),
+                    q.neq(q.field("status"), "done")
+                )
+            )
+            .collect();
+
+        // Filter for tasks with deadline in future or recent past
+        const upcoming = tasks
+            .filter((t) => t.dueDate)
+            .sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0))
+            .slice(0, limit);
+
+        // Get project names
+        const projects = await Promise.all(
+            upcoming.map((t) => ctx.db.get(t.projectId))
+        );
+        const projectMap = new Map(projects.filter(Boolean).map((p) => [p!._id, p!.name]));
+
+        const colors: Record<string, string> = {
+            low: "#94a3b8",
+            medium: "#f59e0b",
+            high: "#ef4444",
+            critical: "#dc2626",
+        };
+
+        const priorityLabels: Record<string, string> = {
+            low: "Нисък",
+            medium: "Среден",
+            high: "Висок",
+            critical: "Критичен",
+        };
+
+        return upcoming.map((t) => ({
+            _id: t._id,
+            title: t.title,
+            dueDate: t.dueDate,
+            priority: priorityLabels[t.priority] || t.priority,
+            projectName: projectMap.get(t.projectId) || "Unknown",
+            priorityColor: colors[t.priority] || "#8884d8",
+            daysLeft: t.dueDate ? Math.ceil((t.dueDate - now) / (24 * 60 * 60 * 1000)) : 0
+        }));
+    },
+});
+
+/**
+ * Get top tasks for the current user (sorted by Priority)
+ */
+export const myTopTasks = query({
+    args: { limit: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) return [];
+
+        const limit = args.limit || 5;
+
+        // Get tasks assigned to user that are not done
+        const tasks = await ctx.db
+            .query("tasks")
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("assigneeId"), user._id),
+                    q.neq(q.field("status"), "done")
+                )
+            )
+            .collect();
+
+        // Priority weights
+        const priorityWeight: Record<string, number> = {
+            critical: 4,
+            high: 3,
+            medium: 2,
+            low: 1,
+        };
+
+        // Sort by Priority desc, then Due Date asc
+        const topTasks = tasks
+            .sort((a, b) => {
+                const pA = priorityWeight[a.priority] || 0;
+                const pB = priorityWeight[b.priority] || 0;
+                if (pA !== pB) return pB - pA;
+                return (a.dueDate || 0) - (b.dueDate || 0);
+            })
+            .slice(0, limit);
+
+        // Get project names
+        const projects = await Promise.all(
+            topTasks.map((t) => ctx.db.get(t.projectId))
+        );
+        const projectMap = new Map(projects.filter(Boolean).map((p) => [p!._id, p!.name]));
+
+        const colors: Record<string, string> = {
+            low: "#94a3b8",
+            medium: "#f59e0b",
+            high: "#ef4444",
+            critical: "#dc2626",
+        };
+
+        const priorityLabels: Record<string, string> = {
+            low: "Нисък",
+            medium: "Среден",
+            high: "Висок",
+            critical: "Критичен",
+        };
+
+        return topTasks.map((t) => ({
+            _id: t._id,
+            title: t.title,
+            priority: priorityLabels[t.priority] || t.priority,
+            projectName: projectMap.get(t.projectId) || "Unknown",
+            priorityColor: colors[t.priority] || "#8884d8",
+            status: t.status
+        }));
+    },
+});
+

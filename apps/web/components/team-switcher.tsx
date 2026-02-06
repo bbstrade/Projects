@@ -45,29 +45,23 @@ const roleLabels: Record<string, string> = {
 };
 
 export function TeamSwitcher() {
+    const { t } = useLanguage();
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [switching, setSwitching] = useState(false);
 
+    const roleLabels: Record<string, string> = {
+        owner: t("roleOwner"),
+        admin: t("roleAdmin"),
+        member: t("roleMember"),
+    };
+
     const user = useQuery(api.users.me);
-    const teams = useQuery(api.teams.list, { view: "my" }); // List only my teams for switching
-    // We also need the user's role in each team. querying memberships or doing a clever mapping.
-    // Ideally `teams.list` or `teams.listForUser` should return role.
-    // For now, we will fetch memberships separately or assume basic info.
-    // Actually, `teams.list` returns team objects. Let's optimize by fetching memberships too to show roles.
+    const teams = useQuery(api.teams.list, { view: "my" });
 
-    // Better yet, let's use `api.teams.listForUser` but that returns just teams.
-    // Let's rely on `teams` query for now and maybe fetch memberships if needed for "Role" badge in list. 
-    // To make it simple and fast, we won't show role in the dropdown list immediately if it's expensive, 
-    // but we SHOULD show role for the *current* team. 
-
-    // We need to know the role in the CURRENT team.
     const currentTeamMemberships = useQuery(api.teams.getMembers,
-        user?.currentTeamId ? { teamId: user.currentTeamId } : "skip" // convex requires skip token or conditional
+        user?.currentTeamId ? { teamId: user.currentTeamId } : "skip"
     );
-
-    // Workaround for conditional query if "skip" isn't supported directly this way in this version of convex-react types?
-    // Actually Convex usually supports skip or "skip". If not, we handle null.
 
     const switchTeam = useMutation(api.users.switchTeam);
 
@@ -100,10 +94,6 @@ export function TeamSwitcher() {
         return <div className="h-10 w-[200px] animate-pulse rounded bg-muted" />;
     }
 
-    // Only show switcher if user has teams (or allow them to see "No Team" state)
-    // If 0 teams, maybe just show a "Create Team" button or similar?
-    // But this component replaces the header title usually.
-
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -111,7 +101,7 @@ export function TeamSwitcher() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    aria-label="Select a team"
+                    aria-label={t("selectTeam")}
                     className="w-[240px] justify-between border-dashed hover:bg-slate-50 dark:hover:bg-slate-900"
                 >
                     {currentTeam ? (
@@ -128,7 +118,7 @@ export function TeamSwitcher() {
                     ) : (
                         <span className="text-muted-foreground flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
-                            Изберете екип
+                            {t("selectTeam")}
                         </span>
                     )}
                     <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
@@ -137,9 +127,9 @@ export function TeamSwitcher() {
             <PopoverContent className="w-[240px] p-0">
                 <Command>
                     <CommandList>
-                        <CommandInput placeholder="Търсене на екип..." />
-                        <CommandEmpty>Няма намерени екипи.</CommandEmpty>
-                        <CommandGroup heading="Моите екипи">
+                        <CommandInput placeholder={t("searchTeam")} />
+                        <CommandEmpty>{t("noTeamsFound")}</CommandEmpty>
+                        <CommandGroup heading={t("myTeamsTitle")}>
                             {teams.map((team) => (
                                 <CommandItem
                                     key={team._id}
@@ -152,7 +142,7 @@ export function TeamSwitcher() {
                                         switchTeam({ teamId: team._id as string })
                                             .then(() => {
                                                 setOpen(false);
-                                                window.location.reload(); // Hard reload to clear all query state if needed, or query invalidation happens automatically
+                                                window.location.reload();
                                             })
                                             .finally(() => setSwitching(false));
                                     }}
@@ -178,12 +168,12 @@ export function TeamSwitcher() {
                         <CommandItem
                             onSelect={() => {
                                 setOpen(false);
-                                router.push("/teams"); // Redirect to team management to create
+                                router.push("/teams");
                             }}
                             className="border-t text-blue-600 cursor-pointer"
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Създай нов екип
+                            {t("createTeam")}
                         </CommandItem>
                     </CommandList>
                 </Command>

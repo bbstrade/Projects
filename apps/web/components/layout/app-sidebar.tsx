@@ -33,17 +33,17 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useTheme } from "next-themes";
 
 export const sidebarItems = [
-    { icon: LayoutDashboard, label: "Табло", href: "/dashboard" },
-    { icon: FolderKanban, label: "Проекти", href: "/projects" },
-    { icon: CheckSquare, label: "Задачи", href: "/tasks" },
-    { icon: FileCheck, label: "Одобрения", href: "/approvals" },
-    { icon: Users, label: "Екипи", href: "/teams" },
-    { icon: FileText, label: "Доклади", href: "/reports" },
-    { icon: Settings, label: "Настройки", href: "/settings" },
+    { icon: LayoutDashboard, labelKey: "dashboard", href: "/dashboard" },
+    { icon: FolderKanban, labelKey: "projects", href: "/projects" },
+    { icon: CheckSquare, labelKey: "tasks", href: "/tasks" },
+    { icon: FileCheck, labelKey: "approvals", href: "/approvals" },
+    { icon: Users, labelKey: "teams", href: "/teams" },
+    { icon: FileText, labelKey: "reports", href: "/reports" },
+    { icon: Settings, labelKey: "settings", href: "/settings" },
 ];
 
 export const adminItems = [
-    { icon: Shield, label: "Админ", href: "/admin" },
+    { icon: Shield, labelKey: "admin", href: "/admin" },
 ];
 
 interface AppSidebarProps {
@@ -53,6 +53,7 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSidebarProps) {
+    const { t } = useLanguage();
     const pathname = usePathname();
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { lang, setLang } = useLanguage();
@@ -155,7 +156,9 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
         <aside className={cn("flex w-64 flex-col border-r bg-white dark:bg-slate-950", className)}>
             <div className="flex h-16 items-center gap-3 border-b px-4 shrink-0">
                 <Image src={logoSrc} alt="Logo" width={32} height={32} />
-                <span className="font-bold text-lg text-slate-900 dark:text-white">Управление</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white">
+                    {t("management")}
+                </span>
             </div>
 
             <div className="px-3 py-2 border-b shrink-0">
@@ -169,7 +172,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                         onClick={onOpenSearch}
                         className="h-8 w-full bg-slate-100 dark:bg-slate-900 border-none rounded-md flex items-center pl-9 text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                     >
-                        Search...
+                        {t("search")}
                     </div>
                 </div>
                 <Button
@@ -207,7 +210,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                             )}
                         >
                             <item.icon className="h-5 w-5" />
-                            {item.label}
+                            {t(`tab${item.labelKey.charAt(0).toUpperCase() + item.labelKey.slice(1)}`)}
                         </Link>
                     ))}
                     {user?.role === "admin" && adminItems.map((item) => (
@@ -223,7 +226,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                             )}
                         >
                             <item.icon className="h-5 w-5" />
-                            {item.label}
+                            {t(`tab${item.labelKey.charAt(0).toUpperCase() + item.labelKey.slice(1)}`)}
                         </Link>
                     ))}
                 </nav>
@@ -236,7 +239,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                     >
                         <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                             <CheckSquare className="h-4 w-4" />
-                            <span>Моите Задачи</span>
+                            <span>{t("myTasks")}</span>
                             <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs px-1.5 py-0.5 rounded-full">
                                 {myTasks.length}
                             </span>
@@ -247,7 +250,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                     {tasksOpen && (
                         <div className="pl-2 space-y-1 mt-1">
                             {myTasks.length === 0 ? (
-                                <div className="text-xs text-slate-500 text-center py-2">Нямате задачи</div>
+                                <div className="text-xs text-slate-500 text-center py-2">{t("noTasks")}</div>
                             ) : (
                                 <>
                                     {myTasks.slice(0, 8).map(task => (
@@ -272,7 +275,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                                             onClick={onMobileNavigate}
                                             className="block px-3 py-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 pl-4"
                                         >
-                                            + Виж още {myTasks.length - 8}
+                                            + {t("viewMore")} {myTasks.length - 8}
                                         </Link>
                                     )}
                                 </>
@@ -289,7 +292,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                     >
                         <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                             <FolderKanban className="h-4 w-4" />
-                            <span>Моите Проекти</span>
+                            <span>{t("myProjects")}</span>
                             <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs px-1.5 py-0.5 rounded-full">
                                 {myProjects.length}
                             </span>
@@ -300,7 +303,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                     {projectsOpen && (
                         <div className="pl-2 space-y-1 mt-1">
                             {myProjects.length === 0 ? (
-                                <div className="text-xs text-slate-500 text-center py-2">Нямате проекти</div>
+                                <div className="text-xs text-slate-500 text-center py-2">{t("noProjects")}</div>
                             ) : (
                                 <>
                                     {myProjects.slice(0, 8).map(project => {
@@ -335,7 +338,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                                             onClick={onMobileNavigate}
                                             className="block px-3 py-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 pl-4"
                                         >
-                                            + Виж още {myProjects.length - 8}
+                                            + {t("viewMore")} {myProjects.length - 8}
                                         </Link>
                                     )}
                                 </>
@@ -365,10 +368,10 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
                     </Avatar>
                     <div className="flex flex-col">
                         <span className="text-sm font-medium">
-                            {user?.name || "Потребител"}
+                            {user?.name || t("user")}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                            {user?.email || "Профил"}
+                            {user?.email || t("profile")}
                         </span>
                     </div>
                 </Link>

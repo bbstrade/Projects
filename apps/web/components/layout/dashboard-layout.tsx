@@ -88,22 +88,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-                <CommandInput placeholder={lang === "bg" ? "Търсене във всички менюта..." : "Type a command or search..."} />
+                <CommandInput placeholder={t("searchPlaceholder")} />
                 <CommandList>
-                    <CommandEmpty>{lang === "bg" ? "Няма намерени резултати." : "No results found."}</CommandEmpty>
-                    <CommandGroup heading={lang === "bg" ? "Страници" : "Pages"}>
+                    <CommandEmpty>{t("noResultsFound")}</CommandEmpty>
+                    <CommandGroup heading={t("pages")}>
                         {sidebarItems.map((item) => (
                             <CommandItem
                                 key={item.href}
                                 onSelect={() => runCommand(() => router.push(item.href))}
                             >
                                 <item.icon className="mr-2 h-4 w-4" />
-                                {item.label}
+                                {t(`tab${item.labelKey.charAt(0).toUpperCase() + item.labelKey.slice(1)}`)}
                             </CommandItem>
                         ))}
                     </CommandGroup>
                     <CommandSeparator />
-                    <CommandGroup heading={lang === "bg" ? "Проекти" : "Projects"}>
+                    <CommandGroup heading={t("projectsTitle")}>
                         {projects?.slice(0, 5).map((project) => (
                             <CommandItem
                                 key={project._id}
@@ -115,7 +115,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         ))}
                     </CommandGroup>
                     <CommandSeparator />
-                    <CommandGroup heading={lang === "bg" ? "Задачи" : "Tasks"}>
+                    <CommandGroup heading={t("tasksTitle")}>
                         {tasks?.slice(0, 5).map((task) => (
                             <CommandItem
                                 key={task._id}
@@ -133,7 +133,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between border-b bg-white p-4 dark:bg-slate-950 md:hidden">
                 <div className="flex items-center gap-2 font-bold text-lg">
                     <Image src={logoSrc} alt="Logo" width={56} height={56} />
-                    <span>Управление на проекти</span>
+                    <span>{t("appTitle")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button

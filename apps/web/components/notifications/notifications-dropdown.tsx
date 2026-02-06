@@ -27,17 +27,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const dict = {
-    title: "Известия",
-    markAllRead: "Маркирай всички като прочетени",
-    noNotifications: "Няма известия",
-    newApproval: "Ново одобрение",
-    taskAssigned: "Назначена задача",
-    teamInvite: "Покана в екип",
-    projectUpdate: "Актуализация на проект",
-    comment: "Нов коментар",
-    system: "Системно известие",
-};
 
 const notificationIcons: Record<string, typeof Bell> = {
     approval: FileCheck,
@@ -53,6 +42,7 @@ interface NotificationsDropdownProps {
 }
 
 export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
+    const { t } = useLanguage();
     const [open, setOpen] = useState(false);
 
     const notifications = useQuery(api.notifications.list, {
@@ -73,16 +63,16 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
     };
 
     const formatTime = (timestamp: number) => {
-        const now = Date.now();
-        const diff = now - timestamp;
+        const nowMs = Date.now();
+        const diff = nowMs - timestamp;
         const minutes = Math.floor(diff / 60000);
         const hours = Math.floor(diff / 3600000);
         const days = Math.floor(diff / 86400000);
 
-        if (minutes < 1) return "Сега";
-        if (minutes < 60) return `${minutes} мин`;
-        if (hours < 24) return `${hours} ч`;
-        return `${days} д`;
+        if (minutes < 1) return t("now");
+        if (minutes < 60) return `${minutes} ${t("minsShort")}`;
+        if (hours < 24) return `${hours} ${t("hoursShort")}`;
+        return `${days} ${t("daysShort")}`;
     };
 
     return (
@@ -102,7 +92,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel className="flex items-center justify-between">
-                    <span>{dict.title}</span>
+                    <span>{t("notifications")}</span>
                     {(unreadCount ?? 0) > 0 && (
                         <Button
                             variant="ghost"
@@ -111,7 +101,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                             onClick={handleMarkAllAsRead}
                         >
                             <CheckCheck className="mr-1 h-3 w-3" />
-                            {dict.markAllRead}
+                            {t("markAllAsRead")}
                         </Button>
                     )}
                 </DropdownMenuLabel>
@@ -120,7 +110,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
                     {!notifications || notifications.length === 0 ? (
                         <div className="py-8 text-center text-sm text-muted-foreground">
                             <Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                            {dict.noNotifications}
+                            {t("noNotifications")}
                         </div>
                     ) : (
                         notifications.map((notification) => {

@@ -33,6 +33,38 @@ interface ReportBuilderProps {
     onSave: () => void;
 }
 
+const TEMPLATES = [
+    {
+        id: "weekly_status",
+        name: "Седмичен Статус",
+        layout: [
+            { id: "ws_1", type: "metric", position: { x: 0, y: 0, w: 1, h: 2 }, config: { title: "Завършени Задачи", dataSource: "tasks", metric: "count", filters: { status: "done" }, dateRange: "7d" } },
+            { id: "ws_2", type: "metric", position: { x: 1, y: 0, w: 1, h: 2 }, config: { title: "Нови Задачи", dataSource: "tasks", metric: "count", dateRange: "7d" } },
+            { id: "ws_3", type: "pie", position: { x: 2, y: 0, w: 2, h: 2 }, config: { title: "Задачи по Статус", dataSource: "tasks", groupBy: "status", colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"] } },
+            { id: "ws_4", type: "bar", position: { x: 0, y: 2, w: 4, h: 2 }, config: { title: "Задачи по Отговорник", dataSource: "tasks", groupBy: "assignee", colors: ["#8b5cf6"] } },
+        ]
+    },
+    {
+        id: "project_overview",
+        name: "Преглед на Проекти",
+        layout: [
+            { id: "po_1", type: "pie", position: { x: 0, y: 0, w: 2, h: 2 }, config: { title: "Проекти по Статус", dataSource: "projects", groupBy: "status", colors: ["#22c55e", "#3b82f6", "#f59e0b", "#64748b"] } },
+            { id: "po_2", type: "metric", position: { x: 2, y: 0, w: 1, h: 2 }, config: { title: "Активни Проекти", dataSource: "projects", metric: "count", filters: { status: "active" } } },
+            { id: "po_3", type: "metric", position: { x: 3, y: 0, w: 1, h: 2 }, config: { title: "Общо Проекти", dataSource: "projects", metric: "count" } },
+            { id: "po_4", type: "bar", position: { x: 0, y: 2, w: 4, h: 2 }, config: { title: "Проекти по Приоритет (Задачи)", dataSource: "tasks", groupBy: "priority", colors: ["#ef4444"] } },
+        ]
+    },
+    {
+        id: "team_performance",
+        name: "Ефективност на Екипа",
+        layout: [
+            { id: "tp_1", type: "bar", position: { x: 0, y: 0, w: 4, h: 2 }, config: { title: "Задачи по Отговорник", dataSource: "tasks", groupBy: "assignee", colors: ["#3b82f6"] } },
+            { id: "tp_2", type: "pie", position: { x: 0, y: 2, w: 2, h: 2 }, config: { title: "Приоритети", dataSource: "tasks", groupBy: "priority", colors: ["#ef4444", "#f97316", "#eab308", "#22c55e"] } },
+            { id: "tp_3", type: "area", position: { x: 2, y: 2, w: 2, h: 2 }, config: { title: "Завършени Задачи (Тенденция)", dataSource: "tasks", metric: "count", dateRange: "30d", colors: ["#22c55e"] } },
+        ]
+    }
+];
+
 // Draggable wrapper for builder items
 function SortableWidgetWrapper({ item, onEdit, onDelete }: any) {
     const {
@@ -207,6 +239,26 @@ export function ReportBuilder({ open, onOpenChange, reportId, onSave }: ReportBu
                                 </div>
                                 <Switch checked={isShared} onCheckedChange={setIsShared} />
                             </div>
+
+                            <div className="space-y-2 pt-4 border-t">
+                                <Label>Използвай шаблон (Опционално)</Label>
+                                <Select onValueChange={(val) => {
+                                    const t = TEMPLATES.find(t => t.id === val);
+                                    if (t) {
+                                        setLayout(t.layout);
+                                        if (!name) setName(t.name);
+                                    }
+                                }}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Изберете шаблон за бърз старт..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {TEMPLATES.map(t => (
+                                            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex h-full">
@@ -221,6 +273,10 @@ export function ReportBuilder({ open, onOpenChange, reportId, onSave }: ReportBu
                                     <Button variant="outline" className="justify-start" onClick={() => addWidget("bar")}>
                                         <BarChart3 className="mr-2 h-4 w-4" />
                                         Bar Chart
+                                    </Button>
+                                    <Button variant="outline" className="justify-start" onClick={() => addWidget("area")}>
+                                        <BarChart3 className="mr-2 h-4 w-4" />
+                                        Area Chart
                                     </Button>
                                     <Button variant="outline" className="justify-start" onClick={() => addWidget("pie")}>
                                         <PieChart className="mr-2 h-4 w-4" />

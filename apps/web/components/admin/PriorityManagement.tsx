@@ -90,9 +90,10 @@ export default function PriorityManagement() {
                 toast.success("Приоритетът е създаден успешно");
             }
             setIsDialogOpen(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Възникна грешка");
+            const errorMessage = error.data?.message || error.message || "Възникна грешка";
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

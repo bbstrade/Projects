@@ -3,16 +3,27 @@ import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Helper to check if user is global admin or team admin
+// Helper to check if user is global admin or team admin
 async function checkAdmin(ctx: any) {
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return false;
+
+    // Check identity directly for super admin override (failsafe)
+    try {
+        const identity = await ctx.auth.getUserIdentity();
+        if (identity?.email === 'bbstradeltd@gmail.com') return true;
+    } catch (e) {
+        // Ignore auth error, fall back to DB check
+    }
 
     const user = await ctx.db.get(userId);
-    if (user?.role === 'admin') return true;
-    if (user?.email === 'bbstradeltd@gmail.com') return true; // Hardcoded super admin override
+    if (!user) return false;
+
+    if (user.role === 'admin') return true;
+    if (user.email === 'bbstradeltd@gmail.com') return true;
 
     // Check team admin status if applicable
-    if (user?.currentTeamId) {
+    if (user.currentTeamId) {
         // Implementation depends on how team membership is stored/queried
         // For now, let's assume global admin for "System Stats"
         // But for "Team Admin" features, we should check team membership
@@ -146,22 +157,27 @@ export const manageCustomStatus = mutation({
         })),
     },
     handler: async (ctx, args) => {
-        // Check admin
-        if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
+        try {
+            // Check admin
+            if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
 
-        if (args.action === "create" && args.data) {
-            await ctx.db.insert("customStatuses", {
-                ...args.data,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            });
-        } else if (args.action === "update" && args.id && args.data) {
-            await ctx.db.patch(args.id, {
-                ...args.data,
-                updatedAt: Date.now(),
-            });
-        } else if (args.action === "delete" && args.id) {
-            await ctx.db.delete(args.id);
+            if (args.action === "create" && args.data) {
+                await ctx.db.insert("customStatuses", {
+                    ...args.data,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                });
+            } else if (args.action === "update" && args.id && args.data) {
+                await ctx.db.patch(args.id, {
+                    ...args.data,
+                    updatedAt: Date.now(),
+                });
+            } else if (args.action === "delete" && args.id) {
+                await ctx.db.delete(args.id);
+            }
+        } catch (e: any) {
+            console.error("Error in manageCustomStatus:", e);
+            throw new Error(e.message || "Failed to manage custom status");
         }
     },
 });
@@ -182,22 +198,27 @@ export const manageCustomPriority = mutation({
         })),
     },
     handler: async (ctx, args) => {
-        // Check admin
-        if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
+        try {
+            // Check admin
+            if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
 
-        if (args.action === "create" && args.data) {
-            await ctx.db.insert("customPriorities", {
-                ...args.data,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            });
-        } else if (args.action === "update" && args.id && args.data) {
-            await ctx.db.patch(args.id, {
-                ...args.data,
-                updatedAt: Date.now(),
-            });
-        } else if (args.action === "delete" && args.id) {
-            await ctx.db.delete(args.id);
+            if (args.action === "create" && args.data) {
+                await ctx.db.insert("customPriorities", {
+                    ...args.data,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                });
+            } else if (args.action === "update" && args.id && args.data) {
+                await ctx.db.patch(args.id, {
+                    ...args.data,
+                    updatedAt: Date.now(),
+                });
+            } else if (args.action === "delete" && args.id) {
+                await ctx.db.delete(args.id);
+            }
+        } catch (e: any) {
+            console.error("Error in manageCustomPriority:", e);
+            throw new Error(e.message || "Failed to manage custom priority");
         }
     },
 });

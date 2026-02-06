@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSession } from "@/lib/auth-client";
+import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { Camera, Loader2, Save, User } from "lucide-react";
 
 export default function ProfileTab() {
+    const { t } = useLanguage();
     const { data: session } = useSession();
     const user = useQuery(api.users.me);
     const updateProfile = useMutation(api.settings.updateProfile);
@@ -38,10 +40,10 @@ export default function ProfileTab() {
                 userId: user._id,
                 name: name,
             });
-            toast.success("Profile updated successfully");
+            toast.success(t("profileUpdated"));
         } catch (error) {
             console.error(error);
-            toast.error("Failed to update profile");
+            toast.error(t("profileUpdateError"));
         } finally {
             setIsSubmitting(false);
         }
@@ -52,16 +54,13 @@ export default function ProfileTab() {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            toast.error("File size must be less than 5MB");
+            toast.error(t("fileSizeError"));
             return;
         }
 
         setUploading(true);
         try {
-            // 1. Get upload URL
             const postUrl = await generateUploadUrl();
-
-            // 2. Upload file
             const result = await fetch(postUrl, {
                 method: "POST",
                 headers: { "Content-Type": file.type },
@@ -71,16 +70,15 @@ export default function ProfileTab() {
             if (!result.ok) throw new Error("Upload failed");
             const { storageId } = await result.json();
 
-            // The backend `users.me` query automatically converts storage ID to URL
             await updateProfile({
                 userId: user!._id,
-                imageUrl: storageId // We pass storageId, but argument name is imageUrl in mutation
+                imageUrl: storageId
             });
 
-            toast.success("Профилната снимка е обновена");
+            toast.success(t("avatarUpdated"));
         } catch (error) {
             console.error(error);
-            toast.error("Неуспешно качване на снимка");
+            toast.error(t("avatarUpdateError"));
         } finally {
             setUploading(false);
         }
@@ -91,8 +89,8 @@ export default function ProfileTab() {
     return (
         <Card>
             <CardHeader className="pb-4 border-b">
-                <CardTitle className="text-xl">Лична информация</CardTitle>
-                <CardDescription>Управлявайте личните си данни и предпочитания</CardDescription>
+                <CardTitle className="text-xl">{t("profileTitle")}</CardTitle>
+                <CardDescription>{t("profileDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8 pt-6">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -117,34 +115,36 @@ export default function ProfileTab() {
                                 disabled={uploading}
                             />
                         </div>
-                        {uploading && <span className="text-xs text-muted-foreground animate-pulse">Качване...</span>}
+                        {uploading && <span className="text-xs text-muted-foreground animate-pulse">{t("uploading")}</span>}
                         <p className="text-xs text-muted-foreground text-center max-w-[150px]">
-                            Кликнете върху снимката, за да я промените
+                            {t("avatarUpload")}
                         </p>
                     </div>
 
                     <div className="flex-1 w-full space-y-6 max-w-2xl">
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label>Потребителско име</Label>
+                                <Label>{t("username")}</Label>
                                 <div className="relative">
                                     <Input value={user.email?.split('@')[0]} disabled className="bg-muted pl-9" placeholder="Username" />
                                     <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                                 </div>
-                                <p className="text-[0.8rem] text-muted-foreground">Генерирано автоматично от вашия имейл.</p>
+                                <p className="text-[0.8rem] text-muted-foreground">
+                                    {t("username") === "Потребителско име" ? "Генерирано автоматично от вашия имейл." : "Generated automatically from your email."}
+                                </p>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Email адрес</Label>
+                                <Label>{t("emailAddress")}</Label>
                                 <Input value={user.email} disabled className="bg-muted" />
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
-                                <Label>Пълно име</Label>
+                                <Label>{t("fullName")}</Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Вашето име"
+                                    placeholder={t("fullName")}
                                     className="max-w-md"
                                 />
                             </div>
@@ -155,12 +155,12 @@ export default function ProfileTab() {
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Запазване...
+                                        {t("saving")}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="mr-2 h-4 w-4" />
-                                        Запази промените
+                                        {t("saveChanges")}
                                     </>
                                 )}
                             </Button>

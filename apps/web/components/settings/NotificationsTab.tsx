@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +13,9 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function NotificationsTab() {
+    const { t } = useLanguage();
     const preferences = useQuery(api.settings.getNotificationPreferences);
     const updatePreferences = useMutation(api.settings.updateNotificationPreferences);
-
-    // Local state for optimistic updates / form handling
-    // We initialize with defaults if data is loading or missing (handled in useEffect usually, or just derive from data)
-    // Actually, simpler to just use the data directly if we want instant save, or local state for "Save" button pattern.
-    // The requirement says "Workflow: ... 5. Alert success", implying a Save button.
 
     const [formData, setFormData] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -27,7 +24,6 @@ export default function NotificationsTab() {
         if (preferences) {
             setFormData(preferences);
         } else if (preferences === null) {
-            // Defaults if not found (though backend query returns null if not found, we might want to show defaults)
             setFormData({
                 task_assigned: true,
                 deadline_reminder: true,
@@ -58,10 +54,10 @@ export default function NotificationsTab() {
                 ...formData,
                 deadline_reminder_days: Number(formData.deadline_reminder_days)
             });
-            toast.success("Настройките за известия са запазени");
+            toast.success(t("notificationsSaved"));
         } catch (error) {
             console.error(error);
-            toast.error("Грешка при запазване");
+            toast.error(t("notificationsSaveError"));
         } finally {
             setIsSaving(false);
         }
@@ -74,19 +70,18 @@ export default function NotificationsTab() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Настройки за известия</CardTitle>
-                <CardDescription>Изберете какви известия искате да получавате</CardDescription>
+                <CardTitle>{t("notificationsTitle")}</CardTitle>
+                <CardDescription>{t("notificationsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
 
-                {/* Tasks */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Задачи</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("tabs.tasks") || t("tasks")}</h3>
                     <div className="grid gap-4">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="task_assigned" className="flex flex-col gap-1">
-                                <span>Назначена задача</span>
-                                <span className="font-normal text-xs text-muted-foreground">Когато ви бъде назначена нова задача</span>
+                                <span>{t("taskAssigned")}</span>
+                                <span className="font-normal text-xs text-muted-foreground">{t("taskAssignedDesc")}</span>
                             </Label>
                             <Switch
                                 id="task_assigned"
@@ -96,8 +91,8 @@ export default function NotificationsTab() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="status_change" className="flex flex-col gap-1">
-                                <span>Промяна на статус</span>
-                                <span className="font-normal text-xs text-muted-foreground">Когато статусът на ваша задача се промени</span>
+                                <span>{t("statusChange")}</span>
+                                <span className="font-normal text-xs text-muted-foreground">{t("statusChangeDesc")}</span>
                             </Label>
                             <Switch
                                 id="status_change"
@@ -107,8 +102,8 @@ export default function NotificationsTab() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="task_completed" className="flex flex-col gap-1">
-                                <span>Завършена задача</span>
-                                <span className="font-normal text-xs text-muted-foreground">Когато задача, която следите, е завършена</span>
+                                <span>{t("taskCompleted")}</span>
+                                <span className="font-normal text-xs text-muted-foreground">{t("taskCompletedDesc")}</span>
                             </Label>
                             <Switch
                                 id="task_completed"
@@ -118,7 +113,7 @@ export default function NotificationsTab() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="priority_change" className="flex flex-col gap-1">
-                                <span>Промяна на приоритет</span>
+                                <span>{t("priorityChange")}</span>
                             </Label>
                             <Switch
                                 id="priority_change"
@@ -130,7 +125,7 @@ export default function NotificationsTab() {
                         <div className="space-y-3 pt-2">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="deadline_reminder" className="flex flex-col gap-1">
-                                    <span>Напомняне за краен срок</span>
+                                    <span>{t("deadlineReminder")}</span>
                                 </Label>
                                 <Switch
                                     id="deadline_reminder"
@@ -141,7 +136,7 @@ export default function NotificationsTab() {
                             {formData?.deadline_reminder && (
                                 <div className="ml-0 pl-0 md:ml-0 flex items-center gap-3">
                                     <Label htmlFor="deadline_days" className="text-sm text-muted-foreground whitespace-nowrap">
-                                        Дни преди срока:
+                                        {t("deadlineDays")}
                                     </Label>
                                     <Input
                                         id="deadline_days"
@@ -160,13 +155,12 @@ export default function NotificationsTab() {
 
                 <div className="h-px bg-border" />
 
-                {/* Projects */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Проекти</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("tabs.projects") || t("projects")}</h3>
                     <div className="grid gap-4">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="project_status" className="flex flex-col gap-1">
-                                <span>Промяна на статус на проект</span>
+                                <span>{t("projectStatusChange")}</span>
                             </Label>
                             <Switch
                                 id="project_status"
@@ -176,7 +170,7 @@ export default function NotificationsTab() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="project_member" className="flex flex-col gap-1">
-                                <span>Добавяне към екип</span>
+                                <span>{t("projectMemberAdded")}</span>
                             </Label>
                             <Switch
                                 id="project_member"
@@ -189,13 +183,12 @@ export default function NotificationsTab() {
 
                 <div className="h-px bg-border" />
 
-                {/* Comments */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Коментари</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("tabComments") || t("comments")}</h3>
                     <div className="grid gap-4">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="mention" className="flex flex-col gap-1">
-                                <span>Споменаване (@mention)</span>
+                                <span>{t("mentionInComment")}</span>
                             </Label>
                             <Switch
                                 id="mention"
@@ -205,8 +198,8 @@ export default function NotificationsTab() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="new_comment" className="flex flex-col gap-1">
-                                <span>Нов коментар</span>
-                                <span className="font-normal text-xs text-muted-foreground">Във всички ваши задачи (може да е много често)</span>
+                                <span>{t("newComment")}</span>
+                                <span className="font-normal text-xs text-muted-foreground">{t("newCommentDesc")}</span>
                             </Label>
                             <Switch
                                 id="new_comment"
@@ -220,7 +213,7 @@ export default function NotificationsTab() {
                 <div className="flex justify-end pt-4">
                     <Button onClick={handleSave} disabled={isSaving}>
                         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Запази промените
+                        {t("saveChanges")}
                     </Button>
                 </div>
             </CardContent>
