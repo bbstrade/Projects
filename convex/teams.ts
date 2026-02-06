@@ -74,7 +74,11 @@ export const list = query({
 
         const results = await Promise.all(
             memberships.map(async (m) => {
-                const team = await ctx.db.get(m.teamId as Id<"teams">);
+                // teamId is stored as string, so we need to query for the team
+                const team = await ctx.db
+                    .query("teams")
+                    .filter((q) => q.eq(q.field("_id"), m.teamId))
+                    .first();
                 if (!team) return null;
                 return {
                     ...team,
