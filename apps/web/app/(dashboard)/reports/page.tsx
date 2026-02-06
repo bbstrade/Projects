@@ -413,7 +413,7 @@ export default function ReportsPage() {
                                                 cy="50%"
                                                 outerRadius={120}
                                                 dataKey="value"
-                                                label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                                label={({ name, percent }: { name?: string | number; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                                             >
                                                 {approvalData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.fill} />
