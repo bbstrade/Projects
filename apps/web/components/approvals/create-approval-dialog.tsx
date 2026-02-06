@@ -69,7 +69,7 @@ export function CreateApprovalDialog({ trigger, projectId, taskId }: CreateAppro
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
     const users = useQuery(api.users.list, {});
 
-    const form = useForm({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             title: "",
