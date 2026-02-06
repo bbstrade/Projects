@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [searchOpen, setSearchOpen] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const { theme, setTheme, resolvedTheme } = useTheme();
-    const { lang, setLang } = useLanguage();
+    const { lang, setLang, t } = useLanguage();
 
     useEffect(() => {
         setMounted(true);

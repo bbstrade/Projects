@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/components/language-provider";
 
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";

@@ -950,6 +950,7 @@ export const myTopTasks = query({
         return topTasks.map((t) => ({
             _id: t._id,
             title: t.title,
+            dueDate: t.dueDate,
             priority: priorityLabels[t.priority] || t.priority,
             projectName: projectMap.get(t.projectId) || "Unknown",
             priorityColor: colors[t.priority] || "#8884d8",
