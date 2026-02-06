@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Search, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -133,7 +133,7 @@ export default function ApprovalsPage() {
     );
 
     // Helper to render a list of cards
-    const renderApprovalList = (list: typeof approvals) => {
+    const renderApprovalList = (list: typeof approvals | typeof pendingForMe) => {
         if (list === undefined) {
             return (
                 <div className="flex items-center justify-center py-12">
@@ -141,7 +141,10 @@ export default function ApprovalsPage() {
                 </div>
             );
         }
-        if (list.length === 0) {
+
+        const validList = list.filter((a) => a !== null) as Doc<"approvals">[];
+
+        if (validList.length === 0) {
             return (
                 <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/10 border-dashed">
                     <p className="text-lg font-medium text-muted-foreground">{dict.noApprovals}</p>
@@ -150,7 +153,7 @@ export default function ApprovalsPage() {
         }
 
         // Apply local search filtering if needed (though backend search usually better, doing local for now as per existing pattern)
-        const filtered = list.filter(a =>
+        const filtered = validList.filter(a =>
             a.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
             (statusFilter === "all" || a.status === statusFilter)
         );
