@@ -234,29 +234,6 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
 
     return (
         <div className="space-y-4">
-            {/* Header with Progress */}
-            <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <CheckSquare className="w-5 h-5" /> Подзадачи
-                    </h3>
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        {completedCount}/{totalCount}
-                    </span>
-                </div>
-            </div>
-
-            {/* Progress Bar */}
-            {totalCount > 0 && (
-                <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Напредък</span>
-                        <span className="font-medium">{Math.round(progress)}% завършено</span>
-                    </div>
-                    <Progress value={progress} className="h-2" />
-                </div>
-            )}
-
             {/* Subtasks List */}
             <div className="space-y-2 mt-4">
                 {subtasks.length > 0 ? (

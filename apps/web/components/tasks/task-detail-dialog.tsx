@@ -48,6 +48,7 @@ import {
     CalendarIcon,
     Check,
     ChevronsUpDown,
+    Edit,
 } from "lucide-react";
 import {
     Command,
@@ -151,7 +152,9 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     // Editable fields state
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [estimatedHours, setEstimatedHours] = useState<number | string>(0); // Use string for input handling
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [estimatedHours, setEstimatedHours] = useState<number | string>(0);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Sync state with task data
     useEffect(() => {
@@ -166,9 +169,8 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const project = useQuery(api.projects.get, task?.projectId ? { id: task.projectId } : "skip");
     const teamMembers = useQuery(api.teams.getMembers, project?.teamId ? { teamId: project.teamId } : "skip");
 
-    // Get current user (mocking for now as we don't have full auth session access in this component easily)
-    const users = useQuery(api.users.list, {});
-    const currentUser = users?.[0];
+    // Get current user correctly
+    const currentUser = useQuery(api.users.viewer, {});
 
     const handleAddComment = async () => {
         if ((!newComment.trim() && commentFiles.length === 0) || !taskId || !currentUser) return;
@@ -255,8 +257,8 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileUpload = async (filesToCheck: FileList | File[]) => {
+        const file = filesToCheck[0];
         if (!file || !taskId || !currentUser) return;
 
         setIsUploading(true);
@@ -282,6 +284,31 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
             toast.error("Грешка при качване на файл");
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    const onDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const onDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const onDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileUpload(e.dataTransfer.files);
+        }
+    };
+
+    const onCommentDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            setCommentFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)]);
         }
     };
 
@@ -378,19 +405,56 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             <Info className="h-4 w-4 text-slate-400" />
                                             {dict.description}
                                         </h3>
-                                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100/50">
-                                            <Textarea
-                                                value={description}
-                                                onChange={(e) => setDescription(e.target.value)}
-                                                onBlur={() => {
-                                                    if (description !== (task.description || "")) {
-                                                        updateTask({ id: task._id, description });
-                                                        toast.success("Описанието е обновено");
-                                                    }
-                                                }}
-                                                className="min-h-[100px] border-none shadow-none bg-transparent resize-none focus-visible:ring-0 p-2 text-slate-700 leading-relaxed"
-                                                placeholder={dict.noDescription}
-                                            />
+                                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100/50 relative group">
+                                            {isEditingDescription ? (
+                                                <div className="relative">
+                                                    <Textarea
+                                                        value={description}
+                                                        onChange={(e) => setDescription(e.target.value)}
+                                                        onBlur={() => {
+                                                            setIsEditingDescription(false);
+                                                            if (description !== (task.description || "")) {
+                                                                updateTask({ id: task._id, description });
+                                                                toast.success("Описанието е обновено");
+                                                            }
+                                                        }}
+                                                        autoFocus
+                                                        className="min-h-[100px] border-none shadow-none bg-white resize-none focus-visible:ring-0 p-2 text-slate-700 leading-relaxed"
+                                                        placeholder={dict.noDescription}
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        className="absolute bottom-2 right-2 h-6 text-xs"
+                                                        onClick={() => {
+                                                            setIsEditingDescription(false);
+                                                            if (description !== (task.description || "")) {
+                                                                updateTask({ id: task._id, description });
+                                                                toast.success("Описанието е обновено");
+                                                            }
+                                                        }}
+                                                    >
+                                                        Запази
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className="min-h-[60px] p-2 text-slate-700 leading-relaxed whitespace-pre-wrap cursor-pointer hover:bg-slate-100/50 rounded-md transition-colors"
+                                                    onClick={() => setIsEditingDescription(true)}
+                                                >
+                                                    {description || <span className="text-slate-400 italic">{dict.noDescription}</span>}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsEditingDescription(true);
+                                                        }}
+                                                    >
+                                                        <Edit className="h-3 w-3 text-slate-400" />
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -424,7 +488,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                     type="file"
                                                     id="file-upload"
                                                     className="hidden"
-                                                    onChange={handleFileUpload}
+                                                    onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
                                                     disabled={isUploading}
                                                 />
                                                 <Button
@@ -446,7 +510,15 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div
+                                            className={cn(
+                                                "grid grid-cols-2 gap-3 min-h-[100px] rounded-lg border-2 border-dashed transition-colors p-2",
+                                                isDragging ? "border-blue-500 bg-blue-50" : "border-transparent"
+                                            )}
+                                            onDragOver={onDragOver}
+                                            onDragLeave={onDragLeave}
+                                            onDrop={onDrop}
+                                        >
                                             {files && files.length > 0 ? (
                                                 files.map((file: any) => (
                                                     <div key={file._id} className="flex items-center justify-between p-3 rounded-lg border bg-white shadow-sm group hover:border-blue-200 transition-colors">
@@ -561,7 +633,8 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                                 <div className="flex items-center gap-2 truncate">
                                                                     {(() => {
                                                                         const member = teamMembers?.find(m => m.user?._id === task.assigneeId);
-                                                                        const user = member?.user || users?.find(u => u._id === task.assigneeId);
+                                                                        // Fallback to currentUser if not found (e.g. self-assign even if list issue)
+                                                                        const user = member?.user || (currentUser?._id === task.assigneeId ? currentUser : null);
                                                                         if (!user) return <span>Непознат потребител</span>;
                                                                         return (
                                                                             <>
@@ -630,6 +703,32 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                                             </div>
                                                                         </CommandItem>
                                                                     ))}
+                                                                    {/* Add Current User if not in list */}
+                                                                    {currentUser && !teamMembers?.some(m => m.userId === currentUser._id) && (
+                                                                        <CommandItem
+                                                                            value={currentUser.name || currentUser.email || ""}
+                                                                            onSelect={async () => {
+                                                                                await updateTask({ id: task._id, assigneeId: currentUser._id });
+                                                                                toast.success("Отговорникът е променен");
+                                                                            }}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    task.assigneeId === currentUser._id ? "opacity-100" : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Avatar className="h-6 w-6">
+                                                                                    <AvatarImage src={currentUser.avatar} />
+                                                                                    <AvatarFallback className="text-[10px]">{currentUser.name?.[0]}</AvatarFallback>
+                                                                                </Avatar>
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-sm font-medium">{currentUser.name} (Аз)</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </CommandItem>
+                                                                    )}
                                                                 </CommandGroup>
                                                             </CommandList>
                                                         </Command>
@@ -685,6 +784,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         }}
                                                         className="h-full border-none shadow-none bg-transparent focus-visible:ring-0 p-0 text-sm font-medium"
                                                         min={0}
+                                                        step="0.5"
                                                     />
                                                 </div>
                                             </div>
@@ -755,7 +855,11 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                 </ScrollArea>
 
                                 {/* Comment Input (Sticky Bottom of Sidebar) */}
-                                <div className="p-4 border-t bg-white">
+                                <div
+                                    className="p-4 border-t bg-white"
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={onCommentDrop}
+                                >
                                     <div className="relative">
                                         {commentFiles.length > 0 && (
                                             <div className="flex gap-2 overflow-x-auto pb-2 mb-2">

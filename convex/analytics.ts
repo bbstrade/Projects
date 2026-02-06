@@ -8,6 +8,8 @@ import { query } from "./_generated/server";
 export const dashboardMetrics = query({
     args: {
         teamId: v.optional(v.string()),
+        startDate: v.optional(v.number()),
+        endDate: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         // Get all projects (optionally filtered by team)
@@ -17,13 +19,35 @@ export const dashboardMetrics = query({
                 q.eq(q.field("teamId"), args.teamId)
             );
         }
-        const projects = await projectsQuery.collect();
+
+        // We collect first then filter date in JS for simplicity/flexibility 
+        // as Convex filters are strict equality or ranges on indexes
+        let projects = await projectsQuery.collect();
+
+        if (args.startDate) {
+            projects = projects.filter(p => p._creationTime >= args.startDate!);
+        }
+        if (args.endDate) {
+            projects = projects.filter(p => p._creationTime <= args.endDate!);
+        }
 
         // Get all tasks
-        const tasks = await ctx.db.query("tasks").collect();
+        let tasks = await ctx.db.query("tasks").collect();
+        if (args.startDate) {
+            tasks = tasks.filter(t => t._creationTime >= args.startDate!);
+        }
+        if (args.endDate) {
+            tasks = tasks.filter(t => t._creationTime <= args.endDate!);
+        }
 
         // Get all approvals
-        const approvals = await ctx.db.query("approvals").collect();
+        let approvals = await ctx.db.query("approvals").collect();
+        if (args.startDate) {
+            approvals = approvals.filter(a => a._creationTime >= args.startDate!);
+        }
+        if (args.endDate) {
+            approvals = approvals.filter(a => a._creationTime <= args.endDate!);
+        }
 
         const now = Date.now();
 
@@ -54,6 +78,8 @@ export const dashboardMetrics = query({
 export const projectsByStatus = query({
     args: {
         teamId: v.optional(v.string()),
+        startDate: v.optional(v.number()),
+        endDate: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         let projectsQuery = ctx.db.query("projects");
@@ -62,7 +88,14 @@ export const projectsByStatus = query({
                 q.eq(q.field("teamId"), args.teamId)
             );
         }
-        const projects = await projectsQuery.collect();
+        let projects = await projectsQuery.collect();
+
+        if (args.startDate) {
+            projects = projects.filter(p => p._creationTime >= args.startDate!);
+        }
+        if (args.endDate) {
+            projects = projects.filter(p => p._creationTime <= args.endDate!);
+        }
 
         const statusCounts: Record<string, number> = {};
         for (const project of projects) {
@@ -103,9 +136,9 @@ export const taskCompletionTrend = query({
             const pendingInWeek = tasks.filter(
                 (t) =>
                     t.status !== "done" &&
-                    t.createdAt &&
-                    t.createdAt >= weekStart &&
-                    t.createdAt < weekEnd
+                    t._creationTime &&
+                    t._creationTime >= weekStart &&
+                    t._creationTime < weekEnd
             ).length;
 
             weeks.push({

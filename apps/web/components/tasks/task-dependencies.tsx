@@ -19,6 +19,7 @@ import {
     Link2,
     ArrowRight,
     AlertTriangle,
+    Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState<string>("");
     const [selectedType, setSelectedType] = useState<string>("FS");
+    const [isLegendOpen, setIsLegendOpen] = useState(false);
 
     // Filter out current task and already added dependencies
     const availableTasks = projectTasks?.filter((task) => {
@@ -103,6 +105,15 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                         {dependencies.length}
                     </span>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs ml-2 text-muted-foreground"
+                        onClick={() => setIsLegendOpen(!isLegendOpen)}
+                    >
+                        <Info className="h-3 w-3 mr-1" />
+                        Легенда
+                    </Button>
                 </div>
             </div>
 
@@ -237,17 +248,19 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
             )}
 
             {/* Legend */}
-            <div className="text-xs text-muted-foreground space-y-1 mt-4 p-3 bg-muted/50 rounded-lg">
-                <p className="font-semibold mb-2">Типове зависимости:</p>
-                {DEPENDENCY_TYPES.map((type) => (
-                    <div key={type.value} className="flex items-center gap-2">
-                        <Badge className={cn("font-mono text-[10px]", getTypeColor(type.value))}>
-                            {type.value}
-                        </Badge>
-                        <span>{type.description}</span>
-                    </div>
-                ))}
-            </div>
+            {isLegendOpen && (
+                <div className="text-xs text-muted-foreground space-y-1 mt-4 p-3 bg-muted/50 rounded-lg animate-in fade-in slide-in-from-top-1">
+                    <p className="font-semibold mb-2">Типове зависимости:</p>
+                    {DEPENDENCY_TYPES.map((type) => (
+                        <div key={type.value} className="flex items-center gap-2">
+                            <Badge className={cn("font-mono text-[10px]", getTypeColor(type.value))}>
+                                {type.value}
+                            </Badge>
+                            <span>{type.description}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

@@ -11,15 +11,27 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Activity,
-    CheckCircle2,
-    Clock,
-    AlertTriangle,
-    Users,
     FolderKanban,
     ListTodo,
+    AlertTriangle,
     FileCheck,
+    TrendingUp,
+    PieChart as PieChartIcon,
+    BarChart3
 } from "lucide-react";
+import {
+    PieChart,
+    Pie,
+    Cell,
+    ResponsiveContainer,
+    Tooltip,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Legend
+} from "recharts";
 
 // Локализирани етикети
 const dict = {
@@ -42,12 +54,23 @@ const dict = {
     loading: "Зареждане...",
 };
 
+const COLORS = {
+    draft: "#94a3b8", // slate-400
+    active: "#3b82f6", // blue-500
+    in_progress: "#f59e0b", // amber-500
+    completed: "#22c55e", // green-500
+    on_hold: "#f97316", // orange-500
+    archived: "#64748b", // slate-500
+    todo: "#64748b",
+    done: "#22c55e",
+};
+
 export default function DashboardPage() {
     const metrics = useQuery(api.analytics.dashboardMetrics, {});
     const projectsByStatus = useQuery(api.analytics.projectsByStatus, {});
     const taskTrend = useQuery(api.analytics.taskCompletionTrend, {});
 
-    if (metrics === undefined) {
+    if (metrics === undefined || projectsByStatus === undefined || taskTrend === undefined) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
@@ -58,18 +81,15 @@ export default function DashboardPage() {
         );
     }
 
-    // Status colors for visual indicators
-    const statusColors: Record<string, string> = {
-        draft: "bg-slate-500",
-        active: "bg-blue-500",
-        "in progress": "bg-amber-500",
-        completed: "bg-green-500",
-        "on hold": "bg-orange-500",
-        archived: "bg-gray-400",
-    };
+    // Format data for Recharts
+    const projectStatusData = projectsByStatus.map(item => ({
+        name: item.name,
+        value: item.value,
+        fill: COLORS[item.name.toLowerCase().replace(" ", "_") as keyof typeof COLORS] || "#8884d8"
+    }));
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
                 <p className="text-muted-foreground">{dict.subtitle}</p>
@@ -77,12 +97,12 @@ export default function DashboardPage() {
 
             {/* Metrics Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="hover:shadow-md transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.totalProjects}
                         </CardTitle>
-                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                        <FolderKanban className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{metrics.totalProjects}</div>
@@ -92,12 +112,12 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-md transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.totalTasks}
                         </CardTitle>
-                        <ListTodo className="h-4 w-4 text-muted-foreground" />
+                        <ListTodo className="h-4 w-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{metrics.totalTasks}</div>
@@ -107,7 +127,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-md transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.overdueTasks}
@@ -124,12 +144,12 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="hover:shadow-md transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                             {dict.pendingApprovals}
                         </CardTitle>
-                        <FileCheck className="h-4 w-4 text-muted-foreground" />
+                        <FileCheck className="h-4 w-4 text-amber-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{metrics.pendingApprovals}</div>
@@ -148,119 +168,83 @@ export default function DashboardPage() {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {/* Projects by Status */}
-                        <Card>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        {/* Projects by Status Chart */}
+                        <Card className="col-span-3">
                             <CardHeader>
                                 <CardTitle>{dict.projectsByStatus}</CardTitle>
                                 <CardDescription>{dict.statusDistribution}</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {projectsByStatus?.map((item) => (
-                                        <div key={item.name} className="flex items-center gap-4">
-                                            <div
-                                                className={`h-3 w-3 rounded-full ${statusColors[item.name] || "bg-slate-400"
-                                                    }`}
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm font-medium capitalize">
-                                                        {item.name}
-                                                    </span>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {item.value}
-                                                    </span>
-                                                </div>
-                                                <div className="mt-1 h-2 w-full rounded-full bg-secondary">
-                                                    <div
-                                                        className={`h-2 rounded-full ${statusColors[item.name] || "bg-slate-400"
-                                                            }`}
-                                                        style={{
-                                                            width: `${metrics.totalProjects > 0
-                                                                    ? (item.value / metrics.totalProjects) * 100
-                                                                    : 0
-                                                                }%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(!projectsByStatus || projectsByStatus.length === 0) && (
-                                        <p className="text-sm text-muted-foreground text-center py-4">
+                            <CardContent className="pl-2">
+                                <div className="h-[300px] w-full">
+                                    {projectStatusData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={projectStatusData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={60}
+                                                    outerRadius={80}
+                                                    paddingAngle={5}
+                                                    dataKey="value"
+                                                >
+                                                    {projectStatusData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip />
+                                                <Legend verticalAlign="bottom" height={36} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
                                             Няма данни за проекти
-                                        </p>
+                                        </div>
                                     )}
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Task Completion Trend */}
-                        <Card>
+                        {/* Task Completion Trend Chart */}
+                        <Card className="col-span-4">
                             <CardHeader>
                                 <CardTitle>{dict.taskProgress}</CardTitle>
                                 <CardDescription>{dict.weeklyCompletion}</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {taskTrend?.map((week) => (
-                                        <div key={week.name} className="flex items-center gap-4">
-                                            <span className="w-16 text-sm font-medium">
-                                                {week.name}
-                                            </span>
-                                            <div className="flex-1 flex gap-2">
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span className="text-green-600">Завършени</span>
-                                                        <span>{week.completed}</span>
-                                                    </div>
-                                                    <div className="h-2 w-full rounded-full bg-secondary">
-                                                        <div
-                                                            className="h-2 rounded-full bg-green-500"
-                                                            style={{
-                                                                width: `${Math.min(
-                                                                    (week.completed /
-                                                                        Math.max(
-                                                                            week.completed + week.pending,
-                                                                            1
-                                                                        )) *
-                                                                    100,
-                                                                    100
-                                                                )}%`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span className="text-slate-500">Чакащи</span>
-                                                        <span>{week.pending}</span>
-                                                    </div>
-                                                    <div className="h-2 w-full rounded-full bg-secondary">
-                                                        <div
-                                                            className="h-2 rounded-full bg-slate-400"
-                                                            style={{
-                                                                width: `${Math.min(
-                                                                    (week.pending /
-                                                                        Math.max(
-                                                                            week.completed + week.pending,
-                                                                            1
-                                                                        )) *
-                                                                    100,
-                                                                    100
-                                                                )}%`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(!taskTrend || taskTrend.length === 0) && (
-                                        <p className="text-sm text-muted-foreground text-center py-4">
+                            <CardContent className="pl-2">
+                                <div className="h-[300px] w-full">
+                                    {taskTrend.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={taskTrend}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    stroke="#888888"
+                                                    fontSize={12}
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis
+                                                    stroke="#888888"
+                                                    fontSize={12}
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickFormatter={(value) => `${value}`}
+                                                />
+                                                <Tooltip
+                                                    cursor={{ fill: 'transparent' }}
+                                                    contentStyle={{ borderRadius: '8px' }}
+                                                />
+                                                <Legend />
+                                                <Bar dataKey="completed" name="Завършени" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="pending" name="Чакащи" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
                                             Няма данни за задачи
-                                        </p>
+                                        </div>
                                     )}
                                 </div>
                             </CardContent>
@@ -273,22 +257,25 @@ export default function DashboardPage() {
                         {/* Quick Stats */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg">Статистика на проекти</CardTitle>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <FolderKanban className="h-5 w-5 text-blue-500" />
+                                    Статистика на проекти
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between">
+                            <CardContent className="space-y-4">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border">
                                     <span className="text-sm">Чернови</span>
-                                    <span className="font-medium">{metrics.draftProjects}</span>
+                                    <span className="font-bold">{metrics.draftProjects}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
                                     <span className="text-sm">Активни</span>
-                                    <span className="font-medium text-blue-600">
+                                    <span className="font-bold text-blue-600">
                                         {metrics.activeProjects}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900">
                                     <span className="text-sm">Завършени</span>
-                                    <span className="font-medium text-green-600">
+                                    <span className="font-bold text-green-600">
                                         {metrics.completedProjects}
                                     </span>
                                 </div>
@@ -297,22 +284,25 @@ export default function DashboardPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg">Статистика на задачи</CardTitle>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <ListTodo className="h-5 w-5 text-purple-500" />
+                                    Статистика на задачи
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between">
+                            <CardContent className="space-y-4">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border">
                                     <span className="text-sm">За изпълнение</span>
-                                    <span className="font-medium">{metrics.todoTasks}</span>
+                                    <span className="font-bold">{metrics.todoTasks}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900">
                                     <span className="text-sm">В процес</span>
-                                    <span className="font-medium text-amber-600">
+                                    <span className="font-bold text-amber-600">
                                         {metrics.inProgressTasks}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900">
                                     <span className="text-sm">Завършени</span>
-                                    <span className="font-medium text-green-600">
+                                    <span className="font-bold text-green-600">
                                         {metrics.completedTasks}
                                     </span>
                                 </div>
@@ -321,24 +311,27 @@ export default function DashboardPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg">Одобрения</CardTitle>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <FileCheck className="h-5 w-5 text-amber-500" />
+                                    Одобрения
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between">
+                            <CardContent className="space-y-4">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900">
                                     <span className="text-sm">Чакащи</span>
-                                    <span className="font-medium text-amber-600">
+                                    <span className="font-bold text-amber-600">
                                         {metrics.pendingApprovals}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900">
                                     <span className="text-sm">Одобрени</span>
-                                    <span className="font-medium text-green-600">
+                                    <span className="font-bold text-green-600">
                                         {metrics.approvedApprovals}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900">
                                     <span className="text-sm">Отхвърлени</span>
-                                    <span className="font-medium text-red-600">
+                                    <span className="font-bold text-red-600">
                                         {metrics.rejectedApprovals}
                                     </span>
                                 </div>

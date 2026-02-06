@@ -2,6 +2,8 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useState } from "react";
+import { DateRange } from "react-day-picker";
 import {
     Card,
     CardContent,
@@ -10,15 +12,43 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     BarChart3,
-    PieChart,
+    PieChart as PieChartIcon,
     TrendingUp,
     Activity,
     FolderKanban,
     ListTodo,
     FileCheck,
+    Download,
+    Filter
 } from "lucide-react";
+import {
+    PieChart,
+    Pie,
+    Cell,
+    ResponsiveContainer,
+    Tooltip,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Legend,
+    AreaChart,
+    Area,
+    LineChart,
+    Line
+} from "recharts";
+import { DateRangePicker } from "@/components/shared/date-range-picker";
+import { exportMetrics } from "@/components/reports/export-utils";
 
 const dict = {
     title: "Отчети и анализи",
@@ -44,14 +74,35 @@ const dict = {
     productivityTrend: "Тенденция на продуктивност",
     weeklyData: "Седмични данни",
     loading: "Зареждане...",
+    export: "Експорт",
+    filter: "Филтриране",
+};
+
+const COLORS = {
+    draft: "#94a3b8",
+    active: "#3b82f6",
+    in_progress: "#f59e0b",
+    completed: "#22c55e",
+    on_hold: "#f97316",
+    archived: "#64748b",
+    pending: "#f59e0b",
+    approved: "#22c55e",
+    rejected: "#ef4444"
 };
 
 export default function ReportsPage() {
-    const metrics = useQuery(api.analytics.dashboardMetrics, {});
-    const projectsByStatus = useQuery(api.analytics.projectsByStatus, {});
-    const taskTrend = useQuery(api.analytics.taskCompletionTrend, {});
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
-    if (metrics === undefined) {
+    const queryArgs = {
+        startDate: dateRange?.from?.getTime(),
+        endDate: dateRange?.to?.getTime(),
+    };
+
+    const metrics = useQuery(api.analytics.dashboardMetrics, queryArgs);
+    const projectsByStatus = useQuery(api.analytics.projectsByStatus, queryArgs);
+    const taskTrend = useQuery(api.analytics.taskCompletionTrend, {}); // Not filtered by date yet as it's trend data
+
+    if (metrics === undefined || projectsByStatus === undefined || taskTrend === undefined) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
@@ -83,68 +134,109 @@ export default function ReportsPage() {
             )
             : 0;
 
+    const approvalData = [
+        { name: "Чакащи", value: metrics.pendingApprovals, fill: COLORS.pending },
+        { name: "Одобрени", value: metrics.approvedApprovals, fill: COLORS.approved },
+        { name: "Отхвърлени", value: metrics.rejectedApprovals, fill: COLORS.rejected },
+    ].filter(d => d.value > 0);
+
+    const handleExport = (type: "csv" | "excel" | "pdf") => {
+        exportMetrics(metrics, type);
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
-                <p className="text-muted-foreground">{dict.subtitle}</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
+                    <p className="text-muted-foreground">{dict.subtitle}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <DateRangePicker
+                        date={dateRange}
+                        onDateChange={setDateRange}
+                        placeholder="Изберете период"
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="gap-2">
+                                <Download className="h-4 w-4" />
+                                {dict.export}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                Excel (.xlsx)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport("csv")}>
+                                CSV (.csv)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                PDF (.pdf)
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-3">
-                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl transition-all">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium opacity-90">
+                        <CardTitle className="text-sm font-medium opacity-90 flex items-center justify-between">
                             {dict.projectStats}
+                            <FolderKanban className="h-4 w-4 opacity-75" />
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{metrics.totalProjects}</div>
+                        <div className="text-4xl font-bold">{metrics.totalProjects}</div>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="text-sm opacity-90">
                                 {dict.completionRate}: {projectCompletionRate}%
                             </div>
                         </div>
-                        <div className="mt-3 h-2 bg-white/20 rounded-full">
+                        <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
                             <div
-                                className="h-2 bg-white rounded-full"
+                                className="h-full bg-white rounded-full transition-all duration-1000"
                                 style={{ width: `${projectCompletionRate}%` }}
                             />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl transition-all">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium opacity-90">
+                        <CardTitle className="text-sm font-medium opacity-90 flex items-center justify-between">
                             {dict.taskStats}
+                            <ListTodo className="h-4 w-4 opacity-75" />
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{metrics.totalTasks}</div>
+                        <div className="text-4xl font-bold">{metrics.totalTasks}</div>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="text-sm opacity-90">
                                 {dict.completionRate}: {taskCompletionRate}%
                             </div>
                         </div>
-                        <div className="mt-3 h-2 bg-white/20 rounded-full">
+                        <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
                             <div
-                                className="h-2 bg-white rounded-full"
+                                className="h-full bg-white rounded-full transition-all duration-1000"
                                 style={{ width: `${taskCompletionRate}%` }}
                             />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium opacity-90">
+                        <CardTitle className="text-sm font-medium opacity-90 flex items-center justify-between">
                             {dict.approvalStats}
+                            <FileCheck className="h-4 w-4 opacity-75" />
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">
+                        <div className="text-4xl font-bold">
                             {metrics.pendingApprovals +
                                 metrics.approvedApprovals +
                                 metrics.rejectedApprovals}
@@ -154,9 +246,9 @@ export default function ReportsPage() {
                                 Успешни: {approvalSuccessRate}%
                             </div>
                         </div>
-                        <div className="mt-3 h-2 bg-white/20 rounded-full">
+                        <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
                             <div
-                                className="h-2 bg-white rounded-full"
+                                className="h-full bg-white rounded-full transition-all duration-1000"
                                 style={{ width: `${approvalSuccessRate}%` }}
                             />
                         </div>
@@ -186,178 +278,193 @@ export default function ReportsPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <PieChart className="h-5 w-5" />
-                                    Разпределение по статус
+                                    <BarChart3 className="h-5 w-5" />
+                                    Разпределение на проекти
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {projectsByStatus?.map((item) => (
-                                        <div key={item.name} className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="capitalize">{item.name}</span>
-                                                <span className="font-medium">{item.value}</span>
-                                            </div>
-                                            <div className="h-2 bg-secondary rounded-full">
-                                                <div
-                                                    className="h-2 bg-blue-500 rounded-full"
-                                                    style={{
-                                                        width: `${metrics.totalProjects > 0
-                                                                ? (item.value / metrics.totalProjects) * 100
-                                                                : 0
-                                                            }%`,
-                                                    }}
+                            <CardContent className="h-[350px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={projectsByStatus} layout="vertical" margin={{ left: 20 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            dataKey="name"
+                                            type="category"
+                                            width={100}
+                                            tick={{ fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            cursor={{ fill: 'transparent' }}
+                                        />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                                            {projectsByStatus.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={COLORS[entry.name.toLowerCase().replace(" ", "_") as keyof typeof COLORS] || "#8884d8"}
                                                 />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5" />
-                                    Числови показатели
+                                    <PieChartIcon className="h-5 w-5" />
+                                    Дял на статусите
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-center">
-                                        <div className="text-2xl font-bold">{metrics.draftProjects}</div>
-                                        <div className="text-sm text-muted-foreground">Чернови</div>
-                                    </div>
-                                    <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-blue-600">
-                                            {metrics.activeProjects}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Активни</div>
-                                    </div>
-                                    <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-green-600">
-                                            {metrics.completedProjects}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Завършени</div>
-                                    </div>
-                                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-center">
-                                        <div className="text-2xl font-bold">{metrics.totalProjects}</div>
-                                        <div className="text-sm text-muted-foreground">Общо</div>
-                                    </div>
-                                </div>
+                            <CardContent className="h-[350px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={projectsByStatus}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={80}
+                                            outerRadius={110}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                        >
+                                            {projectsByStatus.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={COLORS[entry.name.toLowerCase().replace(" ", "_") as keyof typeof COLORS] || "#8884d8"}
+                                                />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                        <Legend verticalAlign="middle" align="right" layout="vertical" />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </div>
                 </TabsContent>
 
                 <TabsContent value="tasks" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5" />
+                                {dict.productivityTrend}
+                            </CardTitle>
+                            <CardDescription>{dict.weeklyData}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-[400px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={taskTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                    <Legend />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="completed"
+                                        name="Завършени"
+                                        stroke="#22c55e"
+                                        fillOpacity={1}
+                                        fill="url(#colorCompleted)"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="pending"
+                                        name="Чакащи"
+                                        stroke="#94a3b8"
+                                        fillOpacity={1}
+                                        fill="url(#colorPending)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="approvals" className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <TrendingUp className="h-5 w-5" />
-                                    {dict.productivityTrend}
+                                    <FileCheck className="h-5 w-5" />
+                                    Статус на одобрения
                                 </CardTitle>
-                                <CardDescription>{dict.weeklyData}</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {taskTrend?.map((week) => (
-                                        <div key={week.name} className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span>{week.name}</span>
-                                                <span className="text-green-600 font-medium">
-                                                    +{week.completed} завършени
-                                                </span>
-                                            </div>
-                                            <div className="h-2 bg-secondary rounded-full">
-                                                <div
-                                                    className="h-2 bg-green-500 rounded-full"
-                                                    style={{
-                                                        width: `${Math.min(week.completed * 10, 100)}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <CardContent className="h-[350px]">
+                                {approvalData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={approvalData}
+                                                cx="50%"
+                                                cy="50%"
+                                                outerRadius={120}
+                                                dataKey="value"
+                                                label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                            >
+                                                {approvalData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за одобрения
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Activity className="h-5 w-5" />
-                                    Текущо състояние
-                                </CardTitle>
+                                <CardTitle>Детайли</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-center">
-                                        <div className="text-2xl font-bold">{metrics.todoTasks}</div>
-                                        <div className="text-sm text-muted-foreground">За изпълнение</div>
+                            <CardContent className="space-y-6">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium">Чакащи преглед</span>
+                                        <span className="text-amber-600 font-bold">{metrics.pendingApprovals}</span>
                                     </div>
-                                    <div className="p-4 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-amber-600">
-                                            {metrics.inProgressTasks}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">В процес</div>
+                                    <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-amber-500 w-full animate-pulse" />
                                     </div>
-                                    <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-green-600">
-                                            {metrics.completedTasks}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Завършени</div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium">Одобрени</span>
+                                        <span className="text-green-600 font-bold">{metrics.approvedApprovals}</span>
                                     </div>
-                                    <div className="p-4 bg-red-100 dark:bg-red-900/30 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-red-600">
-                                            {metrics.overdueTasks}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Просрочени</div>
+                                    <div className="h-2 bg-green-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-green-500 w-full" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium">Отхвърлени</span>
+                                        <span className="text-red-600 font-bold">{metrics.rejectedApprovals}</span>
+                                    </div>
+                                    <div className="h-2 bg-red-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-red-500 w-full" />
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
-                </TabsContent>
-
-                <TabsContent value="approvals" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileCheck className="h-5 w-5" />
-                                Статус на одобрения
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="p-6 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-center">
-                                    <div className="text-3xl font-bold text-amber-600">
-                                        {metrics.pendingApprovals}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        {dict.pendingApprovals}
-                                    </div>
-                                </div>
-                                <div className="p-6 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
-                                    <div className="text-3xl font-bold text-green-600">
-                                        {metrics.approvedApprovals}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        {dict.approvedApprovals}
-                                    </div>
-                                </div>
-                                <div className="p-6 bg-red-100 dark:bg-red-900/30 rounded-lg text-center">
-                                    <div className="text-3xl font-bold text-red-600">
-                                        {metrics.rejectedApprovals}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        {dict.rejectedApprovals}
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </TabsContent>
             </Tabs>
         </div>
