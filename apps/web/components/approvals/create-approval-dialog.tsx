@@ -78,6 +78,7 @@ export function CreateApprovalDialog({ trigger, projectId, taskId }: CreateAppro
             workflowType: "sequential",
             approverIds: [],
             priority: "medium",
+            budget: undefined,
         },
     });
 
