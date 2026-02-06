@@ -148,6 +148,7 @@ export default defineSchema({
         teamId: v.string(),
         userId: v.id("users"),
         role: v.string(), // owner, admin, member
+        status: v.optional(v.string()), // active, pending, removed
         invitedBy: v.optional(v.id("users")),
         joinedAt: v.number(),
     })

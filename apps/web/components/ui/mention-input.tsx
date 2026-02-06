@@ -39,13 +39,14 @@ export function MentionInput({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
 
-    // Search for users when typing @
+    // Search for users when typing @ (empty string shows all team members)
     const searchResults = useQuery(
         api.comments.searchUsersForMention,
-        searchQuery.length >= 1 ? { query: searchQuery, teamId } : "skip"
+        showSuggestions ? { query: searchQuery, teamId } : "skip"
     );
 
     const users = (searchResults || []) as MentionUser[];
+    const isLoadingUsers = searchResults === undefined && showSuggestions;
 
     // Detect @ and show suggestions
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -157,34 +158,44 @@ export function MentionInput({
             />
 
             {/* Suggestions dropdown */}
-            {showSuggestions && users.length > 0 && (
+            {showSuggestions && (
                 <div
                     ref={suggestionsRef}
                     className="absolute bottom-full left-0 mb-1 w-64 max-h-48 overflow-y-auto bg-white rounded-lg shadow-lg border z-50"
                 >
                     <div className="p-1">
-                        {users.map((user, index) => (
-                            <button
-                                key={user._id}
-                                type="button"
-                                className={cn(
-                                    "w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors",
-                                    index === selectedIndex
-                                        ? "bg-blue-50 text-blue-700"
-                                        : "hover:bg-slate-50"
-                                )}
-                                onClick={() => insertMention(user)}
-                                onMouseEnter={() => setSelectedIndex(index)}
-                            >
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src={user.avatar} />
-                                    <AvatarFallback className="text-xs bg-slate-200">
-                                        {user.name?.charAt(0) || "?"}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span className="truncate">{user.name}</span>
-                            </button>
-                        ))}
+                        {isLoadingUsers ? (
+                            <div className="flex items-center justify-center py-4 text-slate-400">
+                                <span className="text-sm">Зареждане...</span>
+                            </div>
+                        ) : users.length > 0 ? (
+                            users.map((user, index) => (
+                                <button
+                                    key={user._id}
+                                    type="button"
+                                    className={cn(
+                                        "w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors",
+                                        index === selectedIndex
+                                            ? "bg-blue-50 text-blue-700"
+                                            : "hover:bg-slate-50"
+                                    )}
+                                    onClick={() => insertMention(user)}
+                                    onMouseEnter={() => setSelectedIndex(index)}
+                                >
+                                    <Avatar className="h-6 w-6">
+                                        <AvatarImage src={user.avatar} />
+                                        <AvatarFallback className="text-xs bg-slate-200">
+                                            {user.name?.charAt(0) || "?"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <span className="truncate">{user.name}</span>
+                                </button>
+                            ))
+                        ) : (
+                            <div className="flex items-center justify-center py-4 text-slate-400">
+                                <span className="text-sm">Няма намерени потребители</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

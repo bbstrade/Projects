@@ -150,9 +150,7 @@ export const searchUsersForMention = query({
         teamId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        if (!args.query || args.query.length < 1) return [];
-
-        const searchQuery = args.query.toLowerCase();
+        const searchQuery = (args.query || "").toLowerCase();
 
         // If teamId provided, only search within team  
         if (args.teamId) {

@@ -339,3 +339,476 @@ export const fileStatistics = query({
         }));
     },
 });
+
+/**
+ * Tasks over time - daily/weekly creation vs completion
+ */
+export const tasksOverTime = query({
+    args: {
+        period: v.optional(v.string()), // "daily" | "weekly" | "monthly"
+        days: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const period = args.period || "weekly";
+        const days = args.days || 30;
+        const now = Date.now();
+        const startTime = now - days * 24 * 60 * 60 * 1000;
+
+        const data: Record<string, { created: number; completed: number }> = {};
+
+        for (const task of tasks) {
+            if (task._creationTime >= startTime) {
+                const date = new Date(task._creationTime);
+                let key: string;
+                if (period === "daily") {
+                    key = date.toISOString().split("T")[0];
+                } else if (period === "monthly") {
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+                } else {
+                    // weekly
+                    const weekNum = Math.floor((now - task._creationTime) / (7 * 24 * 60 * 60 * 1000));
+                    key = `Week ${Math.max(1, days / 7 - weekNum)}`;
+                }
+                if (!data[key]) data[key] = { created: 0, completed: 0 };
+                data[key].created++;
+            }
+
+            if (task.status === "done" && task.updatedAt && task.updatedAt >= startTime) {
+                const date = new Date(task.updatedAt);
+                let key: string;
+                if (period === "daily") {
+                    key = date.toISOString().split("T")[0];
+                } else if (period === "monthly") {
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+                } else {
+                    const weekNum = Math.floor((now - task.updatedAt) / (7 * 24 * 60 * 60 * 1000));
+                    key = `Week ${Math.max(1, days / 7 - weekNum)}`;
+                }
+                if (!data[key]) data[key] = { created: 0, completed: 0 };
+                data[key].completed++;
+            }
+        }
+
+        return Object.entries(data)
+            .map(([name, counts]) => ({ name, ...counts }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    },
+});
+
+/**
+ * Projects over time - monthly creation trend
+ */
+export const projectsOverTime = query({
+    args: { months: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        const projects = await ctx.db.query("projects").collect();
+        const months = args.months || 6;
+        const now = new Date();
+
+        const data: Record<string, { started: number; completed: number }> = {};
+
+        // Initialize last N months
+        for (let i = months - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            data[key] = { started: 0, completed: 0 };
+        }
+
+        for (const project of projects) {
+            const date = new Date(project._creationTime);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+            if (data[key]) {
+                data[key].started++;
+                if (project.status === "completed") {
+                    data[key].completed++;
+                }
+            }
+        }
+
+        return Object.entries(data)
+            .map(([month, counts]) => ({ month, ...counts }))
+            .sort((a, b) => a.month.localeCompare(b.month));
+    },
+});
+
+/**
+ * Tasks by status - distribution pie
+ */
+export const tasksByStatus = query({
+    args: { teamId: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
+
+        const statusCounts: Record<string, number> = {};
+        for (const task of tasks) {
+            statusCounts[task.status] = (statusCounts[task.status] || 0) + 1;
+        }
+
+        const colors: Record<string, string> = {
+            todo: "#94a3b8",
+            in_progress: "#3b82f6",
+            in_review: "#8b5cf6",
+            done: "#22c55e",
+            blocked: "#ef4444",
+        };
+
+        const labels: Record<string, string> = {
+            todo: "Предстои",
+            in_progress: "В прогрес",
+            in_review: "За преглед",
+            done: "Завършено",
+            blocked: "Блокирано",
+        };
+
+        return Object.entries(statusCounts).map(([status, count]) => ({
+            name: labels[status] || status,
+            value: count,
+            fill: colors[status] || "#8884d8",
+        }));
+    },
+});
+
+/**
+ * Overdue analysis - breakdown by project and assignee
+ */
+export const overdueAnalysis = query({
+    args: {},
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const projects = await ctx.db.query("projects").collect();
+        const users = await ctx.db.query("users").collect();
+        const now = Date.now();
+
+        const overdueTasks = tasks.filter(
+            (t) => t.dueDate && t.dueDate < now && t.status !== "done"
+        );
+
+        const projectMap = new Map(projects.map((p) => [p._id, p.name]));
+        const userMap = new Map(users.map((u) => [u._id, u.name || u.email || "Unknown"]));
+
+        // By project
+        const byProject: Record<string, number> = {};
+        for (const task of overdueTasks) {
+            const name = projectMap.get(task.projectId) || "Unknown";
+            byProject[name] = (byProject[name] || 0) + 1;
+        }
+
+        // By assignee
+        const byAssignee: Record<string, number> = {};
+        for (const task of overdueTasks) {
+            if (task.assigneeId) {
+                const name = userMap.get(task.assigneeId) || "Неразпределени";
+                byAssignee[name] = (byAssignee[name] || 0) + 1;
+            } else {
+                byAssignee["Неразпределени"] = (byAssignee["Неразпределени"] || 0) + 1;
+            }
+        }
+
+        return {
+            total: overdueTasks.length,
+            byProject: Object.entries(byProject)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10),
+            byAssignee: Object.entries(byAssignee)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10),
+        };
+    },
+});
+
+/**
+ * Approval trend - speed and bottleneck analysis
+ */
+export const approvalTrend = query({
+    args: {},
+    handler: async (ctx) => {
+        const approvals = await ctx.db.query("approvals").collect();
+
+        // Average time to approve
+        const completedApprovals = approvals.filter(
+            (a) => a.status === "approved" || a.status === "rejected"
+        );
+
+        let totalTime = 0;
+        let count = 0;
+        for (const a of completedApprovals) {
+            if (a.updatedAt && a.createdAt) {
+                totalTime += a.updatedAt - a.createdAt;
+                count++;
+            }
+        }
+
+        const avgTimeMs = count > 0 ? totalTime / count : 0;
+        const avgTimeDays = Math.round(avgTimeMs / (24 * 60 * 60 * 1000) * 10) / 10;
+
+        // Monthly trend
+        const now = new Date();
+        const monthlyStats: Record<string, { pending: number; approved: number; rejected: number }> = {};
+
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            monthlyStats[key] = { pending: 0, approved: 0, rejected: 0 };
+        }
+
+        for (const a of approvals) {
+            const date = new Date(a.createdAt);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+            if (monthlyStats[key]) {
+                if (a.status === "pending") monthlyStats[key].pending++;
+                else if (a.status === "approved") monthlyStats[key].approved++;
+                else if (a.status === "rejected") monthlyStats[key].rejected++;
+            }
+        }
+
+        return {
+            avgApprovalDays: avgTimeDays,
+            pendingCount: approvals.filter((a) => a.status === "pending").length,
+            monthlyTrend: Object.entries(monthlyStats)
+                .map(([month, stats]) => ({ month, ...stats }))
+                .sort((a, b) => a.month.localeCompare(b.month)),
+        };
+    },
+});
+
+/**
+ * Monthly comparison - current vs previous month
+ */
+export const monthlyComparison = query({
+    args: {},
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const projects = await ctx.db.query("projects").collect();
+
+        const now = new Date();
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+        const prevMonthEnd = currentMonthStart - 1;
+
+        const currentTasks = tasks.filter((t) => t._creationTime >= currentMonthStart);
+        const prevTasks = tasks.filter(
+            (t) => t._creationTime >= prevMonthStart && t._creationTime <= prevMonthEnd
+        );
+
+        const currentCompleted = currentTasks.filter((t) => t.status === "done").length;
+        const prevCompleted = prevTasks.filter((t) => t.status === "done").length;
+
+        const currentProjects = projects.filter((p) => p._creationTime >= currentMonthStart);
+        const prevProjects = projects.filter(
+            (p) => p._creationTime >= prevMonthStart && p._creationTime <= prevMonthEnd
+        );
+
+        return {
+            currentMonth: {
+                tasksCreated: currentTasks.length,
+                tasksCompleted: currentCompleted,
+                projectsStarted: currentProjects.length,
+            },
+            previousMonth: {
+                tasksCreated: prevTasks.length,
+                tasksCompleted: prevCompleted,
+                projectsStarted: prevProjects.length,
+            },
+            changes: {
+                tasksCreated: currentTasks.length - prevTasks.length,
+                tasksCompleted: currentCompleted - prevCompleted,
+                projectsStarted: currentProjects.length - prevProjects.length,
+            },
+        };
+    },
+});
+
+/**
+ * Project health - projects with most issues
+ */
+export const projectHealth = query({
+    args: {},
+    handler: async (ctx) => {
+        const projects = await ctx.db.query("projects").collect();
+        const tasks = await ctx.db.query("tasks").collect();
+        const now = Date.now();
+
+        const health = projects.map((project) => {
+            const projectTasks = tasks.filter((t) => t.projectId === project._id);
+            const totalTasks = projectTasks.length;
+            const completedTasks = projectTasks.filter((t) => t.status === "done").length;
+            const overdueTasks = projectTasks.filter(
+                (t) => t.dueDate && t.dueDate < now && t.status !== "done"
+            ).length;
+            const blockedTasks = projectTasks.filter((t) => t.status === "blocked").length;
+
+            // Health score: 100 - (overdue% * 40) - (blocked% * 30) + (completed% * 30)
+            const overdueRatio = totalTasks > 0 ? overdueTasks / totalTasks : 0;
+            const blockedRatio = totalTasks > 0 ? blockedTasks / totalTasks : 0;
+            const completedRatio = totalTasks > 0 ? completedTasks / totalTasks : 0;
+            const healthScore = Math.max(
+                0,
+                Math.min(100, Math.round(100 - overdueRatio * 40 - blockedRatio * 30 + completedRatio * 30))
+            );
+
+            return {
+                id: project._id,
+                name: project.name,
+                status: project.status,
+                totalTasks,
+                completedTasks,
+                overdueTasks,
+                blockedTasks,
+                healthScore,
+            };
+        });
+
+        return health
+            .filter((h) => h.totalTasks > 0)
+            .sort((a, b) => a.healthScore - b.healthScore);
+    },
+});
+
+/**
+ * Velocity metrics - tasks completed per week average
+ */
+export const velocityMetrics = query({
+    args: { weeks: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        const weeks = args.weeks || 8;
+        const tasks = await ctx.db.query("tasks").collect();
+        const now = Date.now();
+        const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+        const weeklyData: number[] = [];
+
+        for (let i = weeks - 1; i >= 0; i--) {
+            const weekStart = now - (i + 1) * weekMs;
+            const weekEnd = now - i * weekMs;
+
+            const completedInWeek = tasks.filter(
+                (t) =>
+                    t.status === "done" &&
+                    t.updatedAt &&
+                    t.updatedAt >= weekStart &&
+                    t.updatedAt < weekEnd
+            ).length;
+
+            weeklyData.push(completedInWeek);
+        }
+
+        const avgVelocity = weeklyData.length > 0
+            ? Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length * 10) / 10
+            : 0;
+
+        const trend = weeklyData.map((completed, i) => ({
+            week: `Седм. ${i + 1}`,
+            completed,
+        }));
+
+        return {
+            avgVelocity,
+            trend,
+            currentWeek: weeklyData[weeklyData.length - 1] || 0,
+            previousWeek: weeklyData[weeklyData.length - 2] || 0,
+        };
+    },
+});
+
+/**
+ * Estimated vs Actual hours analysis
+ */
+export const estimatedVsActual = query({
+    args: {},
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").collect();
+
+        const tasksWithEstimates = tasks.filter((t) => t.estimatedHours && t.estimatedHours > 0);
+        const tasksWithBoth = tasksWithEstimates.filter((t) => t.actualHours && t.actualHours > 0);
+
+        let totalEstimated = 0;
+        let totalActual = 0;
+
+        for (const task of tasksWithBoth) {
+            totalEstimated += task.estimatedHours || 0;
+            totalActual += task.actualHours || 0;
+        }
+
+        const accuracy = totalEstimated > 0
+            ? Math.round((1 - Math.abs(totalActual - totalEstimated) / totalEstimated) * 100)
+            : 0;
+
+        return {
+            totalEstimated: Math.round(totalEstimated * 10) / 10,
+            totalActual: Math.round(totalActual * 10) / 10,
+            accuracy: Math.max(0, accuracy),
+            tasksWithEstimates: tasksWithEstimates.length,
+            tasksWithBoth: tasksWithBoth.length,
+            overrun: totalActual > totalEstimated,
+            difference: Math.round(Math.abs(totalActual - totalEstimated) * 10) / 10,
+        };
+    },
+});
+
+/**
+ * Budget overview - approval budget utilization (projects don't have budget field)
+ */
+export const budgetOverview = query({
+    args: {},
+    handler: async (ctx) => {
+        const approvals = await ctx.db.query("approvals").collect();
+        const projects = await ctx.db.query("projects").collect();
+
+        // Sum approved budget from approvals
+        const approvedBudget = approvals
+            .filter((a) => a.status === "approved" && a.budget)
+            .reduce((sum, a) => sum + (a.budget || 0), 0);
+
+        const pendingBudget = approvals
+            .filter((a) => a.status === "pending" && a.budget)
+            .reduce((sum, a) => sum + (a.budget || 0), 0);
+
+        const rejectedBudget = approvals
+            .filter((a) => a.status === "rejected" && a.budget)
+            .reduce((sum, a) => sum + (a.budget || 0), 0);
+
+        const totalBudget = approvedBudget + pendingBudget + rejectedBudget;
+
+        // Group approvals by project
+        const byProject = projects.map((project) => {
+            const projectApprovals = approvals.filter((a) => a.projectId === project._id);
+            const projectApproved = projectApprovals
+                .filter((a) => a.status === "approved" && a.budget)
+                .reduce((sum, a) => sum + (a.budget || 0), 0);
+            const projectPending = projectApprovals
+                .filter((a) => a.status === "pending" && a.budget)
+                .reduce((sum, a) => sum + (a.budget || 0), 0);
+            return {
+                name: project.name,
+                approved: projectApproved,
+                pending: projectPending,
+                total: projectApproved + projectPending,
+            };
+        }).filter((p) => p.total > 0);
+
+        return {
+            totalBudget,
+            approvedBudget,
+            pendingBudget,
+            rejectedBudget,
+            approvalCount: approvals.filter((a) => a.budget && a.budget > 0).length,
+            utilizationPercent: totalBudget > 0
+                ? Math.round((approvedBudget / totalBudget) * 100)
+                : 0,
+            byProject,
+        };
+    },
+});
+

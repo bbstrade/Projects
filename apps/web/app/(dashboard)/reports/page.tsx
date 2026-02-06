@@ -30,7 +30,13 @@ import {
     Download,
     Filter,
     Calendar,
-    HardDrive
+    HardDrive,
+    Heart,
+    Zap,
+    ArrowUpRight,
+    ArrowDownRight,
+    Target,
+    Clock
 } from "lucide-react";
 import {
     PieChart,
@@ -102,9 +108,17 @@ export default function ReportsPage() {
 
     const metrics = useQuery(api.analytics.dashboardMetrics, queryArgs);
     const projectsByStatus = useQuery(api.analytics.projectsByStatus, queryArgs);
-    const taskTrend = useQuery(api.analytics.taskCompletionTrend, {}); // Not filtered by date yet as it's trend data
+    const taskTrend = useQuery(api.analytics.taskCompletionTrend, {});
     const projectTimeline = useQuery(api.analytics.projectTimeline, {});
     const fileStats = useQuery(api.analytics.fileStatistics, {});
+    // New analytics queries
+    const tasksOverTime = useQuery(api.analytics.tasksOverTime, { period: "weekly", days: 28 });
+    const projectsOverTime = useQuery(api.analytics.projectsOverTime, { months: 6 });
+    const approvalTrend = useQuery(api.analytics.approvalTrend, {});
+    const projectHealth = useQuery(api.analytics.projectHealth, {});
+    const tasksByStatus = useQuery(api.analytics.tasksByStatus, {});
+    const velocityMetrics = useQuery(api.analytics.velocityMetrics, { weeks: 8 });
+    const overdueAnalysis = useQuery(api.analytics.overdueAnalysis, {});
 
     const isLoading = metrics === undefined || projectsByStatus === undefined || taskTrend === undefined;
 
@@ -264,22 +278,30 @@ export default function ReportsPage() {
 
             {/* Detailed Tabs */}
             <Tabs defaultValue="projects" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="projects" className="gap-2">
                         <FolderKanban className="h-4 w-4" />
-                        {dict.projects}
+                        <span className="hidden sm:inline">{dict.projects}</span>
                     </TabsTrigger>
                     <TabsTrigger value="tasks" className="gap-2">
                         <ListTodo className="h-4 w-4" />
-                        {dict.tasks}
+                        <span className="hidden sm:inline">{dict.tasks}</span>
                     </TabsTrigger>
                     <TabsTrigger value="approvals" className="gap-2">
                         <FileCheck className="h-4 w-4" />
-                        {dict.approvals}
+                        <span className="hidden sm:inline">{dict.approvals}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="trends" className="gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        <span className="hidden sm:inline">Тенденции</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="health" className="gap-2">
+                        <Heart className="h-4 w-4" />
+                        <span className="hidden sm:inline">Здраве</span>
                     </TabsTrigger>
                     <TabsTrigger value="files" className="gap-2">
                         <HardDrive className="h-4 w-4" />
-                        Файлове
+                        <span className="hidden sm:inline">Файлове</span>
                     </TabsTrigger>
                 </TabsList>
 
@@ -472,6 +494,340 @@ export default function ReportsPage() {
                                         <div className="h-full bg-red-500 w-full" />
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                {/* NEW: Trends Tab */}
+                <TabsContent value="trends" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Tasks Over Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                                    Задачи по време
+                                </CardTitle>
+                                <CardDescription>Създадени vs завършени (последните 4 седмици)</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(tasksOverTime || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={tasksOverTime}>
+                                            <defs>
+                                                <linearGradient id="colorCreated" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorCompletedTrend" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                                            <YAxis />
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Legend />
+                                            <Area type="monotone" dataKey="created" name="Създадени" stroke="#3b82f6" fill="url(#colorCreated)" />
+                                            <Area type="monotone" dataKey="completed" name="Завършени" stroke="#22c55e" fill="url(#colorCompletedTrend)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за задачи
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Projects Over Time */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FolderKanban className="h-5 w-5 text-purple-500" />
+                                    Проекти по месеци
+                                </CardTitle>
+                                <CardDescription>Стартирани и завършени проекти (последните 6 месеца)</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(projectsOverTime || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={projectsOverTime}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                            <YAxis />
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Legend />
+                                            <Bar dataKey="started" name="Стартирани" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="completed" name="Завършени" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за проекти
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Velocity Metrics */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Zap className="h-5 w-5 text-yellow-500" />
+                                    Скорост на завършване
+                                </CardTitle>
+                                <CardDescription>
+                                    Средно {velocityMetrics?.avgVelocity || 0} задачи/седмица
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(velocityMetrics?.trend || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={velocityMetrics?.trend}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                                            <YAxis />
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="completed"
+                                                name="Завършени"
+                                                stroke="#f59e0b"
+                                                strokeWidth={3}
+                                                dot={{ fill: '#f59e0b', strokeWidth: 2 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за скорост
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Approval Trend */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-amber-500" />
+                                    Тенденция на одобрения
+                                </CardTitle>
+                                <CardDescription>
+                                    Средно време за одобрение: {approvalTrend?.avgApprovalDays || 0} дни
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[350px]">
+                                {(approvalTrend?.monthlyTrend || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={approvalTrend?.monthlyTrend}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                            <YAxis />
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Legend />
+                                            <Bar dataKey="approved" name="Одобрени" fill="#22c55e" stackId="a" radius={[0, 0, 0, 0]} />
+                                            <Bar dataKey="rejected" name="Отхвърлени" fill="#ef4444" stackId="a" radius={[0, 0, 0, 0]} />
+                                            <Bar dataKey="pending" name="Чакащи" fill="#f59e0b" stackId="a" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за одобрения
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                {/* NEW: Health Tab */}
+                <TabsContent value="health" className="space-y-4">
+                    {/* Health Score Cards */}
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Card className="bg-gradient-to-br from-green-50 to-white dark:from-green-950/20">
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-green-600">
+                                        {(projectHealth || []).filter(p => p.healthScore >= 80).length}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">Здрави проекти</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-950/20">
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-yellow-600">
+                                        {(projectHealth || []).filter(p => p.healthScore >= 50 && p.healthScore < 80).length}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">Внимание</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-red-50 to-white dark:from-red-950/20">
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-red-600">
+                                        {(projectHealth || []).filter(p => p.healthScore < 50).length}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">Критични</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20">
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-blue-600">
+                                        {overdueAnalysis?.total || 0}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">Просрочени задачи</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Project Health Scores */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Heart className="h-5 w-5 text-red-500" />
+                                    Здраве на проекти
+                                </CardTitle>
+                                <CardDescription>Сортирани по оценка (най-ниска първо)</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                                    {(projectHealth || []).slice(0, 10).map((project, i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium truncate">{project.name}</p>
+                                                <div className="flex gap-4 text-xs text-muted-foreground mt-1">
+                                                    <span>Задачи: {project.totalTasks}</span>
+                                                    <span className="text-red-500">Просрочени: {project.overdueTasks}</span>
+                                                    <span className="text-amber-500">Блокирани: {project.blockedTasks}</span>
+                                                </div>
+                                            </div>
+                                            <div className={`px-3 py-1 rounded-full text-sm font-bold ${project.healthScore >= 80 ? 'bg-green-100 text-green-700' :
+                                                project.healthScore >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                {project.healthScore}%
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(projectHealth || []).length === 0 && (
+                                        <p className="text-center text-muted-foreground py-8">Няма проекти за показване</p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Overdue Breakdown */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Target className="h-5 w-5 text-orange-500" />
+                                    Анализ на просрочени задачи
+                                </CardTitle>
+                                <CardDescription>Разбивка по проект и отговорник</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-6">
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                            <FolderKanban className="h-4 w-4" />
+                                            По проект
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {(overdueAnalysis?.byProject || []).slice(0, 5).map((item, i) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <div className="flex-1 bg-red-100 dark:bg-red-950/30 rounded-full h-6 overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-red-500 rounded-full flex items-center justify-end pr-2"
+                                                            style={{ width: `${Math.min(100, (item.count / (overdueAnalysis?.total || 1)) * 100)}%` }}
+                                                        >
+                                                            <span className="text-xs text-white font-medium">{item.count}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-sm min-w-[100px] truncate">{item.name}</span>
+                                                </div>
+                                            ))}
+                                            {(overdueAnalysis?.byProject || []).length === 0 && (
+                                                <p className="text-sm text-muted-foreground">Няма просрочени задачи</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                            <Activity className="h-4 w-4" />
+                                            По отговорник
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {(overdueAnalysis?.byAssignee || []).slice(0, 5).map((item, i) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <div className="flex-1 bg-amber-100 dark:bg-amber-950/30 rounded-full h-6 overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-amber-500 rounded-full flex items-center justify-end pr-2"
+                                                            style={{ width: `${Math.min(100, (item.count / (overdueAnalysis?.total || 1)) * 100)}%` }}
+                                                        >
+                                                            <span className="text-xs text-white font-medium">{item.count}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-sm min-w-[100px] truncate">{item.name}</span>
+                                                </div>
+                                            ))}
+                                            {(overdueAnalysis?.byAssignee || []).length === 0 && (
+                                                <p className="text-sm text-muted-foreground">Няма данни</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Tasks by Status Distribution */}
+                        <Card className="md:col-span-2">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <ListTodo className="h-5 w-5 text-indigo-500" />
+                                    Разпределение на задачи по статус
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-[300px]">
+                                {(tasksByStatus || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={tasksByStatus}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={3}
+                                                dataKey="value"
+                                                label={({ name, percent }: { name?: string; percent?: number }) =>
+                                                    `${name} ${((percent || 0) * 100).toFixed(0)}%`
+                                                }
+                                            >
+                                                {(tasksByStatus || []).map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни за задачи
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

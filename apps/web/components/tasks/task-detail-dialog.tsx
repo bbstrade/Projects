@@ -901,14 +901,11 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                             onChange={handleCommentChange}
                                             placeholder={dict.addComment}
                                             className="min-h-[80px] text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                                            teamId={task?.projectId ? undefined : undefined}
+                                            teamId={project?.teamId}
                                             disabled={isSubmitting}
                                         />
 
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] text-slate-400">
-                                                Напишете @ за да споменете колега
-                                            </span>
+                                        <div className="flex items-center justify-end">
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="file"

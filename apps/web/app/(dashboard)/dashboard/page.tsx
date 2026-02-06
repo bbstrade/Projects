@@ -18,7 +18,12 @@ import {
     TrendingUp,
     Users,
     Activity,
-    Clock
+    Clock,
+    ArrowUpRight,
+    ArrowDownRight,
+    Target,
+    Zap,
+    LineChart as LineChartIcon
 } from "lucide-react";
 import {
     PieChart,
@@ -38,7 +43,10 @@ import {
     PolarRadiusAxis,
     Radar,
     AreaChart,
-    Area
+    Area,
+    LineChart,
+    Line,
+    ComposedChart
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 import { bg } from "date-fns/locale";
@@ -70,6 +78,15 @@ const dict = {
     latestActions: "Последни действия",
     teamWorkload: "Натовареност на екипа",
     workloadByMember: "Задачи по член",
+    trends: "Тенденции",
+    tasksByStatus: "Задачи по статус",
+    statusBreakdown: "Разпределение по статус",
+    monthlyComparison: "Месечно сравнение",
+    currentVsPrevious: "Текущ vs. предходен месец",
+    velocity: "Скорост",
+    tasksPerWeek: "Задачи на седмица",
+    overdueBreakdown: "Просрочени задачи",
+    byProjectAndAssignee: "По проект и отговорник",
     loading: "Зареждане...",
 };
 
@@ -111,6 +128,11 @@ export default function DashboardPage() {
     const teamPerformance = useQuery(api.analytics.teamPerformance, { limit: 5 });
     const recentActivity = useQuery(api.analytics.recentActivity, { limit: 8 });
     const workload = useQuery(api.analytics.tasksByAssignee, {});
+    // New analytics
+    const tasksByStatus = useQuery(api.analytics.tasksByStatus, {});
+    const monthlyComparison = useQuery(api.analytics.monthlyComparison, {});
+    const velocityMetrics = useQuery(api.analytics.velocityMetrics, { weeks: 8 });
+    const overdueAnalysis = useQuery(api.analytics.overdueAnalysis, {});
 
     const isLoading =
         metrics === undefined ||
@@ -218,9 +240,10 @@ export default function DashboardPage() {
 
             {/* Tabs for Overview/Analytics/Performance */}
             <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
+                <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
                     <TabsTrigger value="overview">{dict.overview}</TabsTrigger>
                     <TabsTrigger value="analytics">{dict.analytics}</TabsTrigger>
+                    <TabsTrigger value="trends">{dict.trends}</TabsTrigger>
                     <TabsTrigger value="performance">{dict.performance}</TabsTrigger>
                 </TabsList>
 
@@ -472,6 +495,202 @@ export default function DashboardPage() {
                                     <span className="font-bold text-red-600">
                                         {metrics.rejectedApprovals}
                                     </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Tasks by Status Pie */}
+                    <Card className="mt-4">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Target className="h-5 w-5 text-indigo-500" />
+                                {dict.tasksByStatus}
+                            </CardTitle>
+                            <CardDescription>{dict.statusBreakdown}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[280px]">
+                                {(tasksByStatus || []).length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={tasksByStatus}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={3}
+                                                dataKey="value"
+                                                label={({ name, percent }: { name?: string; percent?: number }) =>
+                                                    `${name} ${((percent || 0) * 100).toFixed(0)}%`
+                                                }
+                                            >
+                                                {(tasksByStatus || []).map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        Няма данни
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* NEW: Trends Tab */}
+                <TabsContent value="trends" className="space-y-4">
+                    {/* Monthly Comparison Cards */}
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Създадени задачи</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {monthlyComparison?.currentMonth.tasksCreated || 0}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs mt-1">
+                                    {(monthlyComparison?.changes.tasksCreated || 0) >= 0 ? (
+                                        <ArrowUpRight className="h-3 w-3 text-green-500" />
+                                    ) : (
+                                        <ArrowDownRight className="h-3 w-3 text-red-500" />
+                                    )}
+                                    <span className={(monthlyComparison?.changes.tasksCreated || 0) >= 0 ? "text-green-600" : "text-red-600"}>
+                                        {Math.abs(monthlyComparison?.changes.tasksCreated || 0)} спрямо миналия месец
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-green-50 to-white dark:from-green-950/20">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Завършени задачи</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">
+                                    {monthlyComparison?.currentMonth.tasksCompleted || 0}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs mt-1">
+                                    {(monthlyComparison?.changes.tasksCompleted || 0) >= 0 ? (
+                                        <ArrowUpRight className="h-3 w-3 text-green-500" />
+                                    ) : (
+                                        <ArrowDownRight className="h-3 w-3 text-red-500" />
+                                    )}
+                                    <span className={(monthlyComparison?.changes.tasksCompleted || 0) >= 0 ? "text-green-600" : "text-red-600"}>
+                                        {Math.abs(monthlyComparison?.changes.tasksCompleted || 0)} спрямо миналия месец
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Нови проекти</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-purple-600">
+                                    {monthlyComparison?.currentMonth.projectsStarted || 0}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs mt-1">
+                                    {(monthlyComparison?.changes.projectsStarted || 0) >= 0 ? (
+                                        <ArrowUpRight className="h-3 w-3 text-green-500" />
+                                    ) : (
+                                        <ArrowDownRight className="h-3 w-3 text-red-500" />
+                                    )}
+                                    <span className={(monthlyComparison?.changes.projectsStarted || 0) >= 0 ? "text-green-600" : "text-red-600"}>
+                                        {Math.abs(monthlyComparison?.changes.projectsStarted || 0)} спрямо миналия месец
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Velocity Chart */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Zap className="h-5 w-5 text-yellow-500" />
+                                    {dict.velocity}
+                                </CardTitle>
+                                <CardDescription>
+                                    Средно {velocityMetrics?.avgVelocity || 0} задачи/седмица
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[280px]">
+                                    {(velocityMetrics?.trend || []).length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={velocityMetrics?.trend}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                <XAxis dataKey="week" fontSize={12} />
+                                                <YAxis fontSize={12} />
+                                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="completed"
+                                                    name="Завършени"
+                                                    stroke="#22c55e"
+                                                    strokeWidth={2}
+                                                    dot={{ fill: '#22c55e' }}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                                            Няма данни за скорост
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Overdue Analysis */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                                    {dict.overdueBreakdown}
+                                </CardTitle>
+                                <CardDescription>
+                                    Общо {overdueAnalysis?.total || 0} просрочени задачи
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-2">По проект</h4>
+                                        <div className="space-y-2">
+                                            {(overdueAnalysis?.byProject || []).slice(0, 5).map((item, i) => (
+                                                <div key={i} className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-950/20">
+                                                    <span className="text-sm truncate max-w-[150px]">{item.name}</span>
+                                                    <span className="font-bold text-red-600">{item.count}</span>
+                                                </div>
+                                            ))}
+                                            {(overdueAnalysis?.byProject || []).length === 0 && (
+                                                <p className="text-sm text-muted-foreground">Няма просрочени</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-2">По отговорник</h4>
+                                        <div className="space-y-2">
+                                            {(overdueAnalysis?.byAssignee || []).slice(0, 5).map((item, i) => (
+                                                <div key={i} className="flex items-center justify-between p-2 rounded bg-amber-50 dark:bg-amber-950/20">
+                                                    <span className="text-sm truncate max-w-[150px]">{item.name}</span>
+                                                    <span className="font-bold text-amber-600">{item.count}</span>
+                                                </div>
+                                            ))}
+                                            {(overdueAnalysis?.byAssignee || []).length === 0 && (
+                                                <p className="text-sm text-muted-foreground">Няма данни</p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
