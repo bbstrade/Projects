@@ -340,4 +340,37 @@ export default defineSchema({
     })
         .index("by_task", ["taskId"])
         .index("by_depends_on", ["dependsOnTaskId"]),
+
+    // Customizable Reports - user-created report configurations
+    customReports: defineTable({
+        name: v.string(),
+        description: v.optional(v.string()),
+        userId: v.id("users"),
+        teamId: v.optional(v.string()),
+        isShared: v.boolean(), // visible to team if true
+        layout: v.array(v.object({
+            id: v.string(),
+            type: v.string(), // "metric", "pie", "bar", "line", "area", "table"
+            position: v.object({
+                x: v.number(),
+                y: v.number(),
+                w: v.number(),
+                h: v.number(),
+            }),
+            config: v.object({
+                title: v.string(),
+                dataSource: v.string(), // "projects", "tasks", "approvals", "files"
+                metric: v.string(), // "count", "sum", "avg"
+                metricField: v.optional(v.string()), // for sum/avg
+                groupBy: v.optional(v.string()),
+                filters: v.optional(v.any()),
+                dateRange: v.optional(v.string()), // "7d", "30d", "90d", "custom"
+                colors: v.optional(v.array(v.string())),
+            }),
+        })),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_team", ["teamId"]),
 });

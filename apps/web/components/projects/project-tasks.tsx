@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Plus, LayoutList, Users, Tag, Trash2, Edit2, Calendar, LayoutGrid, List } from "lucide-react";
-import { TaskForm } from "./task-form";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
@@ -32,6 +32,7 @@ export function ProjectTasks({ projectId }: ProjectTasksProps) {
     const [grouping, setGrouping] = useState<"none" | "assignee" | "status">("none");
     const [view, setView] = useState<"list" | "grid">("list");
     const [editingTask, setEditingTask] = useState<any>(null);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const router = useRouter();
 
     const handleDelete = async (id: Id<"tasks">) => {
@@ -232,14 +233,24 @@ export function ProjectTasks({ projectId }: ProjectTasksProps) {
                         </Button>
                     </div>
                 </div>
-                <TaskForm projectId={projectId} />
+                <Button onClick={() => setCreateDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />Нова задача
+                </Button>
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2 min-h-[400px]">
                 {renderGrouped()}
             </div>
 
-            <TaskForm
+            {/* Create Task Dialog */}
+            <CreateTaskDialog
+                projectId={projectId}
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+            />
+
+            {/* Edit Task Dialog */}
+            <CreateTaskDialog
                 projectId={projectId}
                 task={editingTask}
                 open={!!editingTask}

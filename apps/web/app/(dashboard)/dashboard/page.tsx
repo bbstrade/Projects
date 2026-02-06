@@ -1,7 +1,9 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import {
     Card,
     CardContent,
@@ -9,7 +11,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReportBuilder } from "@/components/reports/report-builder";
+import { CustomReportView } from "@/components/reports/custom-report-view";
 import {
     FolderKanban,
     ListTodo,
@@ -23,6 +28,12 @@ import {
     ArrowDownRight,
     Target,
     Zap,
+    Plus,
+    Edit,
+    Trash2,
+    Copy,
+    LayoutDashboard,
+    Share2,
     LineChart as LineChartIcon
 } from "lucide-react";
 import {
@@ -88,6 +99,10 @@ const dict = {
     overdueBreakdown: "Просрочени задачи",
     byProjectAndAssignee: "По проект и отговорник",
     loading: "Зареждане...",
+    myReports: "Моите отчети",
+    createReport: "Нов отчет",
+    noReports: "Нямате персонализирани отчети",
+    createFirst: "Създайте първия си отчет",
 };
 
 const COLORS = {
@@ -238,13 +253,17 @@ export default function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Tabs for Overview/Analytics/Performance */}
+            {/* Tabs for Overview/Analytics/Performance/My Reports */}
             <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
+                <TabsList className="grid w-full grid-cols-5 max-w-[750px]">
                     <TabsTrigger value="overview">{dict.overview}</TabsTrigger>
                     <TabsTrigger value="analytics">{dict.analytics}</TabsTrigger>
                     <TabsTrigger value="trends">{dict.trends}</TabsTrigger>
                     <TabsTrigger value="performance">{dict.performance}</TabsTrigger>
+                    <TabsTrigger value="my-reports" className="flex items-center gap-1">
+                        <LayoutDashboard className="h-4 w-4" />
+                        {dict.myReports}
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -764,7 +783,156 @@ export default function DashboardPage() {
                         </Card>
                     </div>
                 </TabsContent>
+
+                {/* My Reports Tab */}
+                <MyReportsTab />
             </Tabs>
         </div>
+    );
+}
+
+function MyReportsTab() {
+    const reports = useQuery(api.customReports.list, {});
+    const removeReport = useMutation(api.customReports.remove);
+    const duplicateReport = useMutation(api.customReports.duplicate);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+    const [selectedReportId, setSelectedReportId] = useState<Id<"customReports"> | undefined>(undefined);
+    const [viewReportId, setViewReportId] = useState<Id<"customReports"> | null>(null);
+
+    const handleEdit = (id: Id<"customReports">) => {
+        setSelectedReportId(id);
+        setIsBuilderOpen(true);
+    };
+
+    const handleCreate = () => {
+        setSelectedReportId(undefined);
+        setIsBuilderOpen(true);
+    };
+
+    const handleDelete = async (id: Id<"customReports">) => {
+        if (confirm("Сигурни ли сте, че искате да изтриете този отчет?")) {
+            await removeReport({ id });
+            if (viewReportId === id) setViewReportId(null);
+        }
+    };
+
+    const handleDuplicate = async (id: Id<"customReports">) => {
+        await duplicateReport({ id });
+    };
+
+    return (
+        <TabsContent value="my-reports" className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">{dict.myReports}</h3>
+                <Button onClick={handleCreate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {dict.createReport}
+                </Button>
+            </div>
+
+            <div className="grid grid-cols-12 gap-6">
+                {/* Reports List Sidebar */}
+                <div className="col-span-12 md:col-span-3 space-y-3">
+                    {reports === undefined ? (
+                        <div className="text-muted-foreground text-sm">{dict.loading}</div>
+                    ) : reports.length === 0 ? (
+                        <Card>
+                            <CardContent className="p-6 text-center">
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    {dict.noReports}
+                                </p>
+                                <Button variant="outline" size="sm" onClick={handleCreate}>
+                                    {dict.createFirst}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        reports.map((report) => (
+                            <div
+                                key={report._id}
+                                className={`p-3 rounded-lg border cursor-pointer transition-all hover:border-primary/50 group ${viewReportId === report._id ? "bg-muted border-primary" : "bg-card"
+                                    }`}
+                                onClick={() => setViewReportId(report._id)}
+                            >
+                                <div className="flex justify-between items-start mb-1">
+                                    <div className="font-medium truncate pr-2">{report.name}</div>
+                                    {report.isShared && (
+                                        <Share2 className="h-3 w-3 text-blue-500 shrink-0 mt-1" />
+                                    )}
+                                </div>
+                                <div className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                    {report.description || "Няма описание"}
+                                </div>
+                                <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDuplicate(report._id);
+                                        }}
+                                        title="Дублиране"
+                                    >
+                                        <Copy className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(report._id);
+                                        }}
+                                        title="Редактиране"
+                                    >
+                                        <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-red-500 hover:text-red-600"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(report._id);
+                                        }}
+                                        title="Изтриване"
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Report View Area */}
+                <div className="col-span-12 md:col-span-9">
+                    {viewReportId ? (
+                        <CustomReportView reportId={viewReportId} />
+                    ) : (
+                        <div className="h-[400px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
+                            <LayoutDashboard className="h-12 w-12 mb-4 opacity-20" />
+                            <p>Изберете отчет за преглед или създайте нов</p>
+                            <Button variant="outline" className="mt-4" onClick={handleCreate}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                {dict.createReport}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <ReportBuilder
+                open={isBuilderOpen}
+                onOpenChange={setIsBuilderOpen}
+                reportId={selectedReportId}
+                onSave={() => {
+                    // Update list is automatic due to useQuery subscription
+                }}
+            />
+        </TabsContent>
     );
 }
