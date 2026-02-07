@@ -19,6 +19,8 @@ interface Task {
     assigneeId?: Id<"users">;
     color?: string;
     projectId: Id<"projects">;
+    labels?: string[];
+    estimatedHours?: number;
 }
 
 interface User {
@@ -28,31 +30,36 @@ interface User {
     avatar?: string;
 }
 
+interface Project {
+    _id: Id<"projects">;
+    name: string;
+    color?: string;
+}
+
 interface KanbanBoardProps {
     tasks: Task[];
     users?: User[];
+    projects?: Project[];
     onTaskClick?: (id: Id<"tasks">) => void;
 }
 
 const STATUS_COLUMNS = [
-    { id: "todo", labelBg: "За изпълнение", labelEn: "To Do", color: "bg-slate-500" },
-    { id: "in_progress", labelBg: "В процес", labelEn: "In Progress", color: "bg-blue-500" },
-    { id: "in_review", labelBg: "В преглед", labelEn: "In Review", color: "bg-yellow-500" },
-    { id: "done", labelBg: "Завършени", labelEn: "Done", color: "bg-green-500" },
-    { id: "blocked", labelBg: "Блокирани", labelEn: "Blocked", color: "bg-red-500" },
+    { id: "todo", labelBg: "За изпълнение", labelEn: "To Do", color: "bg-slate-500", borderColor: "border-slate-400" },
+    { id: "in_progress", labelBg: "В процес", labelEn: "In Progress", color: "bg-blue-500", borderColor: "border-blue-400" },
+    { id: "in_review", labelBg: "В преглед", labelEn: "In Review", color: "bg-yellow-500", borderColor: "border-yellow-400" },
+    { id: "done", labelBg: "Завършени", labelEn: "Done", color: "bg-green-500", borderColor: "border-green-400" },
+    { id: "blocked", labelBg: "Блокирани", labelEn: "Blocked", color: "bg-red-500", borderColor: "border-red-400" },
 ];
 
-export function KanbanBoard({ tasks, users, onTaskClick }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, users, projects, onTaskClick }: KanbanBoardProps) {
     const { lang } = useLanguage();
     const updateTask = useMutation(api.tasks.update);
 
     const handleDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
 
-        // Dropped outside a valid droppable
         if (!destination) return;
 
-        // Dropped in the same position
         if (destination.droppableId === source.droppableId && destination.index === source.index) {
             return;
         }
@@ -77,25 +84,39 @@ export function KanbanBoard({ tasks, users, onTaskClick }: KanbanBoardProps) {
         return users.find(u => u._id === assigneeId);
     };
 
+    const getProject = (projectId: Id<"projects">) => {
+        return projects?.find(p => p._id === projectId);
+    };
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-300px)]">
-                {STATUS_COLUMNS.map((column) => {
+            <div className="flex gap-5 overflow-x-auto pb-4 min-h-[calc(100vh-300px)]">
+                {STATUS_COLUMNS.map((column, index) => {
                     const columnTasks = getTasksByStatus(column.id);
                     return (
                         <div
                             key={column.id}
-                            className="flex-shrink-0 w-[320px] bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 flex flex-col"
+                            className={cn(
+                                "flex-shrink-0 w-[300px] rounded-xl flex flex-col",
+                                "bg-gradient-to-b from-slate-100/80 to-slate-50/50 dark:from-slate-900/80 dark:to-slate-950/50",
+                                "border border-slate-200/60 dark:border-slate-800/60",
+                                "shadow-sm"
+                            )}
                         >
-                            {/* Column Header */}
-                            <div className="flex items-center gap-2 mb-4 px-1">
-                                <div className={cn("w-3 h-3 rounded-full", column.color)} />
-                                <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300">
-                                    {lang === "bg" ? column.labelBg : column.labelEn}
-                                </h3>
-                                <span className="ml-auto text-xs font-semibold text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                                    {columnTasks.length}
-                                </span>
+                            {/* Column Header with colored top border */}
+                            <div className={cn(
+                                "rounded-t-xl border-t-4 px-4 py-3",
+                                column.borderColor
+                            )}>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", column.color)} />
+                                    <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">
+                                        {lang === "bg" ? column.labelBg : column.labelEn}
+                                    </h3>
+                                    <span className="ml-auto text-xs font-bold text-white bg-slate-400 dark:bg-slate-600 px-2 py-0.5 rounded-full min-w-[24px] text-center">
+                                        {columnTasks.length}
+                                    </span>
+                                </div>
                             </div>
 
                             {/* Droppable Area */}
@@ -105,8 +126,9 @@ export function KanbanBoard({ tasks, users, onTaskClick }: KanbanBoardProps) {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                         className={cn(
-                                            "flex-1 space-y-3 min-h-[200px] p-1 rounded-lg transition-colors overflow-y-auto max-h-[calc(100vh-400px)]",
-                                            snapshot.isDraggingOver && "bg-slate-200/50 dark:bg-slate-800/50"
+                                            "flex-1 space-y-3 p-3 rounded-b-xl transition-all overflow-y-auto",
+                                            "min-h-[200px] max-h-[calc(100vh-380px)]",
+                                            snapshot.isDraggingOver && "bg-slate-200/70 dark:bg-slate-800/70 ring-2 ring-inset ring-primary/30"
                                         )}
                                     >
                                         {columnTasks.map((task, index) => (
@@ -117,13 +139,14 @@ export function KanbanBoard({ tasks, users, onTaskClick }: KanbanBoardProps) {
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
                                                         className={cn(
-                                                            "transition-transform",
-                                                            snapshot.isDragging && "rotate-2 scale-105"
+                                                            "transition-all duration-200",
+                                                            snapshot.isDragging && "rotate-2 scale-105 shadow-2xl"
                                                         )}
                                                     >
                                                         <KanbanTaskCard
                                                             task={task}
                                                             assignee={getAssignee(task.assigneeId)}
+                                                            project={getProject(task.projectId)}
                                                             onClick={() => onTaskClick?.(task._id)}
                                                         />
                                                     </div>
@@ -134,7 +157,8 @@ export function KanbanBoard({ tasks, users, onTaskClick }: KanbanBoardProps) {
 
                                         {/* Empty state */}
                                         {columnTasks.length === 0 && !snapshot.isDraggingOver && (
-                                            <div className="flex items-center justify-center h-24 text-sm text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                            <div className="flex flex-col items-center justify-center h-28 text-sm text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg bg-white/50 dark:bg-slate-900/50">
+                                                <span className="text-2xl mb-1">📋</span>
                                                 {lang === "bg" ? "Няма задачи" : "No tasks"}
                                             </div>
                                         )}

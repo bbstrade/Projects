@@ -6,9 +6,10 @@ import { TaskCard } from "@/components/tasks/task-card";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
 import { KanbanBoard } from "@/components/tasks/kanban-board";
+import { CalendarView } from "@/components/tasks/calendar-view";
 import { format } from "date-fns";
 import {
-    LayoutGrid, List, Filter,
+    LayoutGrid, List, Filter, Calendar,
     CheckCircle2, Clock, BarChart3, GanttChart as GanttChartIcon,
     AlertTriangle, Trash2, ListTodo
 } from "lucide-react";
@@ -42,7 +43,7 @@ export default function TasksPage() {
     const [projectFilter, setProjectFilter] = useState("all");
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [sortBy, setSortBy] = useState("newest");
-    const [viewMode, setViewMode] = useState<"grid" | "list" | "gantt">("list");
+    const [viewMode, setViewMode] = useState<"grid" | "list" | "gantt" | "calendar">("list");
     const [showFilters, setShowFilters] = useState(false);
 
     // Task Detail Dialog State
@@ -238,6 +239,7 @@ export default function TasksPage() {
                                         { mode: "grid", Icon: LayoutGrid, label: t.board },
                                         { mode: "list", Icon: List, label: t.list },
                                         { mode: "gantt", Icon: GanttChartIcon, label: "Gantt" },
+                                        { mode: "calendar", Icon: Calendar, label: lang === "bg" ? "Календар" : "Calendar" },
                                     ].map(({ mode, Icon, label }) => (
                                         <Button
                                             key={mode}
@@ -393,6 +395,7 @@ export default function TasksPage() {
                                 <KanbanBoard
                                     tasks={processedTasks}
                                     users={users}
+                                    projects={projects}
                                     onTaskClick={handleTaskClick}
                                 />
                             )}
@@ -421,6 +424,7 @@ export default function TasksPage() {
                                 </div>
                             )}
 
+                            {/* Gantt View */}
                             {viewMode === "gantt" && (
                                 <GanttView
                                     items={processedTasks
@@ -434,6 +438,14 @@ export default function TasksPage() {
                                             color: t.priority === "high" ? "bg-amber-500" :
                                                 t.priority === "critical" ? "bg-rose-500" : "bg-blue-500"
                                         }))}
+                                />
+                            )}
+
+                            {/* Calendar View */}
+                            {viewMode === "calendar" && (
+                                <CalendarView
+                                    tasks={processedTasks}
+                                    onTaskClick={handleTaskClick}
                                 />
                             )}
                         </>
