@@ -306,7 +306,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             filterByProject: "Филтрирай по проект",
             filterByAssignee: "Филтрирай по изпълнител",
             filterByPriority: "Филтрирай по приоритет",
-            myTasks: "Моите задачи",
             allTasks: "Всички задачи",
             allProjects: "Всички проекти",
             allAssignees: "Всички изпълнители",
@@ -319,10 +318,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             taskStatusUpdated: "Статусът на задачата е обновен",
             taskDeleted: "Задачата е изтрита",
             taskMarkedDone: "Задачата е маркирана като завършена",
-            view: "Преглед",
-            edit: "Редактирай",
-            delete: "Изтрий",
-            markAsDone: "Маркирай като завършена",
             unassigned: "Неразпределена",
             wipLimitReached: "WIP лимит достигнат",
             taskAdded: "Задачата е добавена",
@@ -330,7 +325,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             selectProject: "Изберете проект",
             clearFilters: "Изчисти филтрите",
             // Tasks Page Redesign
-            tasksTitle: "Задачи",
             tasksSubtitle: "Управлявайте задачите по проекти",
             newTask: "Нова Задача",
             searchTasks: "Търсене на задачи...",
@@ -349,7 +343,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             viewCalendar: "Календар",
             noTasksFound: "Няма намерени задачи",
             noTasksDescription: "Създайте нова задача или променете филтрите.",
-            status: "Статус",
         },
 
         en: {
@@ -618,7 +611,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             filterByProject: "Filter by project",
             filterByAssignee: "Filter by assignee",
             filterByPriority: "Filter by priority",
-            myTasks: "My Tasks",
             allTasks: "All Tasks",
             allProjects: "All Projects",
             allAssignees: "All Assignees",
@@ -631,10 +623,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             taskStatusUpdated: "Task status updated",
             taskDeleted: "Task deleted",
             taskMarkedDone: "Task marked as done",
-            view: "View",
-            edit: "Edit",
-            delete: "Delete",
-            markAsDone: "Mark as done",
             unassigned: "Unassigned",
             wipLimitReached: "WIP limit reached",
             taskAdded: "Task added",
@@ -642,7 +630,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             selectProject: "Select project",
             clearFilters: "Clear filters",
             // Tasks Page Redesign
-            tasksTitle: "Tasks",
             tasksSubtitle: "Manage tasks across projects",
             newTask: "New Task",
             searchTasks: "Search tasks...",
@@ -661,7 +648,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             viewCalendar: "Calendar",
             noTasksFound: "No tasks found",
             noTasksDescription: "Create a new task or adjust your filters.",
-            status: "Status",
         }
     };
 
