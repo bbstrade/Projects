@@ -122,6 +122,7 @@ export const update = mutation({
                 theme: v.string(),
                 notifications: v.boolean(),
                 language: v.string(),
+                kanbanColumnOrder: v.optional(v.array(v.string())),
             })
         ),
     },
@@ -213,5 +214,41 @@ export const setSuperAdmin = mutation({
 
         await ctx.db.patch(user._id, { systemRole: "superadmin" });
         return "Role updated to superadmin";
+    },
+});
+
+/**
+ * Update Kanban column order in user preferences
+ */
+export const updateKanbanColumnOrder = mutation({
+    args: {
+        columnOrder: v.array(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        const currentPreferences = user.preferences || {
+            theme: "system",
+            notifications: true,
+            language: "bg",
+        };
+
+        await ctx.db.patch(user._id, {
+            preferences: {
+                ...currentPreferences,
+                kanbanColumnOrder: args.columnOrder,
+            },
+            updatedAt: Date.now(),
+        });
+
+        return { success: true };
     },
 });

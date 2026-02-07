@@ -22,6 +22,7 @@ import {
     Globe,
     Sun,
     Moon,
+    Layout,
 } from "lucide-react";
 import { TeamSwitcher } from "@/components/team-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +40,7 @@ export const sidebarItems = [
     { icon: FileCheck, labelKey: "approvals", href: "/approvals" },
     { icon: Users, labelKey: "teams", href: "/teams" },
     { icon: FileText, labelKey: "reports", href: "/reports" },
+    { icon: Layout, labelKey: "templates", href: "/settings?tab=templates" },
     { icon: Settings, labelKey: "settings", href: "/settings" },
 ];
 

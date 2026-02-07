@@ -126,6 +126,7 @@ export default defineSchema({
             theme: v.string(),
             notifications: v.boolean(),
             language: v.string(),
+            kanbanColumnOrder: v.optional(v.array(v.string())),
         })),
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),

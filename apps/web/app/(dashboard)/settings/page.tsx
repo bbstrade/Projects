@@ -17,13 +17,14 @@ export default function SettingsPage() {
     const user = useQuery(api.users.me);
 
     const dict = {
-        title: t("settings") || (isBg ? "Настройки" : "Settings"),
-        subtitle: isBg ? "Управление на вашия профил и настройки на системата" : "Manage your profile and system preferences",
-        loading: isBg ? "Зареждане..." : "Loading...",
+        title: t("settings"),
+        subtitle: t("profileDesc"),
+        loading: t("loading"),
         tabs: {
-            profile: t("profile") || (isBg ? "Профил" : "Profile"),
-            notifications: isBg ? "Нотификации" : "Notifications",
-            export: isBg ? "Експорт на данни" : "Data Export",
+            profile: t("tabProfile"),
+            notifications: t("tabNotifications"),
+            export: t("tabExport"),
+            templates: t("tabTemplates"),
         }
     };
 
@@ -74,7 +75,7 @@ export default function SettingsPage() {
                         className="w-full justify-start px-4 py-3 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted transition-colors gap-3 font-medium"
                     >
                         <Layout className="h-4 w-4" />
-                        {isBg ? "Темплейти" : "Templates"}
+                        {dict.tabs.templates}
                     </TabsTrigger>
                 </TabsList>
 
@@ -90,9 +91,7 @@ export default function SettingsPage() {
                     <TabsContent value="export" className="m-0 space-y-6">
                         <DataExportTab />
                     </TabsContent>
-                    <TabsContent value="export" className="m-0 space-y-6">
-                        <DataExportTab />
-                    </TabsContent>
+
 
                     <TabsContent value="templates" className="m-0 space-y-6 h-full">
                         <TemplateManager />
