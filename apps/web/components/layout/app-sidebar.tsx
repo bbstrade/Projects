@@ -40,7 +40,7 @@ export const sidebarItems = [
     { icon: FileCheck, labelKey: "approvals", href: "/approvals" },
     { icon: Users, labelKey: "teams", href: "/teams" },
     { icon: FileText, labelKey: "reports", href: "/reports" },
-    { icon: Layout, labelKey: "templates", href: "/settings?tab=templates" },
+    { icon: Layout, labelKey: "templates", href: "/templates" },
     { icon: Settings, labelKey: "settings", href: "/settings" },
 ];
 

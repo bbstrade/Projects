@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useMutation } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Layout, ListTodo, Calendar, Clock } from "lucide-react";
+import { Plus, Layout, ListTodo, Calendar, Clock, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { CreateProjectTemplateDialog } from "./create-project-template-dialog";
@@ -18,6 +20,8 @@ import { Doc } from "@/convex/_generated/dataModel";
 export function TemplateManager() {
     const projectTemplates = useQuery(api.templates.listProjectTemplates);
     const taskTemplates = useQuery(api.templates.listTaskTemplates);
+    const deleteProjectTemplate = useMutation(api.templates.deleteProjectTemplate);
+    const deleteTaskTemplate = useMutation(api.templates.deleteTaskTemplate);
 
     const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
@@ -86,13 +90,28 @@ export function TemplateManager() {
                                                     <span>{template.estimatedDuration} Days Duration</span>
                                                 </div>
                                             </div>
-                                            <Button
-                                                className="w-full"
-                                                variant="outline"
-                                                onClick={() => setSelectedProjectTemplate(template)}
-                                            >
-                                                Use Template
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    className="flex-1"
+                                                    variant="outline"
+                                                    onClick={() => setSelectedProjectTemplate(template)}
+                                                >
+                                                    Use Template
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-muted-foreground hover:text-destructive"
+                                                    onClick={() => {
+                                                        if (confirm("Are you sure you want to delete this template?")) {
+                                                            deleteProjectTemplate({ id: template._id });
+                                                            toast.success("Template deleted");
+                                                        }
+                                                    }}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </CardContent>
                                     </Card>
                                 ))
@@ -142,13 +161,28 @@ export function TemplateManager() {
                                                     <Badge variant="outline" className="w-fit">{template.category}</Badge>
                                                 )}
                                             </div>
-                                            <Button
-                                                className="w-full"
-                                                variant="outline"
-                                                onClick={() => setSelectedTaskTemplate(template)}
-                                            >
-                                                Use Template
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    className="flex-1"
+                                                    variant="outline"
+                                                    onClick={() => setSelectedTaskTemplate(template)}
+                                                >
+                                                    Use Template
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-muted-foreground hover:text-destructive"
+                                                    onClick={() => {
+                                                        if (confirm("Are you sure you want to delete this template?")) {
+                                                            deleteTaskTemplate({ id: template._id });
+                                                            toast.success("Template deleted");
+                                                        }
+                                                    }}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </CardContent>
                                     </Card>
                                 ))

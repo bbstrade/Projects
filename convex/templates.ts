@@ -49,6 +49,23 @@ export const getProjectTemplate = query({
     },
 });
 
+export const deleteProjectTemplate = mutation({
+    args: { id: v.id("projectTemplates") },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) throw new Error("Unauthorized");
+
+        const template = await ctx.db.get(args.id);
+        if (!template) throw new Error("Template not found");
+
+        if (template.createdBy !== userId && !template.isPublic) {
+            throw new Error("Unauthorized to delete this template");
+        }
+
+        await ctx.db.delete(args.id);
+    }
+});
+
 export const instantiateProjectTemplate = mutation({
     args: {
         templateId: v.id("projectTemplates"),
@@ -150,6 +167,23 @@ export const listTaskTemplates = query({
         const templates = await ctx.db.query("taskTemplates").collect();
         return templates.filter(t => t.isPublic || t.createdBy === userId);
     },
+});
+
+export const deleteTaskTemplate = mutation({
+    args: { id: v.id("taskTemplates") },
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx);
+        if (!userId) throw new Error("Unauthorized");
+
+        const template = await ctx.db.get(args.id);
+        if (!template) throw new Error("Template not found");
+
+        if (template.createdBy !== userId && !template.isPublic) {
+            throw new Error("Unauthorized to delete this template");
+        }
+
+        await ctx.db.delete(args.id);
+    }
 });
 
 export const instantiateTaskTemplate = mutation({

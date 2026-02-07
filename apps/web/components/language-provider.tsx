@@ -143,6 +143,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             management: "Управление",
             tabTemplates: "Шаблони",
             templates: "Шаблони",
+            templatesSubtitle: "Управление на шаблони за проекти и задачи",
             selectTeam: "Изберете екип",
             searchTeam: "Търсене на екип...",
             noTeamsFound: "Няма намерени екипи.",
@@ -409,6 +410,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
             tabTemplates: "Templates",
             templates: "Templates",
+            templatesSubtitle: "Manage project and task templates",
             selectTeam: "Select team",
             searchTeam: "Search team...",
             noTeamsFound: "No teams found.",
