@@ -2,10 +2,11 @@
 
 import { useLanguage } from "@/components/language-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Download } from "lucide-react";
+import { User, Bell, Download, Layout } from "lucide-react";
 import ProfileTab from "@/components/settings/ProfileTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
 import DataExportTab from "@/components/settings/DataExportTab";
+import { TemplateManager } from "@/components/templates/template-manager";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -68,6 +69,13 @@ export default function SettingsPage() {
                         <Download className="h-4 w-4" />
                         {dict.tabs.export}
                     </TabsTrigger>
+                    <TabsTrigger
+                        value="templates"
+                        className="w-full justify-start px-4 py-3 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted transition-colors gap-3 font-medium"
+                    >
+                        <Layout className="h-4 w-4" />
+                        {isBg ? "Темплейти" : "Templates"}
+                    </TabsTrigger>
                 </TabsList>
 
                 <div className="flex-1">
@@ -81,6 +89,13 @@ export default function SettingsPage() {
 
                     <TabsContent value="export" className="m-0 space-y-6">
                         <DataExportTab />
+                    </TabsContent>
+                    <TabsContent value="export" className="m-0 space-y-6">
+                        <DataExportTab />
+                    </TabsContent>
+
+                    <TabsContent value="templates" className="m-0 space-y-6 h-full">
+                        <TemplateManager />
                     </TabsContent>
                 </div>
             </Tabs>

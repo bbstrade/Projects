@@ -94,15 +94,15 @@ export function KanbanTaskCard({ task, assignee, project, onClick }: KanbanTaskC
             )}
             onClick={onClick}
         >
-            {/* Color stripe on top */}
+            {/* Color stripe on left side (like ProjectCard) */}
             {cardColor && (
                 <div
-                    className="absolute top-0 left-0 right-0 h-1"
+                    className="absolute left-0 top-0 bottom-0 w-1"
                     style={{ backgroundColor: cardColor }}
                 />
             )}
 
-            <div className={cn("p-3 space-y-2.5", cardColor && "pt-4")}>
+            <div className={cn("p-3 space-y-2.5", cardColor && "pl-4")}>
                 {/* Top Row: Priority + Project */}
                 <div className="flex items-center justify-between gap-2">
                     {/* Priority */}

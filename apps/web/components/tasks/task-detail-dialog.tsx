@@ -11,6 +11,15 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CreateTaskTemplateDialog } from "@/components/templates/create-task-template-dialog";
+import { MoreHorizontal } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +58,7 @@ import {
     Check,
     ChevronsUpDown,
     Edit,
+    X,
 } from "lucide-react";
 import {
     Command,
@@ -118,6 +128,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     const [estimatedHours, setEstimatedHours] = useState<number | string>(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isChecklistHelpOpen, setIsChecklistHelpOpen] = useState(false);
+    const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
 
     // Sync state with task data
     useEffect(() => {
@@ -301,7 +312,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[1200px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-white">
+            <DialogContent className="sm:max-w-[1200px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-white [&>button]:hidden">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -344,6 +355,28 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                     {task.color && (
                                         <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: task.color }} />
                                     )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => setIsCreateTemplateOpen(true)}>
+                                                {t("saveAsTemplate") || "Запази като шаблон"}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full"
+                                        onClick={() => onOpenChange(false)}
+                                    >
+                                        <X className="h-5 w-5 text-slate-500" />
+                                    </Button>
                                 </div>
                             </div>
                             <div className="flex items-center">
@@ -588,7 +621,39 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {customStatuses?.map((opt) => (
+                                                        {/* Default Statuses */}
+                                                        <SelectItem value="todo">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-slate-400" />
+                                                                {lang === "bg" ? "За изпълнение" : "To Do"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="in_progress">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                                                {lang === "bg" ? "В процес" : "In Progress"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="in_review">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                                                                {lang === "bg" ? "В преглед" : "In Review"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="done">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-green-500" />
+                                                                {lang === "bg" ? "Завършена" : "Done"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="blocked">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                                                                {lang === "bg" ? "Блокирана" : "Blocked"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        {/* Custom Statuses */}
+                                                        {customStatuses?.filter(s => !["todo", "in_progress", "in_review", "done", "blocked"].includes(s.slug)).map((opt) => (
                                                             <SelectItem key={opt.slug} value={opt.slug}>
                                                                 <div className="flex items-center gap-2">
                                                                     <div className="h-2 w-2 rounded-full" style={{ backgroundColor: opt.color }} />
@@ -606,7 +671,29 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                 <Select
                                                     value={task.priority}
                                                     onValueChange={async (value) => {
-                                                        await updateTask({ id: task._id, priority: value });
+                                                        // Determine color based on priority
+                                                        let newColor = "";
+                                                        const defaultColors: Record<string, string> = {
+                                                            low: "#94a3b8",      // slate-400
+                                                            medium: "#3b82f6",   // blue-500
+                                                            high: "#f97316",     // orange-500
+                                                            critical: "#ef4444", // red-500
+                                                        };
+
+                                                        if (defaultColors[value]) {
+                                                            newColor = defaultColors[value];
+                                                        } else {
+                                                            const customPriority = customPriorities?.find(p => p.slug === value);
+                                                            if (customPriority?.color) {
+                                                                newColor = customPriority.color;
+                                                            }
+                                                        }
+
+                                                        await updateTask({
+                                                            id: task._id,
+                                                            priority: value,
+                                                            color: newColor
+                                                        });
                                                         toast.success(t("priorityUpdated") || "Приоритетът е променен");
                                                     }}
                                                 >
@@ -614,7 +701,33 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {customPriorities?.map((opt) => (
+                                                        {/* Default Priorities */}
+                                                        <SelectItem value="low">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-slate-400" />
+                                                                {lang === "bg" ? "Нисък" : "Low"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                                                {lang === "bg" ? "Среден" : "Medium"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="high">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-orange-500" />
+                                                                {lang === "bg" ? "Висок" : "High"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="critical">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                                                                {lang === "bg" ? "Критичен" : "Critical"}
+                                                            </div>
+                                                        </SelectItem>
+                                                        {/* Custom Priorities */}
+                                                        {customPriorities?.filter(p => !["low", "medium", "high", "critical"].includes(p.slug)).map((opt) => (
                                                             <SelectItem key={opt.slug} value={opt.slug}>
                                                                 <div className="flex items-center gap-2">
                                                                     <div className="h-2 w-2 rounded-full" style={{ backgroundColor: opt.color }} />
@@ -725,15 +838,7 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                                                     task.assigneeId === currentUser._id ? "opacity-100" : "opacity-0"
                                                                                 )}
                                                                             />
-                                                                            <div className="flex items-center gap-2">
-                                                                                <Avatar className="h-6 w-6">
-                                                                                    <AvatarImage src={currentUser.avatar} />
-                                                                                    <AvatarFallback className="text-[10px]">{currentUser.name?.[0]}</AvatarFallback>
-                                                                                </Avatar>
-                                                                                <div className="flex flex-col">
-                                                                                    <span className="text-sm font-medium">{currentUser.name} ({t("me") || "Аз"})</span>
-                                                                                </div>
-                                                                            </div>
+                                                                            {currentUser.name} (You)
                                                                         </CommandItem>
                                                                     )}
                                                                 </CommandGroup>
@@ -742,198 +847,25 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
                                                     </PopoverContent>
                                                 </Popover>
                                             </div>
-
-                                            {/* Due Date */}
-                                            <div className="space-y-1.5">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{t("dueDate")}</span>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            className={cn(
-                                                                "w-full justify-start text-left font-normal h-9 bg-slate-50 border-slate-200",
-                                                                !task.dueDate && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {task.dueDate ? format(task.dueDate, "PPP", { locale: lang === "bg" ? bgLocale : enLocale }) : (t("selectDate") || "Изберете дата")}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <CalendarComponent
-                                                            mode="single"
-                                                            selected={task.dueDate ? new Date(task.dueDate) : undefined}
-                                                            onSelect={async (date) => {
-                                                                await updateTask({ id: task._id, dueDate: date?.getTime() });
-                                                                toast.success(t("dueDateUpdated") || "Крайният срок е променен");
-                                                            }}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-
-                                            {/* Estimated Hours */}
-                                            <div className="space-y-1.5">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{t("taskEstimatedHoursLabel") || "Прогноза (часове)"}</span>
-                                                <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 bg-slate-50">
-                                                    <Clock className="h-4 w-4 text-slate-400" />
-                                                    <Input
-                                                        type="number"
-                                                        value={estimatedHours}
-                                                        onChange={(e) => setEstimatedHours(e.target.value)}
-                                                        onBlur={() => {
-                                                            const val = Number(estimatedHours);
-                                                            if (!isNaN(val) && val !== task.estimatedHours) {
-                                                                updateTask({ id: task._id, estimatedHours: val });
-                                                                toast.success(t("estimatedHoursUpdated") || "Прогнозата е обновена");
-                                                            }
-                                                        }}
-                                                        className="h-full border-none shadow-none bg-transparent focus-visible:ring-0 p-0 text-sm font-medium"
-                                                        min={0}
-                                                        step="0.5"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Color */}
-                                            <div className="space-y-1.5">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{t("taskColorLabel") || "Цвят"}</span>
-                                                <div className="pt-1">
-                                                    <ColorPicker
-                                                        value={task.color}
-                                                        onChange={async (value) => {
-                                                            await updateTask({ id: task._id, color: value });
-                                                            toast.success(t("colorUpdated") || "Цветът е променен");
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Comments List */}
-                                        <div className="space-y-3">
-                                            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                                <MessageSquare className="h-4 w-4 text-slate-400" />
-                                                {t("comments")} ({comments?.length || 0})
-                                            </h3>
-
-                                            <div className="space-y-4 min-h-[100px]">
-                                                {comments && comments.length > 0 ? (
-                                                    comments.map((comment: any) => (
-                                                        <div key={comment._id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                            <Avatar className="h-6 w-6 mt-1 flex-shrink-0">
-                                                                <AvatarImage src={comment.userAvatar} />
-                                                                <AvatarFallback className="text-[10px] bg-slate-100 text-slate-500">{comment.userName?.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-1 min-w-0 space-y-1">
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-xs font-semibold text-slate-700 truncate">{comment.userName}</span>
-                                                                    <span className="text-[10px] text-slate-300 flex-shrink-0">
-                                                                        {format(comment.createdAt, "d MMM, HH:mm", { locale: lang === "bg" ? bgLocale : enLocale })}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="bg-white p-2.5 rounded-2xl rounded-tl-none text-xs text-slate-600 leading-relaxed border shadow-sm">
-                                                                    {comment.content}
-                                                                    {/* Attachments */}
-                                                                    {comment.attachments && comment.attachments.length > 0 && (
-                                                                        <div className="mt-2 flex flex-wrap gap-2">
-                                                                            {comment.attachments.map((att: any, idx: number) => (
-                                                                                <div key={idx} className="flex items-center gap-1.5 p-1.5 bg-slate-50 rounded border border-slate-100 text-[10px]">
-                                                                                    <FileIcon className="h-3 w-3 text-blue-500" />
-                                                                                    <span className="max-w-[100px] truncate" title={att.name}>{att.name}</span>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="text-center py-8 text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
-                                                        <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-10" />
-                                                        <p className="text-xs">{t("noComments") || "Няма коментари."}</p>
-                                                    </div>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
                                 </ScrollArea>
-
-                                {/* Comment Input (Sticky Bottom of Sidebar) */}
-                                <div
-                                    className="p-4 border-t bg-white"
-                                    onDragOver={(e) => e.preventDefault()}
-                                    onDrop={onCommentDrop}
-                                >
-                                    <div className="space-y-2">
-                                        {commentFiles.length > 0 && (
-                                            <div className="flex gap-2 overflow-x-auto pb-2">
-                                                {commentFiles.map((file, idx) => (
-                                                    <div key={idx} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] border border-blue-100 flex-shrink-0">
-                                                        <span className="truncate max-w-[80px]">{file.name}</span>
-                                                        <button onClick={() => removeCommentFile(idx)} className="text-blue-400 hover:text-blue-600">
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <MentionInput
-                                            value={newComment}
-                                            onChange={handleCommentChange}
-                                            placeholder={t("taskCommentPlaceholder")}
-                                            className="min-h-[80px] text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                                            teamId={project?.teamId}
-                                            disabled={isSubmitting}
-                                        />
-
-                                        <div className="flex items-center justify-end">
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="file"
-                                                    id="comment-file-upload"
-                                                    className="hidden"
-                                                    multiple
-                                                    onChange={handleCommentFileUpload}
-                                                    disabled={isSubmitting}
-                                                />
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="h-7 px-2 text-slate-500"
-                                                    asChild
-                                                >
-                                                    <label htmlFor="comment-file-upload" className="cursor-pointer flex items-center gap-1">
-                                                        <Upload className="h-3 w-3" />
-                                                    </label>
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={handleAddComment}
-                                                    disabled={(!newComment.trim() && commentFiles.length === 0) || isSubmitting}
-                                                    className="h-7 px-3 text-xs"
-                                                >
-                                                    {isSubmitting ? (
-                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            <Send className="h-3 w-3 mr-1.5" />
-                                                            {t("send")}
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </>
                 )}
+                <CreateTaskTemplateDialog
+                    open={isCreateTemplateOpen}
+                    onOpenChange={setIsCreateTemplateOpen}
+                    initialData={task ? {
+                        title: task.title,
+                        description: task.description,
+                        priority: task.priority,
+                        estimatedHours: task.estimatedHours?.toString(),
+                        subtasks: subtasks?.map(s => s.title),
+                    } : undefined}
+                />
             </DialogContent>
-        </Dialog >
+        </Dialog>
     );
 }

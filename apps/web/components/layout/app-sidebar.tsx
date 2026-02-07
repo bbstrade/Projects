@@ -78,7 +78,7 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
     const { myTasks, taskStats, allTaskStatuses } = useMemo(() => {
         if (!tasks || !user) return { myTasks: [], taskStats: { todo: 0, inProgress: 0, overdue: 0, done: 0 }, allTaskStatuses: [] };
 
-        const myTasksFiltered = tasks.filter(t => t.assignee_email === user.email);
+        const myTasksFiltered = tasks.filter(t => t.assigneeId === user._id);
 
         const now = new Date();
         const stats = {
@@ -111,8 +111,8 @@ export function AppSidebar({ className, onMobileNavigate, onOpenSearch }: AppSid
         if (!projects || !user) return { myProjects: [], allProjectStatuses: [] };
 
         const myProjectsFiltered = projects.filter((p) => {
-            // 1. Creator
-            if (p.created_by === user.email) return true;
+            // 1. Creator/Owner
+            if (p.ownerId === user._id || p.created_by === user.email) return true;
             // 2. Member
             if (Array.isArray(p.team_members) && p.team_members.length > 0) {
                 return p.team_members.some(member => {

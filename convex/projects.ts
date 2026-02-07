@@ -44,6 +44,31 @@ export const get = query({
     },
 });
 
+export const getWithTasks = query({
+    args: { id: v.id("projects") },
+    handler: async (ctx, args) => {
+        const project = await ctx.db.get(args.id);
+        if (!project) return null;
+
+        const tasks = await ctx.db
+            .query("tasks")
+            .withIndex("by_project", (q) => q.eq("projectId", args.id))
+            .collect();
+
+        const tasksWithSubtasks = await Promise.all(
+            tasks.map(async (t) => {
+                const subtasks = await ctx.db
+                    .query("subtasks")
+                    .withIndex("by_task", (q) => q.eq("taskId", t._id))
+                    .collect();
+                return { ...t, subtasks: subtasks.map(s => s.title) };
+            })
+        );
+
+        return { ...project, tasks: tasksWithSubtasks };
+    },
+});
+
 export const getStats = query({
     args: { projectId: v.id("projects") },
     handler: async (ctx, args) => {

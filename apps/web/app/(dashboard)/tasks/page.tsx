@@ -36,6 +36,7 @@ export default function TasksPage() {
     const users = useQuery(api.users.list);
     const projects = useQuery(api.projects.list);
     const metrics = useQuery(api.analytics.taskMetrics, {});
+    const customStatuses = useQuery(api.admin.getCustomStatuses, { type: "task" });
 
     const [statusFilter, setStatusFilter] = useState("all");
     const [priorityFilter, setPriorityFilter] = useState("all");
@@ -43,7 +44,7 @@ export default function TasksPage() {
     const [projectFilter, setProjectFilter] = useState("all");
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [sortBy, setSortBy] = useState("newest");
-    const [viewMode, setViewMode] = useState<"grid" | "list" | "gantt" | "calendar">("list");
+    const [viewMode, setViewMode] = useState<"grid" | "list" | "gantt" | "calendar">("grid");
     const [showFilters, setShowFilters] = useState(false);
 
     // Task Detail Dialog State
@@ -396,6 +397,7 @@ export default function TasksPage() {
                                     tasks={processedTasks}
                                     users={users}
                                     projects={projects}
+                                    customStatuses={customStatuses}
                                     onTaskClick={handleTaskClick}
                                 />
                             )}
@@ -436,7 +438,9 @@ export default function TasksPage() {
                                             endDate: t.dueDate || (t.createdAt || Date.now()) + (7 * 86400000),
                                             progress: t.status === "done" ? 100 : t.status === "in_progress" ? 50 : 0,
                                             color: t.priority === "high" ? "bg-amber-500" :
-                                                t.priority === "critical" ? "bg-rose-500" : "bg-blue-500"
+                                                t.priority === "critical" ? "bg-rose-500" : "bg-blue-500",
+                                            status: t.status,
+                                            priority: t.priority
                                         }))}
                                 />
                             )}

@@ -231,13 +231,7 @@ export default defineSchema({
         .index("by_project", ["projectId"])
         .index("by_email", ["email"]),
 
-    projectTemplates: defineTable({
-        name: v.string(),
-        description: v.optional(v.string()),
-        structure: v.any(), // JSON structure of tasks/phases
-        createdBy: v.id("users"),
-        createdAt: v.number(),
-    }),
+
 
     files: defineTable({
         storageId: v.id("_storage"),
@@ -373,4 +367,34 @@ export default defineSchema({
     })
         .index("by_user", ["userId"])
         .index("by_team", ["teamId"]),
+
+
+    projectTemplates: defineTable({
+        name: v.string(),
+        description: v.optional(v.string()),
+        priority: v.string(),
+        estimatedDuration: v.number(), // in days
+        tasks: v.array(v.object({
+            title: v.string(),
+            description: v.optional(v.string()),
+            priority: v.string(),
+            estimatedHours: v.optional(v.number()),
+            subtasks: v.optional(v.array(v.string())),
+        })),
+        createdBy: v.id("users"),
+        createdAt: v.number(),
+        isPublic: v.optional(v.boolean()),
+    }),
+
+    taskTemplates: defineTable({
+        title: v.string(),
+        description: v.optional(v.string()),
+        priority: v.string(),
+        estimatedHours: v.optional(v.number()),
+        subtasks: v.optional(v.array(v.string())),
+        createdBy: v.id("users"),
+        createdAt: v.number(),
+        category: v.optional(v.string()),
+        isPublic: v.optional(v.boolean()),
+    }),
 });

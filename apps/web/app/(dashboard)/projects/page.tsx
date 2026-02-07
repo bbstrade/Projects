@@ -438,7 +438,9 @@ export default function ProjectsPage() {
                                         endDate: p.endDate || (p.startDate || p._creationTime) + (30 * 86400000),
                                         progress: p.progress || 0,
                                         color: p.priority === "high" ? "bg-amber-500" :
-                                            p.priority === "critical" ? "bg-rose-500" : "bg-blue-500"
+                                            p.priority === "critical" ? "bg-rose-500" : "bg-blue-500",
+                                        status: p.status,
+                                        priority: p.priority as string
                                     }))}
                                 />
                             )}

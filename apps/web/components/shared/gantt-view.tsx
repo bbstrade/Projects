@@ -13,6 +13,8 @@ interface GanttItem {
     endDate: number;
     progress: number;
     color?: string;
+    status?: string;
+    priority?: string;
 }
 
 interface GanttViewProps {
@@ -41,15 +43,37 @@ export function GanttView({ items, rangeDays = 30 }: GanttViewProps) {
     return (
         <div className="border border-border rounded-xl bg-white dark:bg-slate-950 overflow-hidden shadow-lg">
             <div className="flex h-full">
-                {/* Sticky Left Sidebar for Titles */}
-                <div className="w-48 flex-shrink-0 border-r border-border bg-slate-50/50 dark:bg-slate-900/50 z-30">
-                    <div className="h-14 border-b border-border flex items-center px-4 font-bold text-xs uppercase tracking-wider text-muted-foreground bg-white dark:bg-slate-950">
-                        Инициатива
+                {/* Sticky Left Sidebar for Titles & Info */}
+                <div className="w-80 flex-shrink-0 border-r border-border bg-slate-50/50 dark:bg-slate-900/50 z-30 flex flex-col">
+                    <div className="h-14 border-b border-border flex items-center px-4 font-bold text-xs uppercase tracking-wider text-muted-foreground bg-white dark:bg-slate-950 shrink-0">
+                        <div className="flex-1">Инициатива</div>
+                        <div className="w-20 text-center">Статус</div>
+                        <div className="w-20 text-center">Приоритет</div>
                     </div>
-                    <div className="py-4 space-y-3">
-                        {items.map((item) => (
-                            <div key={item.id} className="h-10 flex items-center px-4 text-sm font-medium truncate text-slate-700 dark:text-slate-300 border-b border-transparent hover:bg-slate-100/50 dark:hover:bg-slate-800/30 transition-colors">
-                                {item.title}
+                    <div className="py-4 space-y-0">
+                        {items.map((item, index) => (
+                            <div
+                                key={item.id}
+                                className={cn(
+                                    "h-10 flex items-center px-4 text-sm font-medium text-slate-700 dark:text-slate-300 border-b border-border/50 transition-colors",
+                                    index % 2 === 0 ? "bg-white dark:bg-slate-950" : "bg-slate-50 dark:bg-slate-900"
+                                )}
+                            >
+                                <div className="flex-1 truncate pr-2" title={item.title}>{item.title}</div>
+                                <div className="w-20 flex justify-center">
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 uppercase font-bold text-slate-600 dark:text-slate-400">
+                                        {item.status || "-"}
+                                    </span>
+                                </div>
+                                <div className="w-20 flex justify-center">
+                                    {item.priority && (
+                                        <div className={cn(
+                                            "w-2 h-2 rounded-full",
+                                            item.priority === "high" || item.priority === "critical" ? "bg-red-500" :
+                                                item.priority === "medium" ? "bg-yellow-500" : "bg-blue-500"
+                                        )} title={item.priority} />
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -91,20 +115,23 @@ export function GanttView({ items, rangeDays = 30 }: GanttViewProps) {
                         </div>
 
                         {/* Timeline Body */}
-                        <div className="py-4 space-y-3 min-h-[400px]">
+                        <div className="py-4 space-y-0 min-h-[400px]">
                             {items.length === 0 ? (
                                 <div className="flex items-center justify-center h-40 text-muted-foreground text-sm italic">
                                     Няма данни за показване
                                 </div>
                             ) : (
-                                items.map((item) => {
+                                items.map((item, index) => {
                                     const left = getPosition(item.startDate);
                                     const width = getDurationWidth(item.startDate, item.endDate);
 
                                     return (
                                         <div key={item.id} className="relative h-10 group">
                                             {/* Horizontal Row Background */}
-                                            <div className="absolute inset-x-0 inset-y-0 border-b border-border/5 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-900/40 transition-colors" />
+                                            <div className={cn(
+                                                "absolute inset-x-0 inset-y-0 border-b border-border/50 transition-colors",
+                                                index % 2 === 0 ? "bg-white dark:bg-slate-950" : "bg-slate-50 dark:bg-slate-900"
+                                            )} />
 
                                             {/* Bar */}
                                             <div

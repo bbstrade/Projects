@@ -344,7 +344,30 @@ export function CreateTaskDialog({ open: controlledOpen, onOpenChange: controlle
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>{t("priority")}</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                // Sync color with priority
+                                                const defaultColors: Record<string, string> = {
+                                                    low: "#94a3b8",      // slate-400
+                                                    medium: "#3b82f6",   // blue-500
+                                                    high: "#f97316",     // orange-500
+                                                    critical: "#ef4444", // red-500
+                                                };
+
+                                                let newColor = "";
+                                                if (defaultColors[value]) {
+                                                    newColor = defaultColors[value];
+                                                } else {
+                                                    const customPriority = customPriorities?.find(p => p.slug === value);
+                                                    if (customPriority?.color) {
+                                                        newColor = customPriority.color;
+                                                    }
+                                                }
+                                                form.setValue("color", newColor);
+                                            }}
+                                            value={field.value}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder={t("selectPriority")} />
@@ -619,22 +642,7 @@ export function CreateTaskDialog({ open: controlledOpen, onOpenChange: controlle
                         </div>
 
                         {/* Color Picker */}
-                        <FormField
-                            control={form.control}
-                            name="color"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t("taskColorLabel")}</FormLabel>
-                                    <FormControl>
-                                        <ColorPicker
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {/* Color Picker Removed - synced with priority */}
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

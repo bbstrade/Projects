@@ -10,6 +10,11 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Doc } from "@/convex/_generated/dataModel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CreateProjectTemplateDialog } from "@/components/templates/create-project-template-dialog";
+import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Copy } from "lucide-react";
 
 interface ProjectHeaderProps {
     project: Doc<"projects">;
@@ -25,6 +30,10 @@ interface ProjectHeaderProps {
 
 export function ProjectHeader({ project, stats, onEdit, onDelete }: ProjectHeaderProps) {
     const progress = stats?.totalTasks ? Math.round((stats.done / stats.totalTasks) * 100) : 0;
+    const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+
+    // Fetch full project data only when dialog is open
+    const projectWithTasks = useQuery(api.projects.getWithTasks, isCreateTemplateOpen ? { id: project._id } : "skip");
 
     const translateStatus = (status: string) => {
         const map: Record<string, string> = {
@@ -67,6 +76,10 @@ export function ProjectHeader({ project, stats, onEdit, onDelete }: ProjectHeade
                     )}
                 </div>
                 <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setIsCreateTemplateOpen(true)}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Запази като шаблон
+                    </Button>
                     <Button variant="outline" size="sm" onClick={onEdit}>
                         Редактирай
                     </Button>
@@ -120,6 +133,24 @@ export function ProjectHeader({ project, stats, onEdit, onDelete }: ProjectHeade
                     </div>
                 </Card>
             </div>
+            <CreateProjectTemplateDialog
+                open={isCreateTemplateOpen}
+                onOpenChange={setIsCreateTemplateOpen}
+                initialData={projectWithTasks ? {
+                    name: projectWithTasks.name,
+                    description: projectWithTasks.description,
+                    priority: projectWithTasks.priority,
+                    estimatedDuration: projectWithTasks.endDate && projectWithTasks.startDate
+                        ? Math.round((projectWithTasks.endDate - projectWithTasks.startDate) / 86400000).toString()
+                        : "30",
+                    tasks: projectWithTasks.tasks.map(t => ({
+                        title: t.title,
+                        priority: t.priority,
+                        estimatedHours: t.estimatedHours,
+                        subtasks: t.subtasks
+                    })),
+                } : undefined}
+            />
         </div>
     );
 }

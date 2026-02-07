@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -36,14 +37,21 @@ interface Project {
     color?: string;
 }
 
+interface CustomStatus {
+    slug: string;
+    label: string;
+    color?: string;
+}
+
 interface KanbanBoardProps {
     tasks: Task[];
     users?: User[];
     projects?: Project[];
+    customStatuses?: CustomStatus[];
     onTaskClick?: (id: Id<"tasks">) => void;
 }
 
-const STATUS_COLUMNS = [
+const DEFAULT_STATUS_COLUMNS = [
     { id: "todo", labelBg: "За изпълнение", labelEn: "To Do", color: "bg-slate-500", borderColor: "border-slate-400" },
     { id: "in_progress", labelBg: "В процес", labelEn: "In Progress", color: "bg-blue-500", borderColor: "border-blue-400" },
     { id: "in_review", labelBg: "В преглед", labelEn: "In Review", color: "bg-yellow-500", borderColor: "border-yellow-400" },
@@ -51,9 +59,25 @@ const STATUS_COLUMNS = [
     { id: "blocked", labelBg: "Блокирани", labelEn: "Blocked", color: "bg-red-500", borderColor: "border-red-400" },
 ];
 
-export function KanbanBoard({ tasks, users, projects, onTaskClick }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClick }: KanbanBoardProps) {
     const { lang } = useLanguage();
     const updateTask = useMutation(api.tasks.update);
+
+    // Combine default columns with custom statuses
+    const allColumns = useMemo(() => {
+        const defaultIds = DEFAULT_STATUS_COLUMNS.map(c => c.id);
+        const customColumns = (customStatuses || [])
+            .filter(cs => !defaultIds.includes(cs.slug))
+            .map(cs => ({
+                id: cs.slug,
+                labelBg: cs.label,
+                labelEn: cs.slug.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+                color: cs.color ? "" : "bg-purple-500",
+                borderColor: cs.color ? "" : "border-purple-400",
+                customColor: cs.color,
+            }));
+        return [...DEFAULT_STATUS_COLUMNS, ...customColumns];
+    }, [customStatuses]);
 
     const handleDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
@@ -91,8 +115,9 @@ export function KanbanBoard({ tasks, users, projects, onTaskClick }: KanbanBoard
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-5 overflow-x-auto pb-4 min-h-[calc(100vh-300px)]">
-                {STATUS_COLUMNS.map((column, index) => {
+                {allColumns.map((column) => {
                     const columnTasks = getTasksByStatus(column.id);
+                    const customColor = (column as any).customColor;
                     return (
                         <div
                             key={column.id}
@@ -104,12 +129,18 @@ export function KanbanBoard({ tasks, users, projects, onTaskClick }: KanbanBoard
                             )}
                         >
                             {/* Column Header with colored top border */}
-                            <div className={cn(
-                                "rounded-t-xl border-t-4 px-4 py-3",
-                                column.borderColor
-                            )}>
+                            <div
+                                className={cn(
+                                    "rounded-t-xl border-t-4 px-4 py-3",
+                                    !customColor && column.borderColor
+                                )}
+                                style={customColor ? { borderTopColor: customColor } : undefined}
+                            >
                                 <div className="flex items-center gap-2">
-                                    <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", column.color)} />
+                                    <div
+                                        className={cn("w-2.5 h-2.5 rounded-full shadow-sm", !customColor && column.color)}
+                                        style={customColor ? { backgroundColor: customColor } : undefined}
+                                    />
                                     <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">
                                         {lang === "bg" ? column.labelBg : column.labelEn}
                                     </h3>
