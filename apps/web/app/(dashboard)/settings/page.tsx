@@ -10,8 +10,12 @@ import { TemplateManager } from "@/components/templates/template-manager";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
+import { useSearchParams } from "next/navigation";
+
 export default function SettingsPage() {
     const { lang, t } = useLanguage();
+    const searchParams = useSearchParams();
+    const activeTab = searchParams.get("tab") || "profile";
     const isBg = lang === "bg";
 
     const user = useQuery(api.users.me);
@@ -47,7 +51,7 @@ export default function SettingsPage() {
                 <p className="text-muted-foreground">{dict.subtitle}</p>
             </div>
 
-            <Tabs defaultValue="profile" orientation="vertical" className="flex flex-col lg:flex-row gap-8">
+            <Tabs key={activeTab} defaultValue={activeTab} orientation="vertical" className="flex flex-col lg:flex-row gap-8">
                 <TabsList className="flex flex-col w-full lg:w-64 h-auto bg-transparent space-y-1 p-0 justify-start mb-8 lg:mb-0">
                     <TabsTrigger
                         value="profile"

@@ -138,6 +138,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             projectsTitle: "Проекти",
             tasksTitle: "Задачи",
             appTitle: "Управление на проекти",
+            settings: "Настройки",
 
             management: "Управление",
             tabTemplates: "Шаблони",
@@ -404,6 +405,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             projectsTitle: "Projects",
             tasksTitle: "Tasks",
             appTitle: "Project Management",
+            settings: "Settings",
 
             tabTemplates: "Templates",
             templates: "Templates",
