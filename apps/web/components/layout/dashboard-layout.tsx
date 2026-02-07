@@ -133,7 +133,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between border-b bg-white p-4 dark:bg-slate-950 md:hidden">
                 <div className="flex items-center gap-2 font-bold text-lg">
                     <Image src={logoSrc} alt="Logo" width={56} height={56} />
-                    <span>{mounted ? t("appTitle") : "Project Management"}</span>
+                    <span>{t("appTitle")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button

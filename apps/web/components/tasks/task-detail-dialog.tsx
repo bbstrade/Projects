@@ -11,7 +11,6 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -303,9 +302,6 @@ export function TaskDetailDialog({ taskId, open, onOpenChange }: TaskDetailDialo
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[1200px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-white">
-                <VisuallyHidden>
-                    <DialogTitle>{task?.title || t("taskDetails") || "Детайли на задачата"}</DialogTitle>
-                </VisuallyHidden>
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
