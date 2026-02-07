@@ -392,21 +392,24 @@ export default function TasksPage() {
                                     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                                     : "flex flex-col gap-3"
                                 }>
-                                    {processedTasks.map((task) => (
-                                        <TaskCard
-                                            key={task._id}
-                                            id={task._id}
-                                            title={task.title}
-                                            description={task.description}
-                                            status={task.status}
-                                            priority={task.priority}
-                                            dueDate={task.dueDate}
-                                            viewMode={viewMode}
-                                            assignee={task.assignee ? { name: task.assignee.name, image: task.assignee.image } : undefined}
-                                            color={task.color}
-                                            onClick={handleTaskClick}
-                                        />
-                                    ))}
+                                    {processedTasks.map((task) => {
+                                        const assignee = task.assigneeId ? users?.find(u => u._id === task.assigneeId) : undefined;
+                                        return (
+                                            <TaskCard
+                                                key={task._id}
+                                                id={task._id}
+                                                title={task.title}
+                                                description={task.description}
+                                                status={task.status}
+                                                priority={task.priority}
+                                                dueDate={task.dueDate}
+                                                viewMode={viewMode}
+                                                assignee={assignee ? { name: assignee.name, image: assignee.avatar } : undefined}
+                                                color={task.color}
+                                                onClick={handleTaskClick}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             )}
 
