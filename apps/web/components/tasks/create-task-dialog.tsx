@@ -241,6 +241,10 @@ export function CreateTaskDialog({ open: controlledOpen, onOpenChange: controlle
                 });
                 toast.success("Задачата беше обновена успешно!");
             } else {
+                if (!projectId) {
+                    toast.error("Моля изберете проект за задачата");
+                    return;
+                }
                 await createTask({
                     title: values.title,
                     description: values.description,
