@@ -959,3 +959,23 @@ export const myTopTasks = query({
     },
 });
 
+/**
+ * Task metrics for the tasks page
+ * Returns aggregate counts for total, in progress, completed, and overdue tasks
+ */
+export const taskMetrics = query({
+    args: {},
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").collect();
+        const now = Date.now();
+
+        return {
+            totalTasks: tasks.length,
+            inProgress: tasks.filter((t) => t.status === "in_progress").length,
+            completed: tasks.filter((t) => t.status === "done").length,
+            overdue: tasks.filter(
+                (t) => t.dueDate && t.dueDate < now && t.status !== "done"
+            ).length,
+        };
+    },
+});

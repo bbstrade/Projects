@@ -14,6 +14,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import {
     Form,
@@ -64,24 +65,30 @@ interface UploadedFile {
 }
 
 interface CreateTaskDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    projectId: Id<"projects">;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    projectId?: Id<"projects">;
     task?: any; // For editing existing task
 }
 
-export function CreateTaskDialog({ open, onOpenChange, projectId, task }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ open: controlledOpen, onOpenChange: controlledOnOpenChange, projectId, task }: CreateTaskDialogProps) {
     const { t, lang } = useLanguage();
     const createTask = useMutation(api.tasks.create);
     const updateTask = useMutation(api.tasks.update);
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
-    // Fetch project to get teamId for team members
-    const project = useQuery(api.projects.get, { id: projectId });
+    // Internal state for uncontrolled mode
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const onOpenChange = controlledOnOpenChange || setInternalOpen;
+
+    // Fetch project to get teamId for team members (skip if no projectId)
+    const project = useQuery(api.projects.get, projectId ? { id: projectId } : "skip");
     const teamMembers = useQuery(
         api.teams.getMembers,
         project?.teamId ? { teamId: project.teamId } : "skip"
     );
+
 
     // Fetch custom statuses and priorities
     const customStatuses = useQuery(api.admin.getCustomStatuses, { type: "task" });
@@ -260,8 +267,21 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
         }
     }
 
+    // Check if in uncontrolled mode (no external state provided)
+    const isUncontrolled = controlledOpen === undefined;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
+            {/* Trigger button for uncontrolled mode */}
+            {isUncontrolled && (
+                <DialogTrigger asChild>
+                    <Button className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        {t("taskCreateTitle")}
+                    </Button>
+                </DialogTrigger>
+            )}
+
             {/* Hidden file input */}
             <input
                 ref={fileInputRef}
