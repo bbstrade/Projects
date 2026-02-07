@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useLanguage } from "@/components/language-provider";
+
 interface ChecklistItemProps {
     item: { id: string; text: string; completed: boolean };
     subtaskId: Id<"subtasks">;
@@ -17,6 +19,7 @@ interface ChecklistItemProps {
 }
 
 export function ChecklistItem({ item, subtaskId, onUpdate, onToggle, onRemove }: ChecklistItemProps) {
+    const { t } = useLanguage();
     const [text, setText] = useState(item.text);
 
     useEffect(() => {
@@ -37,7 +40,7 @@ export function ChecklistItem({ item, subtaskId, onUpdate, onToggle, onRemove }:
             />
             <Input
                 value={text}
-                placeholder="Описание..."
+                placeholder={t("descriptionPlaceholder") || "Описание..."}
                 onChange={(e) => setText(e.target.value)}
                 onBlur={handleBlur}
                 onKeyDown={(e) => {

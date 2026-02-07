@@ -26,23 +26,7 @@ import {
 import { CreateTeamDialog } from "@/components/teams/create-team-dialog";
 import { InviteMemberDialog } from "@/components/teams/invite-member-dialog";
 import { ManageTeamDialog } from "@/components/teams/manage-team-dialog";
-
-// Български речник
-const dict = {
-    title: "Екипи",
-    subtitle: "Управление на екипи и членове",
-    newTeam: "Нов Екип",
-    searchPlaceholder: "Търсене на екипи...",
-    noTeams: "Няма намерени екипи",
-    noTeamsDescription: "Създайте първия си екип за да организирате проектите.",
-    members: "члена",
-    owner: "Собственик",
-    admin: "Администратор",
-    member: "Член",
-    inviteMember: "Покани член",
-    settings: "Настройки",
-    viewTeam: "Преглед",
-};
+import { useLanguage } from "@/components/language-provider";
 
 const roleColors: Record<string, string> = {
     owner: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
@@ -50,13 +34,8 @@ const roleColors: Record<string, string> = {
     member: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
 };
 
-const roleLabels: Record<string, string> = {
-    owner: dict.owner,
-    admin: dict.admin,
-    member: dict.member,
-};
-
 export default function TeamsPage() {
+    const { t, lang } = useLanguage();
     const [searchQuery, setSearchQuery] = useState("");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -72,7 +51,7 @@ export default function TeamsPage() {
 
     const isAdmin = currentUser?.role === "admin";
 
-    // Филтриране по searchQuery
+    // filtering by searchQuery
     const filteredTeams = teams?.filter((team) =>
         team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         team.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -88,8 +67,8 @@ export default function TeamsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{dict.title}</h1>
-                    <p className="text-muted-foreground">{dict.subtitle}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t("teamsTitle")}</h1>
+                    <p className="text-muted-foreground">{t("teamsSubtitle")}</p>
                 </div>
                 <div className="flex gap-2">
                     {isAdmin && (
@@ -97,12 +76,12 @@ export default function TeamsPage() {
                             variant={adminViewAll ? "default" : "outline"}
                             onClick={() => setAdminViewAll(!adminViewAll)}
                         >
-                            {adminViewAll ? "Моите екипи" : "Всички екипи (Admin)"}
+                            {adminViewAll ? (lang === "bg" ? "Моите екипи" : "My Teams") : (lang === "bg" ? "Всички екипи (Admin)" : "All Teams (Admin)")}
                         </Button>
                     )}
                     <Button onClick={() => setCreateDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        {dict.newTeam}
+                        {t("newTeam")}
                     </Button>
                 </div>
             </div>
@@ -112,7 +91,7 @@ export default function TeamsPage() {
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder={dict.searchPlaceholder}
+                        placeholder={t("teamsSearchPlaceholder")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
@@ -152,13 +131,13 @@ export default function TeamsPage() {
             ) : (
                 <Card className="p-12 text-center">
                     <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">{dict.noTeams}</h3>
+                    <h3 className="text-lg font-medium">{t("noTeams")}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {dict.noTeamsDescription}
+                        {t("noTeamsDescription")}
                     </p>
                     <Button className="mt-4" onClick={() => setCreateDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        {dict.newTeam}
+                        {t("newTeam")}
                     </Button>
                 </Card>
             )}
@@ -179,8 +158,6 @@ export default function TeamsPage() {
 
             {selectedTeamId && (
                 <ManageTeamDialog
-
-
                     open={manageDialogOpen}
                     onOpenChange={setManageDialogOpen}
                     teamId={selectedTeamId}
@@ -204,6 +181,7 @@ function TeamCard({
     onInvite: () => void;
     onManage: () => void;
 }) {
+    const { t } = useLanguage();
     const members = useQuery(api.teams.getMembers, { teamId: team._id });
 
     return (
@@ -217,7 +195,7 @@ function TeamCard({
                         <div>
                             <CardTitle className="text-lg">{team.name}</CardTitle>
                             <CardDescription className="line-clamp-1">
-                                {team.description || "Без описание"}
+                                {team.description || (t("noDescription") || "No description")}
                             </CardDescription>
                         </div>
                     </div>
@@ -230,11 +208,11 @@ function TeamCard({
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={onInvite}>
                                 <UserPlus className="mr-2 h-4 w-4" />
-                                {dict.inviteMember}
+                                {t("inviteMember")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onManage}>
                                 <Settings className="mr-2 h-4 w-4" />
-                                {dict.settings}
+                                {t("settings")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -244,7 +222,7 @@ function TeamCard({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">
-                            {members?.length || 0} {dict.members}
+                            {members?.length || 0} {t("membersCount") || "members"}
                         </span>
                     </div>
                     {/* Member Avatars */}
@@ -283,3 +261,4 @@ function TeamCard({
         </Card>
     );
 }
+

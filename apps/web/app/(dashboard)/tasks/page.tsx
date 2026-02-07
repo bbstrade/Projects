@@ -7,13 +7,13 @@ import { Id } from "@/convex/_generated/dataModel";
 import { KanbanBoard } from "@/components/tasks/kanban-board";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskCard } from "@/components/tasks/task-card";
-import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog"; // Import TaskDetailDialog
+import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
 import { StatsCards } from "@/components/shared/stats-cards";
 import { GanttView } from "@/components/shared/gantt-view";
 import { CalendarView } from "@/components/shared/calendar-view";
 import {
     LayoutDashboard, List, Calendar as CalendarIcon, GanttChart as GanttChartIcon,
-    Search, Plus, Filter, Trash2, CheckCircle2, Clock, AlertCircle, ListTodo, ArrowUpDown
+    Search, Plus, Filter, Trash2, CheckCircle2, Clock, AlertCircle, ListTodo
 } from "lucide-react";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { cn } from "@/lib/utils";
@@ -28,57 +28,17 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const dict = {
-    title: "Задачи",
-    subtitle: "Управлявайте задачите по проекти",
-    searchPlaceholder: "Търсене на задачи...",
-    newTask: "Нова Задача",
-    filters: {
-        allStatuses: "Всички статуси",
-        todo: "За изпълнение",
-        in_progress: "В процес",
-        in_review: "В преглед",
-        done: "Завършени",
-        blocked: "Блокирани",
-        allPriorities: "Всички приоритети",
-        low: "Нисък",
-        medium: "Среден",
-        high: "Висок",
-        critical: "Критичен",
-        allProjects: "Всички проекти",
-        allAssignees: "Всички отговорници",
-        status: "Статус",
-        assignee: "Отговорник",
-        project: "Проект",
-        sortBy: "Сортиране",
-        newest: "Най-нови",
-        oldest: "Най-стари",
-        name: "Име (А-Я)",
-        deadline: "Краен срок",
-        priority: "Приоритет",
-    },
-    stats: {
-        total: "Общо задачи",
-        todo: "За изпълнение",
-        inProgress: "В процес",
-        completed: "Завършени",
-        overdue: "Просрочени",
-    },
-    noTasks: "Няма намерени задачи",
-    noTasksDescription: "Създайте нова задача, за да започнете.",
-};
-
-type ViewMode = "grid" | "list" | "gantt" | "calendar";
+type ViewMode = "kanban" | "list" | "gantt" | "calendar";
 
 export default function TasksPage() {
-    const { lang } = useLanguage();
+    const { t, lang } = useLanguage();
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [priorityFilter, setPriorityFilter] = useState("all");
     const [assigneeFilter, setAssigneeFilter] = useState("all");
     const [projectFilter, setProjectFilter] = useState("all");
     const [sortBy, setSortBy] = useState("newest");
-    const [viewMode, setViewMode] = useState<ViewMode>("grid");
+    const [viewMode, setViewMode] = useState<ViewMode>("kanban");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
@@ -94,7 +54,6 @@ export default function TasksPage() {
     // Fetch data
     const projects = useQuery(api.projects.list, {});
     const users = useQuery(api.users.list, {});
-    const metrics = useQuery(api.analytics.dashboardMetrics, {});
     const tasks = useQuery(api.tasks.listAll, {});
 
     const firstProjectId = projects?.[0]?._id;
@@ -112,7 +71,6 @@ export default function TasksPage() {
             return matchesSearch && matchesStatus && matchesPriority && matchesAssignee && matchesProject;
         });
 
-        // Sorting
         return [...filtered].sort((a, b) => {
             switch (sortBy) {
                 case "oldest":
@@ -131,8 +89,8 @@ export default function TasksPage() {
         });
     }, [tasks, searchQuery, statusFilter, priorityFilter, assigneeFilter, projectFilter, sortBy]);
 
-    // Calculate dynamic stats based on filter
-    const currentStats = useMemo(() => {
+    // Calculate stats
+    const stats = useMemo(() => {
         if (!processedTasks) return null;
         const now = Date.now();
         return {
@@ -145,24 +103,36 @@ export default function TasksPage() {
     }, [processedTasks]);
 
     const taskStats = [
-        { label: dict.stats.total, value: currentStats?.total || 0, icon: ListTodo, color: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" },
-        { label: dict.stats.todo, value: currentStats?.todo || 0, icon: Clock, color: "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400" },
-        { label: dict.stats.inProgress, value: currentStats?.inProgress || 0, icon: Clock, color: "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400" },
-        { label: dict.stats.completed, value: currentStats?.completed || 0, icon: CheckCircle2, color: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400" },
-        { label: dict.stats.overdue, value: currentStats?.overdue || 0, icon: AlertCircle, color: "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400" },
+        { label: t("statsTotal") || "Общо задачи", value: stats?.total || 0, icon: ListTodo, color: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" },
+        { label: t("statsTodo") || "За изпълнение", value: stats?.todo || 0, icon: Clock, color: "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400" },
+        { label: t("statsInProgress") || "В процес", value: stats?.inProgress || 0, icon: Clock, color: "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400" },
+        { label: t("statsCompleted") || "Завършени", value: stats?.completed || 0, icon: CheckCircle2, color: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400" },
+        { label: t("statsOverdue") || "Просрочени", value: stats?.overdue || 0, icon: AlertCircle, color: "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400" },
     ];
+
+    const clearFilters = () => {
+        setStatusFilter("all");
+        setPriorityFilter("all");
+        setAssigneeFilter("all");
+        setProjectFilter("all");
+        setSearchQuery("");
+    };
 
     return (
         <div className="space-y-8 pb-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{dict.title}</h1>
-                    <p className="text-muted-foreground mt-1">{dict.subtitle}</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {t("tasksTitle") || "Задачи"}
+                    </h1>
+                    <p className="text-muted-foreground mt-1">
+                        {t("tasksSubtitle") || "Управлявайте задачите по проекти"}
+                    </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="shadow-lg hover:shadow-xl transition-all">
                     <Plus className="mr-2 h-5 w-5" />
-                    {dict.newTask}
+                    {t("newTask") || "Нова Задача"}
                 </Button>
             </div>
 
@@ -183,19 +153,19 @@ export default function TasksPage() {
                             )}
                         >
                             <Filter className={cn("mr-2 h-4 w-4", showFilters && "fill-current")} />
-                            Филтри
+                            {t("filters") || "Филтри"}
                         </Button>
 
                         <Select value={sortBy} onValueChange={setSortBy}>
                             <SelectTrigger className="w-[180px] h-10 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all hover:bg-white">
-                                <SelectValue placeholder={dict.filters.sortBy} />
+                                <SelectValue placeholder={t("sortBy") || "Сортиране"} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="newest">{dict.filters.newest}</SelectItem>
-                                <SelectItem value="oldest">{dict.filters.oldest}</SelectItem>
-                                <SelectItem value="name">{dict.filters.name}</SelectItem>
-                                <SelectItem value="deadline">{dict.filters.deadline}</SelectItem>
-                                <SelectItem value="priority">{dict.filters.priority}</SelectItem>
+                                <SelectItem value="newest">{t("sortNewest") || "Най-нови"}</SelectItem>
+                                <SelectItem value="oldest">{t("sortOldest") || "Най-стари"}</SelectItem>
+                                <SelectItem value="name">{t("sortName") || "Име (А-Я)"}</SelectItem>
+                                <SelectItem value="deadline">{t("sortDeadline") || "Краен срок"}</SelectItem>
+                                <SelectItem value="priority">{t("sortPriority") || "Приоритет"}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -204,16 +174,16 @@ export default function TasksPage() {
                         {/* View Modes */}
                         <div className="flex items-center gap-1 bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-xl border border-border/50">
                             {[
-                                { mode: "grid", Icon: LayoutDashboard, label: "Канбан" },
-                                { mode: "list", Icon: List, label: "Списък" },
-                                { mode: "calendar", Icon: CalendarIcon, label: "Календар" },
-                                { mode: "gantt", Icon: GanttChartIcon, label: "Gantt" },
+                                { mode: "kanban" as ViewMode, Icon: LayoutDashboard, label: t("viewKanban") || "Канбан" },
+                                { mode: "list" as ViewMode, Icon: List, label: t("viewList") || "Списък" },
+                                { mode: "calendar" as ViewMode, Icon: CalendarIcon, label: t("viewCalendar") || "Календар" },
+                                { mode: "gantt" as ViewMode, Icon: GanttChartIcon, label: "Gantt" },
                             ].map(({ mode, Icon, label }) => (
                                 <Button
                                     key={mode}
                                     variant={viewMode === mode ? "secondary" : "ghost"}
                                     size="sm"
-                                    onClick={() => setViewMode(mode as ViewMode)}
+                                    onClick={() => setViewMode(mode)}
                                     className={cn(
                                         "h-8 flex items-center gap-2 px-3 rounded-lg text-[11px] font-bold transition-all",
                                         viewMode === mode
@@ -234,37 +204,37 @@ export default function TasksPage() {
                     <div className="bg-white dark:bg-slate-950 p-6 rounded-2xl border border-border shadow-md animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="flex flex-wrap gap-2">
                             <FilterPopover
-                                title={dict.filters.status}
+                                title={t("status") || "Статус"}
                                 value={statusFilter}
                                 onChange={setStatusFilter}
                                 options={[
-                                    { label: dict.filters.allStatuses, value: "all" },
-                                    { label: dict.filters.todo, value: "todo" },
-                                    { label: dict.filters.in_progress, value: "in_progress" },
-                                    { label: dict.filters.in_review, value: "in_review" },
-                                    { label: dict.filters.done, value: "done" },
+                                    { label: t("allStatuses") || "Всички статуси", value: "all" },
+                                    { label: t("statsTodo") || "За изпълнение", value: "todo" },
+                                    { label: t("statsInProgress") || "В процес", value: "in_progress" },
+                                    { label: "В преглед", value: "in_review" },
+                                    { label: t("statsCompleted") || "Завършени", value: "done" },
                                 ]}
                             />
 
                             <FilterPopover
-                                title={dict.filters.priority}
+                                title={t("priority") || "Приоритет"}
                                 value={priorityFilter}
                                 onChange={setPriorityFilter}
                                 options={[
-                                    { label: dict.filters.allPriorities, value: "all" },
-                                    { label: dict.filters.high, value: "high" },
-                                    { label: dict.filters.medium, value: "medium" },
-                                    { label: dict.filters.low, value: "low" },
-                                    { label: dict.filters.critical, value: "critical" },
+                                    { label: t("allPriorities") || "Всички приоритети", value: "all" },
+                                    { label: "Висок", value: "high" },
+                                    { label: "Среден", value: "medium" },
+                                    { label: "Нисък", value: "low" },
+                                    { label: "Критичен", value: "critical" },
                                 ]}
                             />
 
                             <FilterPopover
-                                title={dict.filters.assignee}
+                                title={t("filterByAssignee") || "Отговорник"}
                                 value={assigneeFilter}
                                 onChange={setAssigneeFilter}
                                 options={[
-                                    { label: dict.filters.allAssignees, value: "all" },
+                                    { label: t("allAssignees") || "Всички отговорници", value: "all" },
                                     ...(users?.map(user => ({
                                         label: user.name || "Unknown",
                                         value: user._id
@@ -273,11 +243,11 @@ export default function TasksPage() {
                             />
 
                             <FilterPopover
-                                title={dict.filters.project}
+                                title={t("project") || "Проект"}
                                 value={projectFilter}
                                 onChange={setProjectFilter}
                                 options={[
-                                    { label: dict.filters.allProjects, value: "all" },
+                                    { label: t("allProjects") || "Всички проекти", value: "all" },
                                     ...(projects?.map(project => ({
                                         label: project.name || "Unknown",
                                         value: project._id
@@ -287,24 +257,17 @@ export default function TasksPage() {
                         </div>
 
                         <div className="flex justify-between items-center mt-6 pt-6 border-t border-border/50">
-                            {/* Spacer to keep alignment if needed or just empty div */}
                             <div className="flex-1"></div>
 
                             {(statusFilter !== "all" || priorityFilter !== "all" || assigneeFilter !== "all" || projectFilter !== "all") && (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => {
-                                        setStatusFilter("all");
-                                        setPriorityFilter("all");
-                                        setAssigneeFilter("all");
-                                        setProjectFilter("all");
-                                        setSearchQuery("");
-                                    }}
+                                    onClick={clearFilters}
                                     className="h-10 px-4 text-xs font-bold text-slate-600 hover:text-rose-600 hover:border-rose-200 transition-all gap-2"
                                 >
                                     <Trash2 className="h-4 w-4" />
-                                    Изчисти филтри
+                                    {t("clearFilters") || "Изчисти филтри"}
                                 </Button>
                             )}
                         </div>
@@ -322,52 +285,48 @@ export default function TasksPage() {
                     <div className="bg-slate-100 dark:bg-slate-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Filter className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{dict.noTasks}</h3>
-                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">{dict.noTasksDescription}</p>
-                    <Button variant="outline" onClick={() => {
-                        setSearchQuery("");
-                        setStatusFilter("all");
-                        setPriorityFilter("all");
-                        setAssigneeFilter("all");
-                        setProjectFilter("all");
-                    }} className="mt-6">
-                        Изчисти филтрите
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                        {t("noTasksFound") || "Няма намерени задачи"}
+                    </h3>
+                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                        {t("noTasksDescription") || "Създайте нова задача, за да започнете."}
+                    </p>
+                    <Button variant="outline" onClick={clearFilters} className="mt-6">
+                        {t("clearFilters") || "Изчисти филтрите"}
                     </Button>
                 </div>
             ) : (
                 <>
-                    {(viewMode === "grid" || viewMode === "list") && (
-                        <div className="flex-1 min-h-0">
-                            {viewMode === "grid" ? (
-                                <KanbanBoard
-                                    tasks={processedTasks}
-                                    projects={projects || []}
-                                    users={users || []}
-                                    onTaskClick={openTask} // Pass handler
-                                />
-                            ) : (
-                                <div className="flex flex-col gap-3">
-                                    {processedTasks.map((task) => {
-                                        const assignee = users?.find(u => u._id === task.assigneeId);
-                                        return (
-                                            <TaskCard
-                                                key={task._id}
-                                                id={task._id}
-                                                title={task.title}
-                                                description={task.description}
-                                                status={task.status}
-                                                priority={task.priority}
-                                                dueDate={task.dueDate}
-                                                viewMode={viewMode}
-                                                assignee={{ name: assignee?.name, image: assignee?.avatar }}
-                                                color={task.color}
-                                                // @ts-ignore - TaskCard update pending
-                                                onClick={() => openTask(task._id)} // Pass handler
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            )}
+                    {viewMode === "kanban" && (
+                        <KanbanBoard
+                            tasks={processedTasks}
+                            projects={projects || []}
+                            users={users || []}
+                            onTaskClick={openTask}
+                        />
+                    )}
+
+                    {viewMode === "list" && (
+                        <div className="flex flex-col gap-3">
+                            {processedTasks.map((task) => {
+                                const assignee = users?.find(u => u._id === task.assigneeId);
+                                return (
+                                    <TaskCard
+                                        key={task._id}
+                                        id={task._id}
+                                        title={task.title}
+                                        description={task.description}
+                                        status={task.status}
+                                        priority={task.priority}
+                                        dueDate={task.dueDate}
+                                        viewMode="list"
+                                        assignee={{ name: assignee?.name, image: assignee?.avatar }}
+                                        color={task.color}
+                                        // @ts-ignore
+                                        onClick={() => openTask(task._id)}
+                                    />
+                                );
+                            })}
                         </div>
                     )}
 
@@ -394,16 +353,13 @@ export default function TasksPage() {
                                 status: t.status,
                                 priority: t.priority
                             }))}
-                            onTaskClick={(id: string) => {
-                                // Task Detail logic is handled via TaskCard usually
-                                console.log("Task clicked:", id);
-                            }}
+                            onTaskClick={(id: string) => openTask(id as Id<"tasks">)}
                         />
                     )}
                 </>
             )}
 
-            {/* Create Task Dialog */}
+            {/* Dialogs */}
             {firstProjectId && (
                 <CreateTaskDialog
                     open={createDialogOpen}
@@ -411,7 +367,7 @@ export default function TasksPage() {
                     projectId={projectFilter !== "all" ? (projectFilter as Id<"projects">) : firstProjectId}
                 />
             )}
-            {/* Detail Dialog */}
+
             {selectedTaskId && (
                 <TaskDetailDialog
                     taskId={selectedTaskId}

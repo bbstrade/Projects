@@ -32,12 +32,14 @@ import {
 import { toast } from "sonner";
 import { ChecklistItem } from "./checklist-item";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/language-provider";
 
 interface TaskSubtasksProps {
     taskId: Id<"tasks">;
 }
 
 export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
+    const { t, lang } = useLanguage();
     const subtasks = useQuery(api.subtasks.list, { taskId });
     const users = useQuery(api.users.list, {});
     const createSubtask = useMutation(api.subtasks.create);
@@ -65,7 +67,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
     // Expand/collapse state
     const [expandedSubtasks, setExpandedSubtasks] = useState<Record<string, boolean>>({});
 
-    if (subtasks === undefined) return <div>Зареждане...</div>;
+    if (subtasks === undefined) return <div>{t("loading") || "Зареждане..."}</div>;
 
     // Calculate progress
     const completedCount = subtasks.filter((st) => st.completed).length;
@@ -89,9 +91,9 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
             setNewLabels([]);
             setNewAssigneeId("");
             setIsAdding(false);
-            toast.success("Подзадачата е добавена");
+            toast.success(t("subtaskAdded") || "Подзадачата е добавена");
         } catch (error) {
-            toast.error("Грешка при създаване на подзадача");
+            toast.error(t("subtaskError") || "Грешка при създаване на подзадача");
         }
     };
 
@@ -103,9 +105,9 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
     };
 
     const handleRemoveSubtask = async (subtaskId: Id<"subtasks">) => {
-        if (!confirm("Сигурни ли сте?")) return;
+        if (!confirm(t("areYouSure") || "Сигурни ли сте?")) return;
         await removeSubtask({ id: subtaskId });
-        toast.success("Подзадачата е премахната");
+        toast.success(t("subtaskRemoved") || "Подзадачата е премахната");
     };
 
     const startEditing = (subtask: Doc<"subtasks">) => {
@@ -129,7 +131,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
             assigneeId: editData.assigneeId ? (editData.assigneeId as Id<"users">) : undefined,
         });
         setEditingId(null);
-        toast.success("Подзадачата е обновена");
+        toast.success(t("subtaskUpdated") || "Подзадачата е обновена");
     };
 
     const cancelEditing = () => {
@@ -261,7 +263,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                             value={editData.description}
                                             onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                                             rows={2}
-                                            placeholder="Описание"
+                                            placeholder={t("description") || "Описание"}
                                         />
 
                                         {/* Labels Edit */}
@@ -279,7 +281,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                             </div>
                                             <div className="flex gap-2">
                                                 <Input
-                                                    placeholder="Нов етикет..."
+                                                    placeholder={t("newLabelPlaceholder") || "Нов етикет..."}
                                                     value={editLabelInput}
                                                     onChange={(e) => setEditLabelInput(e.target.value)}
                                                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLabel(true))}
@@ -297,10 +299,10 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                             onValueChange={(val) => setEditData({ ...editData, assigneeId: val === "unassigned" ? "" : val })}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Без отговорник" />
+                                                <SelectValue placeholder={t("unassignedPlaceholder") || "Без отговорник"} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="unassigned">Без отговорник</SelectItem>
+                                                <SelectItem value="unassigned">{t("unassignedPlaceholder") || "Без отговорник"}</SelectItem>
                                                 {users?.map((user) => (
                                                     <SelectItem key={user._id} value={user._id}>
                                                         <div className="flex items-center gap-2">
@@ -325,11 +327,11 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                 className="text-destructive hover:text-destructive"
                                             >
                                                 <X className="h-4 w-4 mr-1" />
-                                                Отказ
+                                                {t("cancel") || "Отказ"}
                                             </Button>
                                             <Button size="sm" onClick={saveEditing} className="bg-green-600 hover:bg-green-700">
                                                 <Save className="h-4 w-4 mr-1" />
-                                                Запази
+                                                {t("save") || "Запази"}
                                             </Button>
                                         </div>
                                     </div>
@@ -426,7 +428,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                                                         <ListChecks className="h-3 w-3" />
-                                                        ЧЕКЛИСТ
+                                                        {t("checklist") || "ЧЕКЛИСТ"}
                                                     </span>
                                                     <Button
                                                         size="sm"
@@ -435,7 +437,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                         onClick={() => handleAddChecklistItem(subtask._id, subtask)}
                                                     >
                                                         <Plus className="h-3 w-3 mr-1" />
-                                                        Нова точка
+                                                        {t("newChecklistItem") || "Нова точка"}
                                                     </Button>
                                                 </div>
 
@@ -463,7 +465,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                                                         onClick={() => handleAddChecklistItem(subtask._id, subtask)}
                                                         className="w-full py-3 border-2 border-dashed rounded-lg text-sm text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                                                     >
-                                                        + Добави първа точка към чеклиста
+                                                        {t("addFirstChecklistItem") || "+ Добави първа точка към чеклиста"}
                                                     </button>
                                                 )}
                                             </div>
@@ -476,7 +478,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                 ) : (
                     <div className="text-center py-8 text-muted-foreground">
                         <ListChecks className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p>Няма добавени подзадачи.</p>
+                        <p>{t("noSubtasks") || "Няма добавени подзадачи."}</p>
                     </div>
                 )}
             </div>
@@ -485,13 +487,13 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
             {isAdding ? (
                 <div className="border rounded-lg p-4 space-y-4 bg-slate-50 dark:bg-slate-900">
                     <Input
-                        placeholder="Заглавие на подзадачата..."
+                        placeholder={t("newSubtaskPlaceholder") || "Заглавие на подзадачата..."}
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
                         autoFocus
                     />
                     <Textarea
-                        placeholder="Описание (опционално)"
+                        placeholder={t("descriptionPlaceholder") || "Описание (опционално)"}
                         value={newDescription}
                         onChange={(e) => setNewDescription(e.target.value)}
                         rows={2}
@@ -499,7 +501,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
 
                     {/* Labels */}
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">Етикети</label>
+                        <label className="text-xs font-medium text-muted-foreground">{t("labels") || "Етикети"}</label>
                         <div className="flex gap-2 flex-wrap">
                             {newLabels.map((label) => (
                                 <Badge key={label} variant="secondary" className="gap-1">
@@ -513,7 +515,7 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
                         </div>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Нов етикет..."
+                                placeholder={t("newLabelPlaceholder") || "Нов етикет..."}
                                 value={newLabelInput}
                                 onChange={(e) => setNewLabelInput(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLabel(false))}
@@ -527,13 +529,13 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
 
                     {/* Assignee */}
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">Отговорник</label>
+                        <label className="text-xs font-medium text-muted-foreground">{t("assignee") || "Отговорник"}</label>
                         <Select value={newAssigneeId || "unassigned"} onValueChange={(val) => setNewAssigneeId(val === "unassigned" ? "" : val)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Без отговорник" />
+                                <SelectValue placeholder={t("unassignedPlaceholder") || "Без отговорник"} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="unassigned">Без отговорник</SelectItem>
+                                <SelectItem value="unassigned">{t("unassignedPlaceholder") || "Без отговорник"}</SelectItem>
                                 {users?.map((user) => (
                                     <SelectItem key={user._id} value={user._id}>
                                         <div className="flex items-center gap-2">
@@ -553,18 +555,18 @@ export function TaskSubtasks({ taskId }: TaskSubtasksProps) {
 
                     <div className="flex gap-2 justify-end">
                         <Button variant="ghost" onClick={() => setIsAdding(false)}>
-                            Отказ
+                            {t("cancel") || "Отказ"}
                         </Button>
                         <Button onClick={handleAddSubtask} disabled={!newTitle.trim()}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Добави
+                            {t("add") || "Добави"}
                         </Button>
                     </div>
                 </div>
             ) : (
                 <Button variant="outline" className="w-full" onClick={() => setIsAdding(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Нова подзадача
+                    {t("newSubtask") || "Нова подзадача"}
                 </Button>
             )}
         </div>

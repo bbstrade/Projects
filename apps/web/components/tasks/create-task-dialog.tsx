@@ -42,12 +42,13 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { useLanguage } from "@/components/language-provider";
 
 const formSchema = z.object({
-    title: z.string().min(3, "Заглавието трябва да бъде поне 3 символа").max(200),
+    title: z.string().min(3, "Title must be at least 3 characters").max(200),
     description: z.string().max(10000).optional(),
-    priority: z.enum(["low", "medium", "high", "critical"]),
-    status: z.enum(["todo", "in_progress", "in_review", "done", "blocked"]),
+    priority: z.string(),
+    status: z.string(),
     dueDate: z.date().optional(),
     estimatedHours: z.string().optional(),
     assigneeId: z.string().optional(),
@@ -70,6 +71,7 @@ interface CreateTaskDialogProps {
 }
 
 export function CreateTaskDialog({ open, onOpenChange, projectId, task }: CreateTaskDialogProps) {
+    const { t, lang } = useLanguage();
     const createTask = useMutation(api.tasks.create);
     const updateTask = useMutation(api.tasks.update);
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
@@ -80,6 +82,10 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
         api.teams.getMembers,
         project?.teamId ? { teamId: project.teamId } : "skip"
     );
+
+    // Fetch custom statuses and priorities
+    const customStatuses = useQuery(api.admin.getCustomStatuses, { type: "task" });
+    const customPriorities = useQuery(api.admin.getCustomPriorities, { type: "task" });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -99,6 +105,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
             assigneeId: "unassigned",
         },
     });
+
 
     // Reset form when dialog opens or task changes
     useEffect(() => {
@@ -266,9 +273,9 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
 
             <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? "Редактирай Задача" : "Създай Нова Задача"}</DialogTitle>
+                    <DialogTitle>{isEditing ? t("taskEditTitle") : t("taskCreateTitle")}</DialogTitle>
                     <DialogDescription>
-                        {isEditing ? "Обновете детайлите на задачата" : "Попълнете детайлите за да създадете нова задача"}
+                        {isEditing ? t("taskEditSubtitle") : t("taskCreateSubtitle")}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -278,9 +285,9 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                             name="title"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Заглавие *</FormLabel>
+                                    <FormLabel>{t("taskTitleLabel")}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Въведете заглавие на задачата" {...field} />
+                                        <Input placeholder={t("taskTitlePlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -292,10 +299,10 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Описание</FormLabel>
+                                    <FormLabel>{t("taskDescriptionLabel")}</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Опишете задачата"
+                                            placeholder={t("taskDescriptionPlaceholder")}
                                             className="resize-none"
                                             rows={3}
                                             {...field}
@@ -312,18 +319,29 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                 name="priority"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Приоритет</FormLabel>
+                                        <FormLabel>{t("priority")}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Изберете приоритет" />
+                                                    <SelectValue placeholder={t("selectPriority")} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="low">Нисък</SelectItem>
-                                                <SelectItem value="medium">Среден</SelectItem>
-                                                <SelectItem value="high">Висок</SelectItem>
-                                                <SelectItem value="critical">Критичен</SelectItem>
+                                                {customPriorities?.map((p) => (
+                                                    <SelectItem key={p.slug} value={p.slug}>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
+                                                            {lang === "bg" ? p.label : (p.slug.charAt(0).toUpperCase() + p.slug.slice(1))}
+                                                        </div>
+                                                    </SelectItem>
+                                                )) || (
+                                                        <>
+                                                            <SelectItem value="low">{t("prioLow")}</SelectItem>
+                                                            <SelectItem value="medium">{t("prioMedium")}</SelectItem>
+                                                            <SelectItem value="high">{t("prioHigh")}</SelectItem>
+                                                            <SelectItem value="critical">{t("prioCritical")}</SelectItem>
+                                                        </>
+                                                    )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -335,19 +353,30 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                 name="status"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Статус</FormLabel>
+                                        <FormLabel>{t("status")}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Изберете статус" />
+                                                    <SelectValue placeholder={t("selectStatus")} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="todo">За изпълнение</SelectItem>
-                                                <SelectItem value="in_progress">В процес</SelectItem>
-                                                <SelectItem value="in_review">В преглед</SelectItem>
-                                                <SelectItem value="done">Завършена</SelectItem>
-                                                <SelectItem value="blocked">Блокирана</SelectItem>
+                                                {customStatuses?.map((s) => (
+                                                    <SelectItem key={s.slug} value={s.slug}>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                                                            {lang === "bg" ? s.label : (s.slug.replace('_', ' ').charAt(0).toUpperCase() + s.slug.replace('_', ' ').slice(1))}
+                                                        </div>
+                                                    </SelectItem>
+                                                )) || (
+                                                        <>
+                                                            <SelectItem value="todo">{t("statusTodo")}</SelectItem>
+                                                            <SelectItem value="in_progress">{t("statusInProgress")}</SelectItem>
+                                                            <SelectItem value="in_review">{t("statusInReview")}</SelectItem>
+                                                            <SelectItem value="done">{t("statusDone")}</SelectItem>
+                                                            <SelectItem value="blocked">{t("statusBlocked")}</SelectItem>
+                                                        </>
+                                                    )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -362,11 +391,11 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                             name="assigneeId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Отговорник</FormLabel>
+                                    <FormLabel>{t("taskAssigneeLabel")}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Изберете отговорник">
+                                                <SelectValue placeholder={t("selectAssignee")}>
                                                     {field.value && field.value !== "unassigned" ? (
                                                         (() => {
                                                             const member = teamMembers?.find(m => m.user?._id === field.value);
@@ -383,10 +412,10 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                                                     </div>
                                                                 );
                                                             }
-                                                            return <span>Няма</span>;
+                                                            return <span>{t("none")}</span>;
                                                         })()
                                                     ) : (
-                                                        <span>Няма</span>
+                                                        <span>{t("none")}</span>
                                                     )}
                                                 </SelectValue>
                                             </SelectTrigger>
@@ -395,7 +424,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                             <SelectItem value="unassigned">
                                                 <div className="flex items-center gap-2">
                                                     <User className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Няма отговорник</span>
+                                                    <span>{t("unassigned")}</span>
                                                 </div>
                                             </SelectItem>
                                             {teamMembers?.map((member) => (
@@ -426,7 +455,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                 name="dueDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel>Краен Срок</FormLabel>
+                                        <FormLabel>{t("dueDate")}</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
@@ -440,7 +469,8 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                                         {field.value ? (
                                                             format(field.value, "PPP")
                                                         ) : (
-                                                            <span>Изберете дата</span>
+                                                            <span>{t("selectDate")}</span>
+
                                                         )}
                                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                     </Button>
@@ -465,7 +495,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                 name="estimatedHours"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Очаквани Часове</FormLabel>
+                                        <FormLabel>{t("taskEstimatedHoursLabel")}</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
@@ -481,10 +511,10 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
 
                         {/* Labels Section */}
                         <div className="space-y-2">
-                            <FormLabel>Етикети ({labels.length})</FormLabel>
+                            <FormLabel>{t("taskLabelsLabel")} ({labels.length})</FormLabel>
                             <div className="flex gap-2">
                                 <Input
-                                    placeholder="Добави етикет..."
+                                    placeholder={t("taskLabelsPlaceholder")}
                                     value={newLabel}
                                     onChange={(e) => setNewLabel(e.target.value)}
                                     onKeyPress={(e) => {
@@ -519,7 +549,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
 
                         {/* Attachments Section */}
                         <div className="space-y-2">
-                            <FormLabel>Прикачени файлове ({attachments.length})</FormLabel>
+                            <FormLabel>{t("taskAttachmentsLabel")} ({attachments.length})</FormLabel>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -532,7 +562,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                                 ) : (
                                     <Upload className="h-4 w-4" />
                                 )}
-                                {isUploading ? "Качване..." : "Качи файлове (макс. 10MB)"}
+                                {isUploading ? t("taskUploading") : t("taskUploadButton")}
                             </Button>
 
                             {attachments.length > 0 && (
@@ -570,7 +600,7 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
                             name="color"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Цвят</FormLabel>
+                                    <FormLabel>{t("taskColorLabel")}</FormLabel>
                                     <FormControl>
                                         <ColorPicker
                                             value={field.value}
@@ -584,12 +614,13 @@ export function CreateTaskDialog({ open, onOpenChange, projectId, task }: Create
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                                Отказ
+                                {t("cancel")}
                             </Button>
                             <Button type="submit" disabled={form.formState.isSubmitting || isUploading}>
-                                {form.formState.isSubmitting ? "Запазване..." : isEditing ? "Обнови Задача" : "Създай Задача"}
+                                {form.formState.isSubmitting ? t("saving") : isEditing ? t("taskUpdateButton") : t("taskCreateButton")}
                             </Button>
                         </DialogFooter>
+
                     </form>
                 </Form>
             </DialogContent>

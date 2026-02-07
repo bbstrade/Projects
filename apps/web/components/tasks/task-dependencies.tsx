@@ -23,20 +23,23 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/language-provider";
 
 interface TaskDependenciesProps {
     taskId: Id<"tasks">;
     projectId: Id<"projects">;
 }
 
-const DEPENDENCY_TYPES = [
-    { value: "FS", label: "Finish-to-Start", description: "Тази задача започва след приключване на избраната" },
-    { value: "SS", label: "Start-to-Start", description: "Двете задачи започват заедно" },
-    { value: "FF", label: "Finish-to-Finish", description: "Двете задачи завършват заедно" },
-    { value: "SF", label: "Start-to-Finish", description: "Избраната задача трябва да започне преди тази да завърши" },
+const getDependencyTypes = (t: (key: string) => string) => [
+    { value: "FS", label: "Finish-to-Start", description: t("fsDesc") || "Тази задача започва след приключване на избраната" },
+    { value: "SS", label: "Start-to-Start", description: t("ssDesc") || "Двете задачи започват заедно" },
+    { value: "FF", label: "Finish-to-Finish", description: t("ffDesc") || "Двете задачи завършват заедно" },
+    { value: "SF", label: "Start-to-Finish", description: t("sfDesc") || "Избраната задача трябва да започне преди тази да завърши" },
 ];
 
 export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
+    const { t } = useLanguage();
+    const DEPENDENCY_TYPES = getDependencyTypes(t);
     const dependencies = useQuery(api.dependencies.list, { taskId });
     const projectTasks = useQuery(api.tasks.list, { projectId });
     const addDependency = useMutation(api.dependencies.add);
@@ -66,16 +69,16 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
             setIsAdding(false);
             setSelectedTaskId("");
             setSelectedType("FS");
-            toast.success("Зависимостта е добавена");
+            toast.success(t("dependencyAdded") || "Зависимостта е добавена");
         } catch (error: any) {
-            toast.error(error.message || "Грешка при добавяне на зависимост");
+            toast.error(error.message || t("dependencyError") || "Грешка при добавяне на зависимост");
         }
     };
 
     const handleRemoveDependency = async (dependencyId: Id<"taskDependencies">) => {
-        if (!confirm("Сигурни ли сте?")) return;
+        if (!confirm(t("areYouSure") || "Сигурни ли сте?")) return;
         await removeDependency({ id: dependencyId });
-        toast.success("Зависимостта е премахната");
+        toast.success(t("dependencyRemoved") || "Зависимостта е премахната");
     };
 
     const getTypeColor = (type: string) => {
@@ -92,7 +95,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
         return DEPENDENCY_TYPES.find((t) => t.value === type)?.label || type;
     };
 
-    if (dependencies === undefined) return <div>Зареждане...</div>;
+    if (dependencies === undefined) return <div>{t("loading") || "Зареждане..."}</div>;
 
     return (
         <div className="space-y-4">
@@ -100,7 +103,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Link2 className="w-5 h-5" /> Зависимости
+                        <Link2 className="w-5 h-5" /> {t("dependencies") || "Зависимости"}
                     </h3>
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                         {dependencies.length}
@@ -112,7 +115,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                         onClick={() => setIsLegendOpen(!isLegendOpen)}
                     >
                         <Info className="h-3 w-3 mr-1" />
-                        Легенда
+                        {t("legend") || "Легенда"}
                     </Button>
                 </div>
             </div>
@@ -132,7 +135,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                                 <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <span className="font-medium truncate block">
-                                        {dep.dependsOnTask?.title || "Неизвестна задача"}
+                                        {dep.dependsOnTask?.title || t("unknownTask") || "Неизвестна задача"}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
                                         {getTypeLabel(dep.type)}
@@ -152,9 +155,9 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                 ) : (
                     <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/30">
                         <Link2 className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p className="font-medium">Няма зависимости</p>
+                        <p className="font-medium">{t("noDependencies") || "Няма зависимости"}</p>
                         <p className="text-sm mt-1">
-                            Добавете зависимости за да определите реда на изпълнение
+                            {t("noDependenciesDesc") || "Добавете зависимости за да определите реда на изпълнение"}
                         </p>
                     </div>
                 )}
@@ -164,10 +167,10 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
             {isAdding ? (
                 <div className="border rounded-lg p-4 space-y-4 bg-slate-50 dark:bg-slate-900">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Зависи от задача</label>
+                        <label className="text-sm font-medium">{t("dependsOnTask") || "Зависи от задача"}</label>
                         <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Изберете задача..." />
+                                <SelectValue placeholder={t("selectTaskPlaceholder") || "Изберете задача..."} />
                             </SelectTrigger>
                             <SelectContent>
                                 {availableTasks.length > 0 ? (
@@ -190,7 +193,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                                 ) : (
                                     <div className="p-3 text-center text-muted-foreground text-sm">
                                         <AlertTriangle className="h-4 w-4 mx-auto mb-1" />
-                                        Няма налични задачи
+                                        {t("noTasksAvailable") || "Няма налични задачи"}
                                     </div>
                                 )}
                             </SelectContent>
@@ -198,7 +201,7 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Тип зависимост</label>
+                        <label className="text-sm font-medium">{t("dependencyType") || "Тип зависимост"}</label>
                         <Select value={selectedType} onValueChange={setSelectedType}>
                             <SelectTrigger>
                                 <SelectValue />
@@ -232,25 +235,25 @@ export function TaskDependencies({ taskId, projectId }: TaskDependenciesProps) {
                                 setSelectedType("FS");
                             }}
                         >
-                            Отказ
+                            {t("cancel") || "Отказ"}
                         </Button>
                         <Button onClick={handleAddDependency} disabled={!selectedTaskId}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Добави
+                            {t("add") || "Добави"}
                         </Button>
                     </div>
                 </div>
             ) : (
                 <Button variant="outline" className="w-full" onClick={() => setIsAdding(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Добави зависимост
+                    {t("addDependency") || "Добави зависимост"}
                 </Button>
             )}
 
             {/* Legend */}
             {isLegendOpen && (
                 <div className="text-xs text-muted-foreground space-y-1 mt-4 p-3 bg-muted/50 rounded-lg animate-in fade-in slide-in-from-top-1">
-                    <p className="font-semibold mb-2">Типове зависимости:</p>
+                    <p className="font-semibold mb-2">{t("dependencyTypes") || "Типове зависимости:"}</p>
                     {DEPENDENCY_TYPES.map((type) => (
                         <div key={type.value} className="flex items-center gap-2">
                             <Badge className={cn("font-mono text-[10px]", getTypeColor(type.value))}>

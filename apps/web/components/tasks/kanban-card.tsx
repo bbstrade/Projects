@@ -5,7 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreVertical, Paperclip, Calendar, Info, Clock, CheckCircle2, Edit, Trash2, Eye } from "lucide-react";
+import { MoreVertical, Paperclip, Clock, CheckCircle2, Edit, Trash2, Eye, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
@@ -14,9 +14,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/language-provider";
 
 interface KanbanCardProps {
     id: Id<"tasks">;
@@ -27,26 +28,31 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ id, task, projectName, assignee, onTaskClick }: KanbanCardProps) {
+    const { t, lang } = useLanguage();
     const removeTask = useMutation(api.tasks.remove);
     const updateTask = useMutation(api.tasks.update);
+    const customPriorities = useQuery(api.admin.getCustomPriorities, {});
 
-    const handleDelete = async () => {
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         try {
             await removeTask({ id });
-            toast.success("Задачата беше изтрита");
+            toast.success(t("taskDeleted") || "Задачата беше изтрита");
         } catch (error) {
-            toast.error("Грешка при изтриване на задачата");
+            toast.error(t("error") || "Грешка при изтриване");
         }
     };
 
-    const handleMarkDone = async () => {
+    const handleMarkDone = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         try {
             await updateTask({ id, status: "done" });
-            toast.success("Задачата е маркирана като завършена");
+            toast.success(t("taskMarkedDone") || "Задачата е завършена");
         } catch (error) {
-            toast.error("Грешка при обновяване на задачата");
+            toast.error(t("error") || "Грешка");
         }
     };
+
     const {
         attributes,
         listeners,
@@ -68,29 +74,22 @@ export function KanbanCard({ id, task, projectName, assignee, onTaskClick }: Kan
         ...(task.color ? { borderLeftColor: task.color, borderLeftWidth: '4px' } : {})
     };
 
+    // Get priority info
+    const priority = customPriorities?.find(p => p.slug === task.priority);
+    const priorityColor = priority?.color || "#6b7280";
+    const priorityLabel = lang === "bg" ? priority?.label : priority?.slug || task.priority;
+
     if (isDragging) {
         return (
             <div
                 ref={setNodeRef}
                 style={style}
-                className="h-[200px] w-full rounded-xl border-2 border-dashed border-primary/20 bg-slate-50/50 dark:bg-slate-900/50 opacity-50 backdrop-blur-sm"
+                className="h-[120px] w-full rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 opacity-60"
             />
         );
     }
 
-    const priorityLabels: Record<string, string> = {
-        low: "Нисък",
-        medium: "Среден",
-        high: "Висок",
-        critical: "Критичен",
-    };
-
-    const priorityColors: Record<string, string> = {
-        low: "bg-slate-100/50 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:border-slate-700",
-        medium: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
-        high: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
-        critical: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800",
-    };
+    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
 
     return (
         <div
@@ -98,86 +97,84 @@ export function KanbanCard({ id, task, projectName, assignee, onTaskClick }: Kan
             style={style}
             {...attributes}
             {...listeners}
-            className="group relative flex flex-col gap-3 p-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 cursor-grab active:cursor-grabbing"
+            className="group relative flex flex-col gap-2 p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-grab active:cursor-grabbing"
             onClick={() => onTaskClick?.(id)}
         >
-            <div className="flex items-start justify-between gap-3">
-                <h4 className="font-bold text-[13px] leading-snug text-slate-900 dark:text-slate-100 line-clamp-2">
+            {/* Title Row */}
+            <div className="flex items-start justify-between gap-2">
+                <h4 className="font-semibold text-[13px] leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 flex-1">
                     {task.title}
                 </h4>
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 flex-shrink-0">
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 opacity-0 group-hover:opacity-100 flex-shrink-0">
                             <MoreVertical className="h-3.5 w-3.5" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onTaskClick?.(id)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTaskClick?.(id); }}>
                             <Eye className="mr-2 h-4 w-4" />
-                            Преглед
+                            {t("view") || "Преглед"}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleMarkDone}>
                             <CheckCircle2 className="mr-2 h-4 w-4" />
-                            Маркирай като завършена
+                            {t("markAsDone") || "Маркирай като завършена"}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onTaskClick?.(id)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTaskClick?.(id); }}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Редактирай
+                            {t("edit") || "Редактирай"}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleDelete} className="text-red-600">
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Изтрий
+                            {t("delete") || "Изтрий"}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
 
-            {task.description && (
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {task.description}
-                </p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-                <Badge variant="outline" className={cn(
-                    "text-[9px] h-5 px-1.5 gap-1 font-black uppercase tracking-wider border rounded-md",
-                    priorityColors[task.priority?.toLowerCase() || "medium"]
-                )}>
-                    {priorityLabels[task.priority?.toLowerCase() || "medium"]}
+            {/* Meta Row */}
+            <div className="flex flex-wrap items-center gap-1.5">
+                {/* Priority Badge */}
+                <Badge
+                    variant="outline"
+                    className="text-[9px] h-5 px-1.5 font-bold uppercase tracking-wider rounded-md border"
+                    style={{
+                        backgroundColor: priorityColor + "15",
+                        color: priorityColor,
+                        borderColor: priorityColor + "40",
+                    }}
+                >
+                    {priorityLabel}
                 </Badge>
 
+                {/* Project Name */}
                 {projectName && (
-                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-500 truncate max-w-[80px]">
                         {projectName}
-                    </div>
+                    </span>
                 )}
-
-                <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-600 ml-auto">
-                    <div className="flex items-center gap-0.5">
-                        <Paperclip className="h-3 w-3" />
-                        <span className="text-[9px] font-bold">1</span>
-                    </div>
-                </div>
             </div>
 
-            <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-100 dark:border-slate-800/50">
-                <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6 ring-2 ring-white dark:ring-slate-900">
+            {/* Footer Row */}
+            <div className="flex items-center justify-between pt-2 mt-auto border-t border-slate-100 dark:border-slate-800/50">
+                {/* Assignee */}
+                <div className="flex items-center gap-1.5">
+                    <Avatar className="h-5 w-5 ring-1 ring-white dark:ring-slate-900">
                         <AvatarImage src={assignee?.avatar} />
-                        <AvatarFallback className="text-[8px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500">
-                            {assignee?.name?.substring(0, 2).toUpperCase() || "??"}
+                        <AvatarFallback className="text-[8px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            {assignee?.name?.substring(0, 2).toUpperCase() || "?"}
                         </AvatarFallback>
                     </Avatar>
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 truncate max-w-[100px]">
-                        {assignee?.name || "Неразпределена"}
+                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[70px]">
+                        {assignee?.name || t("unassigned") || "Неразпределена"}
                     </span>
                 </div>
 
+                {/* Due Date */}
                 {task.dueDate && (
                     <div className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tight",
-                        new Date(task.dueDate) < new Date() ? "bg-rose-50 text-rose-600 dark:bg-rose-900/20" : "text-slate-400"
+                        "flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold",
+                        isOverdue ? "bg-rose-100 text-rose-600 dark:bg-rose-900/30" : "text-slate-400"
                     )}>
                         <Clock className="h-3 w-3" />
                         {format(new Date(task.dueDate), "dd MMM")}
