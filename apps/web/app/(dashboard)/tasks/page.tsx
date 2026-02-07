@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { TaskCard } from "@/components/tasks/task-card";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
+import { KanbanBoard } from "@/components/tasks/kanban-board";
 import { format } from "date-fns";
 import {
     LayoutGrid, List, Filter,
@@ -387,11 +388,18 @@ export default function TasksPage() {
                         </div>
                     ) : (
                         <>
-                            {(viewMode === "grid" || viewMode === "list") && (
-                                <div className={viewMode === "grid"
-                                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                                    : "flex flex-col gap-3"
-                                }>
+                            {/* Kanban Board View */}
+                            {viewMode === "grid" && (
+                                <KanbanBoard
+                                    tasks={processedTasks}
+                                    users={users}
+                                    onTaskClick={handleTaskClick}
+                                />
+                            )}
+
+                            {/* List View */}
+                            {viewMode === "list" && (
+                                <div className="flex flex-col gap-3">
                                     {processedTasks.map((task) => {
                                         const assignee = task.assigneeId ? users?.find(u => u._id === task.assigneeId) : undefined;
                                         return (
@@ -403,7 +411,7 @@ export default function TasksPage() {
                                                 status={task.status}
                                                 priority={task.priority}
                                                 dueDate={task.dueDate}
-                                                viewMode={viewMode}
+                                                viewMode="list"
                                                 assignee={assignee ? { name: assignee.name, image: assignee.avatar } : undefined}
                                                 color={task.color}
                                                 onClick={handleTaskClick}
