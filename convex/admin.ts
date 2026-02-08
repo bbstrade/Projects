@@ -6,6 +6,7 @@ import { mutation, query } from "./_generated/server";
 // Helper to check if user is super admin
 async function checkSuperAdmin(ctx: any) {
     const identity = await ctx.auth.getUserIdentity();
+    console.log("checkSuperAdmin identity:", identity);
     if (!identity) return false;
 
     if (identity.email === 'bbstradeltd@gmail.com') return true;
@@ -14,6 +15,7 @@ async function checkSuperAdmin(ctx: any) {
         .query("users")
         .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
         .unique();
+    console.log("checkSuperAdmin user:", user);
 
     if (!user) return false;
 
@@ -214,73 +216,83 @@ export const initializeDefaults = mutation({
 });
 
 // Custom Statuses Management
-export const manageCustomStatus = mutation({
-    args: {
-        action: v.string(), // "create" | "update" | "delete"
-        id: v.optional(v.id("customStatuses")),
-        data: v.optional(v.object({
-            type: v.string(), // "task" | "project"
-            slug: v.string(),
-            label: v.string(),
-            color: v.string(),
-            isDefault: v.boolean(),
-            order: v.number(),
-            teamId: v.optional(v.string()),
-        })),
-    },
-    handler: async (ctx, args) => {
-        try {
-            if (args.action === "create") {
-                if (!args.data) throw new Error("Data required for create");
+export const manageCustomStatusHandler = async (ctx: any, args: any) => {
+    try {
+        console.log("manageCustomStatus args:", args);
+        const identity = await ctx.auth.getUserIdentity();
+        console.log("DEBUG: identity", identity);
 
-                // Permission check
-                if (args.data.teamId) {
-                    if (!(await checkTeamAdmin(ctx, args.data.teamId))) throw new Error("Unauthorized: Not admin of this team");
-                } else {
-                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized: Only super admin can create global statuses");
-                }
+        if (identity) {
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                .unique();
+            console.log("DEBUG: user lookup", user);
+        }
 
-                await ctx.db.insert("customStatuses", {
-                    ...args.data,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now(),
-                });
-            } else if (args.action === "update") {
-                if (!args.id || !args.data) throw new Error("ID and Data required for update");
-                const existing = await ctx.db.get(args.id);
-                if (!existing) throw new Error("Status not found");
+        if (args.action === "create") {
+            if (!args.data) throw new Error("Data required for create");
 
-                // Permission check
-                if (existing.teamId) {
-                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
-                } else {
-                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
-                }
-
-                // Prevent moving across teams/global via update
-                if (args.data.teamId !== existing.teamId) throw new Error("Cannot change team scope of a status");
-
-                await ctx.db.patch(args.id, {
-                    ...args.data,
-                    updatedAt: Date.now(),
-                });
-            } else if (args.action === "delete") {
-                if (!args.id) throw new Error("ID required for delete");
-                const existing = await ctx.db.get(args.id);
-                if (!existing) throw new Error("Status not found");
-
-                // Permission check
-                if (existing.teamId) {
-                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
-                } else {
-                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
-                }
-
-                await ctx.db.delete(args.id);
+            // Permission check
+            if (args.data.teamId) {
+                if (!(await checkTeamAdmin(ctx, args.data.teamId))) throw new Error("Unauthorized: Not admin of this team");
+            } else {
+                if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized: Only super admin can create global statuses");
             }
+
+            await ctx.db.insert("customStatuses", {
+                ...args.data,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            });
+        } else if (args.action === "update") {
+            if (!args.id || !args.data) throw new Error("ID and Data required for update");
+            const existing = await ctx.db.get(args.id);
+            if (!existing) throw new Error("Status not found");
+
+            // Permission check
+            if (existing.teamId) {
+                if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+            } else {
+                if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+            }
+
+            // Prevent moving across teams/global via update
+            if (args.data.teamId !== existing.teamId) throw new Error("Cannot change team scope of a status");
+
+            await ctx.db.patch(args.id, {
+                ...args.data,
+                updatedAt: Date.now(),
+            });
+        } else if (args.action === "delete") {
+            if (!args.id) throw new Error("ID required for delete");
+            const existing = await ctx.db.get(args.id);
+            if (!existing) throw new Error("Status not found");
+
+            // Permission check
+            if (existing.teamId) {
+                if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+            } else {
+                if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+            }
+
+            await ctx.db.delete(args.id);
+        }
+    } catch (e: any) {
+        console.error("Error in manageCustomStatus:", e);
+        throw new Error(e.message || "Failed to manage custom status");
+    }
+};
+
+export const manageCustomStatus = mutation({
+    args: v.any(),
+    handler: async (ctx, args) => {
+        console.log("manageCustomStatus wrapper called with:", args);
+        try {
+            await manageCustomStatusHandler(ctx, args);
         } catch (e: any) {
-            console.error("Error in manageCustomStatus:", e);
-            throw new Error(e.message || "Failed to manage custom status");
+            console.error("Wrapper Error:", e);
+            throw e;
         }
     },
 });

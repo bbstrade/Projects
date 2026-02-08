@@ -74,6 +74,13 @@ export default function SettingsPage() {
                         <Download className="h-4 w-4" />
                         {dict.tabs.export}
                     </TabsTrigger>
+                    <TabsTrigger
+                        value="tasks"
+                        className="w-full justify-start px-4 py-3 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted transition-colors gap-3 font-medium"
+                    >
+                        <Layout className="h-4 w-4" />
+                        {dict.tabs.tasks}
+                    </TabsTrigger>
                 </TabsList>
 
                 <div className="flex-1">

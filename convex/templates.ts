@@ -3,36 +3,34 @@ import { mutation, query } from "./_generated/server";
 
 
 export const createProjectTemplate = mutation({
-    args: {
-        name: v.string(),
-        description: v.optional(v.string()),
-        priority: v.string(),
-        estimatedDuration: v.number(),
-        tasks: v.array(v.object({
-            title: v.string(),
-            description: v.optional(v.string()),
-            priority: v.string(),
-            estimatedHours: v.optional(v.number()),
-            subtasks: v.optional(v.array(v.string())),
-        })),
-        isPublic: v.optional(v.boolean()),
-    },
+    args: v.any(),
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error("Unauthorized");
+        console.log("createProjectTemplate called with:", args);
+        try {
+            const identity = await ctx.auth.getUserIdentity();
+            if (!identity) throw new Error("Unauthorized");
 
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
-            .unique();
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                .unique();
 
-        if (!user) throw new Error("User not found");
+            if (!user) throw new Error("User not found");
 
-        return await ctx.db.insert("projectTemplates", {
-            ...args,
-            createdBy: user._id,
-            createdAt: Date.now(),
-        });
+            return await ctx.db.insert("projectTemplates", {
+                name: args.name,
+                description: args.description,
+                priority: args.priority,
+                estimatedDuration: args.estimatedDuration,
+                tasks: args.tasks,
+                isPublic: args.isPublic,
+                createdBy: user._id,
+                createdAt: Date.now(),
+            });
+        } catch (e: any) {
+            console.error("Error in createProjectTemplate:", e);
+            throw new Error(e.message || "Failed to create project template");
+        }
     },
 });
 
