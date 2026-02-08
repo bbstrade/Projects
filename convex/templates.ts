@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+
 
 export const createProjectTemplate = mutation({
     args: {
@@ -18,12 +18,19 @@ export const createProjectTemplate = mutation({
         isPublic: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         return await ctx.db.insert("projectTemplates", {
             ...args,
-            createdBy: userId,
+            createdBy: user._id,
             createdAt: Date.now(),
         });
     },
@@ -32,13 +39,20 @@ export const createProjectTemplate = mutation({
 export const listProjectTemplates = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return [];
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) return [];
 
         const templates = await ctx.db.query("projectTemplates").collect();
         // Filter logic: visible if public OR created by user
         // (For a real shared team environment, we'd check team visibility too, but simple for now)
-        return templates.filter(t => t.isPublic || t.createdBy === userId);
+        return templates.filter(t => t.isPublic || t.createdBy === user._id);
     },
 });
 
@@ -52,13 +66,20 @@ export const getProjectTemplate = query({
 export const deleteProjectTemplate = mutation({
     args: { id: v.id("projectTemplates") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         const template = await ctx.db.get(args.id);
         if (!template) throw new Error("Template not found");
 
-        if (template.createdBy !== userId && !template.isPublic) {
+        if (template.createdBy !== user._id && !template.isPublic) {
             throw new Error("Unauthorized to delete this template");
         }
 
@@ -75,13 +96,20 @@ export const instantiateProjectTemplate = mutation({
         ownerId: v.optional(v.id("users")), // Optional, defaults to caller
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         const template = await ctx.db.get(args.templateId);
         if (!template) throw new Error("Template not found");
 
-        const ownerId = args.ownerId || userId;
+        const ownerId = args.ownerId || user._id;
 
         // 1. Create Project
         const projectId = await ctx.db.insert("projects", {
@@ -106,7 +134,7 @@ export const instantiateProjectTemplate = mutation({
                 title: t.title,
                 description: t.description || "",
                 projectId: projectId,
-                creatorId: userId,
+                creatorId: user._id,
                 assigneeId: undefined, // Unassigned
                 status: "todo",
                 priority: t.priority,
@@ -144,12 +172,19 @@ export const createTaskTemplate = mutation({
         isPublic: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         return await ctx.db.insert("taskTemplates", {
             ...args,
-            createdBy: userId,
+            createdBy: user._id,
             createdAt: Date.now(),
         });
     },
@@ -161,24 +196,38 @@ export const createTaskTemplate = mutation({
 export const listTaskTemplates = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return [];
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) return [];
 
         const templates = await ctx.db.query("taskTemplates").collect();
-        return templates.filter(t => t.isPublic || t.createdBy === userId);
+        return templates.filter(t => t.isPublic || t.createdBy === user._id);
     },
 });
 
 export const deleteTaskTemplate = mutation({
     args: { id: v.id("taskTemplates") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         const template = await ctx.db.get(args.id);
         if (!template) throw new Error("Template not found");
 
-        if (template.createdBy !== userId && !template.isPublic) {
+        if (template.createdBy !== user._id && !template.isPublic) {
             throw new Error("Unauthorized to delete this template");
         }
 
@@ -196,8 +245,15 @@ export const instantiateTaskTemplate = mutation({
         dueDate: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) throw new Error("Unauthorized");
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) throw new Error("User not found");
 
         const template = await ctx.db.get(args.templateId);
         if (!template) throw new Error("Template not found");
@@ -206,7 +262,7 @@ export const instantiateTaskTemplate = mutation({
             title: template.title,
             description: template.description || "",
             projectId: args.projectId,
-            creatorId: userId,
+            creatorId: user._id,
             assigneeId: args.assigneeId,
             status: args.status || "todo",
             priority: args.priority || template.priority,

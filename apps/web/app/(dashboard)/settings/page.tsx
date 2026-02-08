@@ -3,6 +3,7 @@
 import { useLanguage } from "@/components/language-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Download, Layout } from "lucide-react";
+import StatusManagement from "@/components/admin/StatusManagement";
 import ProfileTab from "@/components/settings/ProfileTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
 import DataExportTab from "@/components/settings/DataExportTab";
@@ -27,7 +28,7 @@ export default function SettingsPage() {
             profile: t("tabProfile"),
             notifications: t("tabNotifications"),
             export: t("tabExport"),
-            templates: t("tabTemplates"),
+            tasks: t("tabTasks") || "Tasks & Workflow",
         }
     };
 
@@ -86,6 +87,18 @@ export default function SettingsPage() {
 
                     <TabsContent value="export" className="m-0 space-y-6">
                         <DataExportTab />
+                    </TabsContent>
+
+                    <TabsContent value="tasks" className="m-0 space-y-6">
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-medium">{t("taskSettings") || "Task Settings"}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {t("taskSettingsDesc") || "Manage custom statuses and priorities for your workspace."}
+                                </p>
+                            </div>
+                            <StatusManagement />
+                        </div>
                     </TabsContent>
                 </div>
             </Tabs>

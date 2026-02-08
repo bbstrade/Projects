@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,16 +21,19 @@ import { useLanguage } from "@/components/language-provider";
 
 const taskSchema = z.object({
     title: z.string().min(1, "Task title is required"),
+    description: z.string().optional(),
     priority: z.string(),
     estimatedHours: z.number().optional(),
     subtasks: z.array(z.string()).optional(),
 });
 
+// ...
+
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
     description: z.string().optional(),
     priority: z.string(),
-    estimatedDuration: z.string(), // Input as string (days), convert to number
+    estimatedDuration: z.string(),
     isPublic: z.boolean().optional(),
 });
 
@@ -51,7 +54,8 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
     const [newTaskOpen, setNewTaskOpen] = useState(false);
     const [newTask, setNewTask] = useState<Partial<z.infer<typeof taskSchema>>>({
         priority: "medium",
-        subtasks: []
+        subtasks: [],
+        description: ""
     });
     const [newSubtask, setNewSubtask] = useState("");
 
@@ -98,6 +102,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
 
         setTasks([...tasks, {
             title: newTask.title,
+            description: newTask.description || "",
             priority: newTask.priority || "medium",
             estimatedHours: newTask.estimatedHours,
             subtasks: newTask.subtasks || [],
@@ -106,7 +111,8 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
         // Reset new task form
         setNewTask({
             priority: "medium",
-            subtasks: []
+            subtasks: [],
+            description: ""
         });
         setNewTaskOpen(false);
     };
@@ -145,11 +151,16 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
         }
     };
 
+    // ...
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{t("createProjectTemplate")}</DialogTitle>
+                    <DialogDescription>
+                        {t("createProjectTemplateDesc") || "Define a new project template with default tasks and settings."}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>

@@ -1,21 +1,20 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+
 
 // Helper to check if user is super admin
+// Helper to check if user is super admin
 async function checkSuperAdmin(ctx: any) {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return false;
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
 
-    // Check identity directly for super admin override
-    try {
-        const identity = await ctx.auth.getUserIdentity();
-        if (identity?.email === 'bbstradeltd@gmail.com') return true;
-    } catch (e) {
-        // Ignore auth error
-    }
+    if (identity.email === 'bbstradeltd@gmail.com') return true;
 
-    const user = await ctx.db.get(userId);
+    const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique();
+
     if (!user) return false;
 
     return user.systemRole === 'superadmin' || user.email === 'bbstradeltd@gmail.com';
@@ -23,14 +22,21 @@ async function checkSuperAdmin(ctx: any) {
 
 // Helper to check if user is admin of a specific team
 async function checkTeamAdmin(ctx: any, teamId: string) {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return false;
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+
+    const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q: any) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique();
+
+    if (!user) return false;
 
     if (await checkSuperAdmin(ctx)) return true; // Super admin is admin of all teams
 
     const membership = await ctx.db
         .query("teamMembers")
-        .withIndex("by_user_team", (q: any) => q.eq("userId", userId).eq("teamId", teamId))
+        .withIndex("by_user_team", (q: any) => q.eq("userId", user._id).eq("teamId", teamId))
         .first();
 
     return membership?.role === 'owner' || membership?.role === 'admin';
@@ -44,8 +50,8 @@ async function checkAdmin(ctx: any) {
 export const getSystemStats = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return null;
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return null;
 
         const users = await ctx.db.query("users").collect();
         const teams = await ctx.db.query("teams").collect();
@@ -136,51 +142,71 @@ export const updateUserRole = mutation({
     },
 });
 
-// Initialize default statuses and priorities if empty
+// Initialize default statuses and priorities if empty or missing defaults
 export const initializeDefaults = mutation({
     args: {},
     handler: async (ctx) => {
-        // Only allow if no statuses exist
-        const textTaskStatuses = await ctx.db.query("customStatuses").withIndex("by_type", q => q.eq("type", "task")).first();
+        const defaultTaskStatuses = [
+            { label: "To Do", slug: "todo", color: "#808080", order: 0, isDefault: true },
+            { label: "In Progress", slug: "in_progress", color: "#3b82f6", order: 1, isDefault: false },
+            { label: "In Review", slug: "in_review", color: "#f59e0b", order: 2, isDefault: false },
+            { label: "Done", slug: "done", color: "#22c55e", order: 3, isDefault: false },
+        ];
 
-        if (!textTaskStatuses) {
-            const defaultTaskStatuses = [
-                { label: "To Do", slug: "todo", color: "#808080", order: 0, isDefault: true },
-                { label: "In Progress", slug: "in_progress", color: "#3b82f6", order: 1, isDefault: false },
-                { label: "In Review", slug: "in_review", color: "#f59e0b", order: 2, isDefault: false },
-                { label: "Done", slug: "done", color: "#22c55e", order: 3, isDefault: false },
-            ];
+        for (const s of defaultTaskStatuses) {
+            const existing = await ctx.db.query("customStatuses")
+                .withIndex("by_type", q => q.eq("type", "task"))
+                .filter(q => q.eq(q.field("slug"), s.slug))
+                .first();
 
-            for (const s of defaultTaskStatuses) {
+            if (!existing) {
                 await ctx.db.insert("customStatuses", { ...s, type: "task", createdAt: Date.now(), updatedAt: Date.now() });
             }
         }
 
-        const projectStatuses = await ctx.db.query("customStatuses").withIndex("by_type", q => q.eq("type", "project")).first();
-        if (!projectStatuses) {
-            const defaultProjectStatuses = [
-                { label: "Draft", slug: "draft", color: "#808080", order: 0, isDefault: true },
-                { label: "Active", slug: "active", color: "#3b82f6", order: 1, isDefault: false },
-                { label: "On Hold", slug: "on_hold", color: "#f59e0b", order: 2, isDefault: false },
-                { label: "Completed", slug: "completed", color: "#22c55e", order: 3, isDefault: false },
-                { label: "Archived", slug: "archived", color: "#64748b", order: 4, isDefault: false },
-            ];
-            for (const s of defaultProjectStatuses) {
+        const defaultProjectStatuses = [
+            { label: "Draft", slug: "draft", color: "#808080", order: 0, isDefault: true },
+            { label: "Active", slug: "active", color: "#3b82f6", order: 1, isDefault: false },
+            { label: "On Hold", slug: "on_hold", color: "#f59e0b", order: 2, isDefault: false },
+            { label: "Completed", slug: "completed", color: "#22c55e", order: 3, isDefault: false },
+            { label: "Archived", slug: "archived", color: "#64748b", order: 4, isDefault: false },
+        ];
+
+        for (const s of defaultProjectStatuses) {
+            const existing = await ctx.db.query("customStatuses")
+                .withIndex("by_type", q => q.eq("type", "project"))
+                .filter(q => q.eq(q.field("slug"), s.slug))
+                .first();
+
+            if (!existing) {
                 await ctx.db.insert("customStatuses", { ...s, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
             }
         }
 
         // Priorities
-        const priorities = await ctx.db.query("customPriorities").first();
-        if (!priorities) {
-            const defaultPriorities = [
-                { label: "Low", slug: "low", color: "#22c55e", order: 0, isDefault: false },
-                { label: "Medium", slug: "medium", color: "#3b82f6", order: 1, isDefault: true },
-                { label: "High", slug: "high", color: "#f59e0b", order: 2, isDefault: false },
-                { label: "Critical", slug: "critical", color: "#ef4444", order: 3, isDefault: false },
-            ];
-            for (const p of defaultPriorities) {
-                await ctx.db.insert("customPriorities", { ...p, type: "task", createdAt: Date.now(), updatedAt: Date.now() }); // Default to task type for now or add both
+        const defaultPriorities = [
+            { label: "Low", slug: "low", color: "#22c55e", order: 0, isDefault: false },
+            { label: "Medium", slug: "medium", color: "#3b82f6", order: 1, isDefault: true },
+            { label: "High", slug: "high", color: "#f59e0b", order: 2, isDefault: false },
+            { label: "Critical", slug: "critical", color: "#ef4444", order: 3, isDefault: false },
+        ];
+
+        for (const p of defaultPriorities) {
+            const existingTaskP = await ctx.db.query("customPriorities")
+                .withIndex("by_type", q => q.eq("type", "task"))
+                .filter(q => q.eq(q.field("slug"), p.slug))
+                .first();
+
+            if (!existingTaskP) {
+                await ctx.db.insert("customPriorities", { ...p, type: "task", createdAt: Date.now(), updatedAt: Date.now() });
+            }
+
+            const existingProjectP = await ctx.db.query("customPriorities")
+                .withIndex("by_type", q => q.eq("type", "project"))
+                .filter(q => q.eq(q.field("slug"), p.slug))
+                .first();
+
+            if (!existingProjectP) {
                 await ctx.db.insert("customPriorities", { ...p, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
             }
         }
@@ -330,8 +356,8 @@ export const manageCustomPriority = mutation({
 export const getCustomStatuses = query({
     args: { type: v.optional(v.string()), teamId: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return []; // or throw
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
 
         let statuses;
         if (args.type) {
@@ -350,8 +376,8 @@ export const getCustomStatuses = query({
 export const getCustomPriorities = query({
     args: { type: v.optional(v.string()), teamId: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
-        if (!userId) return [];
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return [];
 
         let priorities;
         if (args.type) {
