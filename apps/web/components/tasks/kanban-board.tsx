@@ -65,40 +65,42 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
     const user = useQuery(api.users.me);
     const updateColumnOrder = useMutation(api.users.updateKanbanColumnOrder);
 
-    // Combine default columns with custom statuses
+    // Combine default columns with custom statuses (or just use custom statuses if available)
     const allColumns = useMemo(() => {
-        const defaultIds = DEFAULT_STATUS_COLUMNS.map(c => c.id);
-        const customColumns = (customStatuses || [])
-            .filter(cs => !defaultIds.includes(cs.slug))
-            .map(cs => ({
+        // If customStatuses is provided, use it as the source of truth
+        // We assume the backend ensures default statuses exist if needed
+        let columns: any[] = [];
+
+        if (customStatuses && customStatuses.length > 0) {
+            columns = customStatuses.map(cs => ({
                 id: cs.slug,
                 labelBg: cs.label,
                 labelEn: cs.slug.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-                color: cs.color ? "" : "bg-purple-500",
-                borderColor: cs.color ? "" : "border-purple-400",
+                color: cs.color ? "" : "bg-slate-500", // Fallback if no color
+                borderColor: cs.color ? "" : "border-slate-400",
                 customColor: cs.color,
-            }));
+                order: (cs as any).order || 0
+            })).sort((a, b) => a.order - b.order);
+        } else {
+            // Fallback to defaults only if customStatuses is strictly empty (and loaded)
+            // This safeguards against a completely empty board
+            columns = DEFAULT_STATUS_COLUMNS;
+        }
 
-        const mergedColumns = [...DEFAULT_STATUS_COLUMNS, ...customColumns];
-
-        // Sort based on user preference if available
+        // Sort based on user preference if available (overrides default order)
         if (user?.preferences?.kanbanColumnOrder) {
             const order = user.preferences.kanbanColumnOrder;
-            return mergedColumns.sort((a, b) => {
+            return columns.sort((a, b) => {
                 const indexA = order.indexOf(a.id);
                 const indexB = order.indexOf(b.id);
-                // If both found, sort by index
                 if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                // If only A found, A comes first
                 if (indexA !== -1) return -1;
-                // If only B found, B comes first
                 if (indexB !== -1) return 1;
-                // If neither found, keep original order (or put at end)
                 return 0;
             });
         }
 
-        return mergedColumns;
+        return columns;
     }, [customStatuses, user?.preferences?.kanbanColumnOrder]);
 
     const handleDragEnd = async (result: DropResult) => {
@@ -118,11 +120,8 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
 
             const newOrderIds = newColumnOrder.map(c => c.id);
 
-            // Optimistic update could be done here if we had local state for columns
-            // But we rely on parent/convex, so we just call mutation
             try {
                 await updateColumnOrder({ columnOrder: newOrderIds });
-                // toast.success("Layout saved"); 
             } catch (error) {
                 toast.error("Failed to save layout");
             }
@@ -133,6 +132,8 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
         const newStatus = destination.droppableId;
         const taskId = draggableId as Id<"tasks">;
 
+        // Optimistic update logic (optional, but good for UX)
+        // Here we just call mutation
         try {
             await updateTask({ id: taskId, status: newStatus });
             toast.success(lang === "bg" ? "Статусът е обновен" : "Status updated");
@@ -161,7 +162,7 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
                     <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className="flex gap-5 overflow-x-auto pb-4 min-h-[calc(100vh-300px)] items-start"
+                        className="flex gap-6 overflow-x-auto pb-6 min-h-[calc(100vh-280px)] items-start px-2"
                     >
                         {allColumns.map((column, index) => {
                             const columnTasks = getTasksByStatus(column.id);
@@ -172,31 +173,33 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
                                         <div
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
-                                            {...provided.dragHandleProps} // Drag handle for the whole column
+                                            {...provided.dragHandleProps}
                                             className={cn(
-                                                "flex-shrink-0 w-[300px] rounded-xl flex flex-col",
-                                                "bg-gradient-to-b from-slate-100/80 to-slate-50/50 dark:from-slate-900/80 dark:to-slate-950/50",
+                                                "flex-shrink-0 w-[320px] rounded-2xl flex flex-col transition-all",
+                                                "bg-slate-100/50 dark:bg-slate-900/40", // Column track background
                                                 "border border-slate-200/60 dark:border-slate-800/60",
-                                                "shadow-sm"
+                                                "hover:border-slate-300 dark:hover:border-slate-700"
                                             )}
                                         >
-                                            {/* Column Header with colored top border */}
+                                            {/* Column Header */}
                                             <div
                                                 className={cn(
-                                                    "rounded-t-xl border-t-4 px-4 py-3 cursor-grab active:cursor-grabbing", // Changed cursor
+                                                    "rounded-t-2xl border-t-[5px] px-5 py-4 cursor-grab active:cursor-grabbing bg-white dark:bg-slate-950/80 border-b border-slate-200/50 dark:border-slate-800/50",
                                                     !customColor && column.borderColor
                                                 )}
                                                 style={customColor ? { borderTopColor: customColor } : undefined}
                                             >
-                                                <div className="flex items-center gap-2">
-                                                    <div
-                                                        className={cn("w-2.5 h-2.5 rounded-full shadow-sm", !customColor && column.color)}
-                                                        style={customColor ? { backgroundColor: customColor } : undefined}
-                                                    />
-                                                    <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">
-                                                        {lang === "bg" ? column.labelBg : column.labelEn}
-                                                    </h3>
-                                                    <span className="ml-auto text-xs font-bold text-white bg-slate-400 dark:bg-slate-600 px-2 py-0.5 rounded-full min-w-[24px] text-center">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div
+                                                            className={cn("w-3 h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-900", !customColor && column.color)}
+                                                            style={customColor ? { backgroundColor: customColor } : undefined}
+                                                        />
+                                                        <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight">
+                                                            {lang === "bg" ? column.labelBg : column.labelEn}
+                                                        </h3>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md">
                                                         {columnTasks.length}
                                                     </span>
                                                 </div>
@@ -209,9 +212,9 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
                                                         ref={provided.innerRef}
                                                         {...provided.droppableProps}
                                                         className={cn(
-                                                            "flex-1 space-y-3 p-3 rounded-b-xl transition-all overflow-y-auto",
-                                                            "min-h-[200px] max-h-[calc(100vh-380px)]",
-                                                            snapshot.isDraggingOver && "bg-slate-200/70 dark:bg-slate-800/70 ring-2 ring-inset ring-primary/30"
+                                                            "flex-1 space-y-3 p-3 transition-colors overflow-y-auto custom-scrollbar",
+                                                            "min-h-[150px] max-h-[calc(100vh-380px)]",
+                                                            snapshot.isDraggingOver ? "bg-slate-200/40 dark:bg-slate-800/40" : "bg-transparent"
                                                         )}
                                                     >
                                                         {columnTasks.map((task, index) => (
@@ -221,33 +224,41 @@ export function KanbanBoard({ tasks, users, projects, customStatuses, onTaskClic
                                                                         ref={provided.innerRef}
                                                                         {...provided.draggableProps}
                                                                         {...provided.dragHandleProps}
+                                                                        style={{
+                                                                            ...provided.draggableProps.style,
+                                                                            transform: snapshot.isDragging ? provided.draggableProps.style?.transform : "translate(0, 0)", // Fix transform jitter
+                                                                        }}
                                                                         className={cn(
                                                                             "transition-all duration-200",
-                                                                            snapshot.isDragging && "rotate-2 scale-105 shadow-2xl"
+                                                                            snapshot.isDragging && "z-50 rotate-1 scale-105 shadow-2xl opacity-90"
                                                                         )}
                                                                     >
-                                                                        <KanbanTaskCard
-                                                                            task={task}
-                                                                            assignee={getAssignee(task.assigneeId)}
-                                                                            project={getProject(task.projectId)}
-                                                                            onClick={() => onTaskClick?.(task._id)}
-                                                                        />
+                                                                        <div className={cn(snapshot.isDragging && "cursor-grabbing")}>
+                                                                            <KanbanTaskCard
+                                                                                task={task}
+                                                                                assignee={getAssignee(task.assigneeId)}
+                                                                                project={getProject(task.projectId)}
+                                                                                onClick={() => onTaskClick?.(task._id)}
+                                                                            />
+                                                                        </div>
                                                                     </div>
                                                                 )}
                                                             </Draggable>
                                                         ))}
                                                         {provided.placeholder}
 
-                                                        {/* Empty state */}
+                                                        {/* Simple Empty state */}
                                                         {columnTasks.length === 0 && !snapshot.isDraggingOver && (
-                                                            <div className="flex flex-col items-center justify-center h-28 text-sm text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg bg-white/50 dark:bg-slate-900/50">
-                                                                <span className="text-2xl mb-1">📋</span>
-                                                                {lang === "bg" ? "Няма задачи" : "No tasks"}
+                                                            <div className="flex flex-col items-center justify-center h-24 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800/80 text-slate-400 dark:text-slate-600">
+                                                                <span className="text-sm font-medium">{lang === "bg" ? "Празно" : "Empty"}</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 )}
                                             </Droppable>
+
+                                            {/* Footer gradient fade */}
+                                            <div className="h-4 bg-gradient-to-t from-slate-100/50 to-transparent dark:from-slate-900/40 rounded-b-2xl pointer-events-none" />
                                         </div>
                                     )}
                                 </Draggable>

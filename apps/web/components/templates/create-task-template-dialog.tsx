@@ -15,6 +15,7 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -32,6 +33,7 @@ interface CreateTaskTemplateDialogProps {
 }
 
 export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: CreateTaskTemplateDialogProps) {
+    const { t } = useLanguage();
     const createTaskTemplate = useMutation(api.templates.createTaskTemplate);
     const [subtasks, setSubtasks] = useState<string[]>([]);
     const [newSubtask, setNewSubtask] = useState("");
@@ -87,16 +89,17 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
+            const hours = values.estimatedHours ? parseFloat(values.estimatedHours) : undefined;
             await createTaskTemplate({
                 title: values.title,
                 description: values.description,
                 priority: values.priority,
-                estimatedHours: values.estimatedHours ? parseFloat(values.estimatedHours) : undefined,
+                estimatedHours: isNaN(hours!) ? undefined : hours,
                 subtasks: subtasks,
                 category: values.category || undefined,
                 isPublic: !!values.isPublic,
             });
-            toast.success("Task template created");
+            toast.success(t("templateCreated"));
             form.reset();
             setSubtasks([]);
             onOpenChange(false);
@@ -110,7 +113,7 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>Create Task Template</DialogTitle>
+                    <DialogTitle>{t("createTaskTemplate")}</DialogTitle>
                 </DialogHeader>
 
                 <Form {...form}>
@@ -120,9 +123,9 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                             name="title"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Title</FormLabel>
+                                    <FormLabel>{t("taskTitle")}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Task title" {...field} />
+                                        <Input placeholder={t("taskTitle")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -134,9 +137,9 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel>{t("templateDescription")}</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Task description" {...field} />
+                                        <Textarea placeholder={t("templateDescription")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -149,18 +152,18 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                                 name="priority"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel>Priority</FormLabel>
+                                        <FormLabel>{t("templatePriority")}</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select priority" />
+                                                    <SelectValue placeholder={t("templatePriority")} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="low">Low</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="high">High</SelectItem>
-                                                <SelectItem value="critical">Critical</SelectItem>
+                                                <SelectItem value="low">{t("low")}</SelectItem>
+                                                <SelectItem value="medium">{t("medium")}</SelectItem>
+                                                <SelectItem value="high">{t("high")}</SelectItem>
+                                                <SelectItem value="critical">{t("critical")}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -173,7 +176,7 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                                 name="estimatedHours"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel>Est. Hours</FormLabel>
+                                        <FormLabel>{t("estHours")}</FormLabel>
                                         <FormControl>
                                             <Input type="number" step="0.5" placeholder="0" {...field} />
                                         </FormControl>
@@ -188,9 +191,9 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                             name="category"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Category (Optional)</FormLabel>
+                                    <FormLabel>{t("category")}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="e.g. Development, Marketing" {...field} />
+                                        <Input placeholder={t("category")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -199,12 +202,12 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
 
                         {/* Subtasks Section */}
                         <div className="space-y-2">
-                            <FormLabel>Subtasks</FormLabel>
+                            <FormLabel>{t("subtasks") || "Subtasks"}</FormLabel>
                             <div className="flex gap-2">
                                 <Input
                                     value={newSubtask}
                                     onChange={(e) => setNewSubtask(e.target.value)}
-                                    placeholder="Add subtask..."
+                                    placeholder={t("templateAddSubtask")}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
@@ -247,10 +250,10 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
                                         <FormLabel>
-                                            Make Public
+                                            {t("templatePublic")}
                                         </FormLabel>
                                         <p className="text-sm text-muted-foreground">
-                                            This template will be visible to all users (in this demo context).
+                                            {t("templatePublicDesc")}
                                         </p>
                                     </div>
                                 </FormItem>
@@ -258,7 +261,7 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                         />
 
                         <DialogFooter>
-                            <Button type="submit">Create Template</Button>
+                            <Button type="submit">{t("templateCreate")}</Button>
                         </DialogFooter>
                     </form>
                 </Form>

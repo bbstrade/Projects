@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Plus, X, ListTodo, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
 
 const taskSchema = z.object({
     title: z.string().min(1, "Task title is required"),
@@ -40,6 +41,7 @@ interface CreateProjectTemplateDialogProps {
 }
 
 export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }: CreateProjectTemplateDialogProps) {
+    const { t } = useLanguage();
     const createProjectTemplate = useMutation(api.templates.createProjectTemplate);
 
     // Task management state
@@ -90,7 +92,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
 
     const handleAddTask = () => {
         if (!newTask.title) {
-            toast.error("Task title is required");
+            toast.error(t("taskTitle") + " " + t("isRequired"));
             return;
         }
 
@@ -133,7 +135,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                 tasks: tasks,
                 isPublic: !!values.isPublic,
             });
-            toast.success("Project template created");
+            toast.success(t("templateCreated"));
             form.reset();
             setTasks([]);
             onOpenChange(false);
@@ -147,7 +149,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Create Project Template</DialogTitle>
+                    <DialogTitle>{t("createProjectTemplate")}</DialogTitle>
                 </DialogHeader>
 
                 <Form {...form}>
@@ -159,9 +161,9 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Template Name</FormLabel>
+                                        <FormLabel>{t("templateName")}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Project template name" {...field} />
+                                            <Input placeholder={t("templateName")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -173,9 +175,9 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description</FormLabel>
+                                        <FormLabel>{t("templateDescription")}</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Template description" {...field} />
+                                            <Textarea placeholder={t("templateDescription")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -188,18 +190,18 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                     name="priority"
                                     render={({ field }) => (
                                         <FormItem className="flex-1">
-                                            <FormLabel>Default Priority</FormLabel>
+                                            <FormLabel>{t("templatePriority")}</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select priority" />
+                                                        <SelectValue placeholder={t("templatePriority")} />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="low">Low</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="high">High</SelectItem>
-                                                    <SelectItem value="critical">Critical</SelectItem>
+                                                    <SelectItem value="low">{t("low")}</SelectItem>
+                                                    <SelectItem value="medium">{t("medium")}</SelectItem>
+                                                    <SelectItem value="high">{t("high")}</SelectItem>
+                                                    <SelectItem value="critical">{t("critical")}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -212,7 +214,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                     name="estimatedDuration"
                                     render={({ field }) => (
                                         <FormItem className="flex-1">
-                                            <FormLabel>Est. Duration (Days)</FormLabel>
+                                            <FormLabel>{t("templateDuration")}</FormLabel>
                                             <FormControl>
                                                 <Input type="number" min="1" placeholder="30" {...field} />
                                             </FormControl>
@@ -226,10 +228,10 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                         {/* Tasks Section */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <FormLabel className="text-base">Template Tasks ({tasks.length})</FormLabel>
+                                <FormLabel className="text-base">{t("templateTasks")} ({tasks.length})</FormLabel>
                                 <Button type="button" variant="outline" size="sm" onClick={() => setNewTaskOpen(!newTaskOpen)}>
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Add Task
+                                    {t("addTask")}
                                 </Button>
                             </div>
 
@@ -239,7 +241,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2">
                                             <Input
-                                                placeholder="Task Title"
+                                                placeholder={t("taskTitle")}
                                                 value={newTask.title || ""}
                                                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                                             />
@@ -248,19 +250,22 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                             value={newTask.priority}
                                             onValueChange={(val) => setNewTask({ ...newTask, priority: val })}
                                         >
-                                            <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder={t("templatePriority")} /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="low">Low</SelectItem>
-                                                <SelectItem value="medium">Medium</SelectItem>
-                                                <SelectItem value="high">High</SelectItem>
-                                                <SelectItem value="critical">Critical</SelectItem>
+                                                <SelectItem value="low">{t("low")}</SelectItem>
+                                                <SelectItem value="medium">{t("medium")}</SelectItem>
+                                                <SelectItem value="high">{t("high")}</SelectItem>
+                                                <SelectItem value="critical">{t("critical")}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <Input
                                             type="number"
-                                            placeholder="Est. Hours"
-                                            value={newTask.estimatedHours || ""}
-                                            onChange={(e) => setNewTask({ ...newTask, estimatedHours: parseFloat(e.target.value) })}
+                                            placeholder={t("estHours")}
+                                            value={newTask.estimatedHours === undefined ? "" : newTask.estimatedHours}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                setNewTask({ ...newTask, estimatedHours: isNaN(val) ? undefined : val });
+                                            }}
                                         />
                                     </div>
 
@@ -268,7 +273,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                     <div className="space-y-2">
                                         <div className="flex gap-2">
                                             <Input
-                                                placeholder="Add subtask"
+                                                placeholder={t("templateAddSubtask")}
                                                 value={newSubtask}
                                                 onChange={(e) => setNewSubtask(e.target.value)}
                                                 className="h-8 text-sm"
@@ -287,8 +292,8 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                     </div>
 
                                     <div className="flex justify-end gap-2">
-                                        <Button type="button" variant="ghost" size="sm" onClick={() => setNewTaskOpen(false)}>Cancel</Button>
-                                        <Button type="button" size="sm" onClick={handleAddTask}>Add to Template</Button>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => setNewTaskOpen(false)}>{t("templateCancel")}</Button>
+                                        <Button type="button" size="sm" onClick={handleAddTask}>{t("addToTemplate")}</Button>
                                     </div>
                                 </div>
                             )}
@@ -333,9 +338,9 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                                         />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                        <FormLabel>Make Public</FormLabel>
+                                        <FormLabel>{t("templatePublic")}</FormLabel>
                                         <p className="text-sm text-muted-foreground">
-                                            Visible to all users.
+                                            {t("templatePublicDesc")}
                                         </p>
                                     </div>
                                 </FormItem>
@@ -343,7 +348,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                         />
 
                         <DialogFooter>
-                            <Button type="submit">Create Template</Button>
+                            <Button type="submit">{t("templateCreate")}</Button>
                         </DialogFooter>
                     </form>
                 </Form>

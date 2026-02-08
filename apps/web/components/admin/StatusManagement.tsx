@@ -32,13 +32,15 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { Loader2, Plus, Pencil, Trash2, GripVertical, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function StatusManagement() {
+export default function StatusManagement({ teamId }: { teamId?: string }) {
+    const { t } = useLanguage();
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
-    const statuses = useQuery(api.admin.getCustomStatuses, { type: selectedType });
+    const statuses = useQuery(api.admin.getCustomStatuses, { type: selectedType, teamId: teamId || undefined });
     const manageStatus = useMutation(api.admin.manageCustomStatus);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStatus, setEditingStatus] = useState<any>(null);
@@ -83,36 +85,47 @@ export default function StatusManagement() {
         setIsLoading(true);
         try {
             if (editingStatus) {
+                // Check if editing global status while in team view
+                if (teamId && !editingStatus.teamId) {
+                    toast.error(t("cannotEditGlobalStatus"));
+                    setIsLoading(false);
+                    return;
+                }
+
                 await manageStatus({
                     action: "update",
                     id: editingStatus._id,
-                    data: formData,
+                    data: { ...formData, teamId: editingStatus.teamId },
                 });
-                toast.success("Статусът е обновен успешно");
+                toast.success(t("statusUpdatedMsg"));
             } else {
                 await manageStatus({
                     action: "create",
-                    data: { ...formData, type: selectedType },
+                    data: { ...formData, type: selectedType, teamId: teamId || undefined },
                 });
-                toast.success("Статусът е създаден успешно");
+                toast.success(t("statusCreated"));
             }
             setIsDialogOpen(false);
         } catch (error: any) {
             console.error(error);
-            const errorMessage = error.data?.message || error.message || "Възникна грешка";
+            const errorMessage = error.data?.message || error.message || "Error";
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleDelete = async (id: any) => {
-        if (!confirm("Сигурни ли сте, че искате да изтриете този статус?")) return;
+    const handleDelete = async (status: any) => {
+        if (teamId && !status.teamId) {
+            toast.error(t("cannotDeleteGlobalStatus"));
+            return;
+        }
+        if (!confirm(t("deleteStatusConfirm"))) return;
         try {
-            await manageStatus({ action: "delete", id });
-            toast.success("Статусът е изтрит");
+            await manageStatus({ action: "delete", id: status._id });
+            toast.success(t("statusDeleted"));
         } catch (error) {
-            toast.error("Грешка при изтриване");
+            toast.error("Error deleting status");
         }
     };
 
@@ -120,12 +133,12 @@ export default function StatusManagement() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Статуси</CardTitle>
-                    <CardDescription>Управлявайте статусите за задачи и проекти.</CardDescription>
+                    <CardTitle>{t("statuses")}</CardTitle>
+                    <CardDescription>{t("statusesDesc")}</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenDialog()}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Добави статус
+                    {t("addStatus")}
                 </Button>
             </CardHeader>
             <CardContent>
@@ -134,13 +147,13 @@ export default function StatusManagement() {
                         variant={selectedType === "task" ? "default" : "outline"}
                         onClick={() => setSelectedType("task")}
                     >
-                        Задачи
+                        {t("tabTasks")}
                     </Button>
                     <Button
                         variant={selectedType === "project" ? "default" : "outline"}
                         onClick={() => setSelectedType("project")}
                     >
-                        Проекти
+                        {t("tabProjects")}
                     </Button>
                 </div>
 
@@ -151,18 +164,18 @@ export default function StatusManagement() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[50px]"></TableHead>
-                                <TableHead>Име</TableHead>
+                                <TableHead>{t("startStatusName")}</TableHead>
                                 <TableHead>Slug</TableHead>
-                                <TableHead>Цвят</TableHead>
-                                <TableHead>Default</TableHead>
-                                <TableHead className="text-right">Действия</TableHead>
+                                <TableHead>{t("color")}</TableHead>
+                                <TableHead>{t("default")}</TableHead>
+                                <TableHead className="text-right">{t("actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {statuses.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                        Няма дефинирани статуси за {selectedType === 'task' ? 'задачи' : 'проекти'}
+                                        {t("noStatuses")}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -173,7 +186,16 @@ export default function StatusManagement() {
                                                 <GripVertical className="h-4 w-4" />
                                             </div>
                                         </TableCell>
-                                        <TableCell className="font-medium">{status.label}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {status.label}
+                                                {status.teamId ? (
+                                                    <Badge variant="outline" className="text-[10px]">Team</Badge>
+                                                ) : teamId ? (
+                                                    <Badge variant="secondary" className="text-[10px]">Global</Badge>
+                                                ) : null}
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="font-mono text-xs text-muted-foreground">{status.slug}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
@@ -185,15 +207,26 @@ export default function StatusManagement() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {status.isDefault && <Badge variant="secondary">Default</Badge>}
+                                            {status.isDefault && <Badge variant="secondary">{t("default")}</Badge>}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(status)}>
-                                                    <Pencil className="h-4 w-4" />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleOpenDialog(status)}
+                                                    disabled={teamId && !status.teamId ? true : false}
+                                                >
+                                                    {teamId && !status.teamId ? <Lock className="h-4 w-4 opacity-50" /> : <Pencil className="h-4 w-4" />}
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(status._id)}>
-                                                    <Trash2 className="h-4 w-4" />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-red-500 hover:text-red-600"
+                                                    onClick={() => handleDelete(status)}
+                                                    disabled={teamId && !status.teamId ? true : false}
+                                                >
+                                                    {teamId && !status.teamId ? <Lock className="h-4 w-4 opacity-50" /> : <Trash2 className="h-4 w-4" />}
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -208,15 +241,15 @@ export default function StatusManagement() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingStatus ? "Редактиране на статус" : "Нов статус"} ({selectedType === 'task' ? 'Задача' : 'Проект'})</DialogTitle>
+                        <DialogTitle>{editingStatus ? t("editStatus") : t("newStatus")} ({selectedType === 'task' ? t("tabTasks") : t("tabProjects")})</DialogTitle>
                         <DialogDescription>
-                            Дефинирайте параметрите на статуса.
+                            {t("defineStatusParams")}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="label" className="text-right">
-                                Име
+                                {t("startStatusName")}
                             </Label>
                             <Input
                                 id="label"
@@ -240,7 +273,7 @@ export default function StatusManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="color" className="text-right">
-                                Цвят
+                                {t("color")}
                             </Label>
                             <div className="col-span-3 flex items-center gap-2">
                                 <Input
@@ -258,7 +291,7 @@ export default function StatusManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="order" className="text-right">
-                                Подредба
+                                {t("order")}
                             </Label>
                             <Input
                                 id="order"
@@ -270,7 +303,7 @@ export default function StatusManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="default" className="text-right">
-                                По подразбиране
+                                {t("default")}
                             </Label>
                             <div className="col-span-3 flex items-center gap-2">
                                 <Switch
@@ -279,16 +312,16 @@ export default function StatusManagement() {
                                     onCheckedChange={(c) => setFormData({ ...formData, isDefault: c })}
                                 />
                                 <span className="text-xs text-muted-foreground">
-                                    Ако е включено, този статус ще се избира автоматично за нови {selectedType === 'task' ? 'задачи' : 'проекти'}.
+                                    {t("defaultStatusHelp")}
                                 </span>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Отказ</Button>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t("cancel")}</Button>
                         <Button onClick={handleSubmit} disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingStatus ? "Запази" : "Създай"}
+                            {editingStatus ? t("save") : t("templateCreate")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

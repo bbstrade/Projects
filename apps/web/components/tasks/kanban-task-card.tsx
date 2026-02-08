@@ -97,12 +97,12 @@ export function KanbanTaskCard({ task, assignee, project, onClick }: KanbanTaskC
             {/* Color stripe on left side (like ProjectCard) */}
             {cardColor && (
                 <div
-                    className="absolute left-0 top-0 bottom-0 w-1"
+                    className="absolute left-0 top-0 bottom-0 w-1.5 z-10"
                     style={{ backgroundColor: cardColor }}
                 />
             )}
 
-            <div className={cn("p-3 space-y-2.5", cardColor && "pl-4")}>
+            <div className={cn("p-3 space-y-2.5 relative", cardColor && "pl-5")}>
                 {/* Top Row: Priority + Project */}
                 <div className="flex items-center justify-between gap-2">
                     {/* Priority */}
@@ -116,8 +116,8 @@ export function KanbanTaskCard({ task, assignee, project, onClick }: KanbanTaskC
 
                     {/* Project badge */}
                     {project && (
-                        <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">
-                            <Folder className="h-2.5 w-2.5 flex-shrink-0" />
+                        <div className="flex items-center gap-1 text-[10px] font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 px-2 py-0.5 rounded-md truncate max-w-[110px]">
+                            <Folder className="h-2.5 w-2.5 flex-shrink-0 text-slate-400" />
                             <span className="truncate">{project.name}</span>
                         </div>
                     )}

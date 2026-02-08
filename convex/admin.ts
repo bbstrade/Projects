@@ -2,48 +2,48 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-// Helper to check if user is global admin or team admin
-// Helper to check if user is global admin or team admin
-async function checkAdmin(ctx: any) {
+// Helper to check if user is super admin
+async function checkSuperAdmin(ctx: any) {
     const userId = await getAuthUserId(ctx);
     if (!userId) return false;
 
-    // Check identity directly for super admin override (failsafe)
+    // Check identity directly for super admin override
     try {
         const identity = await ctx.auth.getUserIdentity();
         if (identity?.email === 'bbstradeltd@gmail.com') return true;
     } catch (e) {
-        // Ignore auth error, fall back to DB check
+        // Ignore auth error
     }
 
     const user = await ctx.db.get(userId);
     if (!user) return false;
 
-    if (user.role === 'admin') return true;
-    if (user.email === 'bbstradeltd@gmail.com') return true;
+    return user.systemRole === 'superadmin' || user.email === 'bbstradeltd@gmail.com';
+}
 
-    // Check team admin status if applicable
-    if (user.currentTeamId) {
-        // Implementation depends on how team membership is stored/queried
-        // For now, let's assume global admin for "System Stats"
-        // But for "Team Admin" features, we should check team membership
-        const membership = await ctx.db
-            .query("teamMembers")
-            .withIndex("by_user_team", (q: any) => q.eq("userId", userId).eq("teamId", user.currentTeamId))
-            .first();
+// Helper to check if user is admin of a specific team
+async function checkTeamAdmin(ctx: any, teamId: string) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return false;
 
-        if (membership?.role === 'owner' || membership?.role === 'admin') return true;
-    }
+    if (await checkSuperAdmin(ctx)) return true; // Super admin is admin of all teams
 
-    return false;
+    const membership = await ctx.db
+        .query("teamMembers")
+        .withIndex("by_user_team", (q: any) => q.eq("userId", userId).eq("teamId", teamId))
+        .first();
+
+    return membership?.role === 'owner' || membership?.role === 'admin';
+}
+
+// Helper for general admin access (any team admin or super admin) - kept for backward compatibility if needed
+async function checkAdmin(ctx: any) {
+    return await checkSuperAdmin(ctx);
 }
 
 export const getSystemStats = query({
     args: {},
     handler: async (ctx) => {
-        // Only allow admin
-        // const isAdmin = await checkAdmin(ctx); 
-
         const userId = await getAuthUserId(ctx);
         if (!userId) return null;
 
@@ -131,14 +131,60 @@ export const updateUserRole = mutation({
         role: v.string(), // "admin" | "user" | "member" ...
     },
     handler: async (ctx, args) => {
-        // Strict global admin check
-        const requesterId = await getAuthUserId(ctx);
-        if (!requesterId) throw new Error("Unauthorized");
-        const requester = await ctx.db.get(requesterId);
-        if (requester?.role !== 'admin') throw new Error("Only global admins can change user roles");
-
+        if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized: Only super admins can change user roles");
         await ctx.db.patch(args.userId, { role: args.role });
     },
+});
+
+// Initialize default statuses and priorities if empty
+export const initializeDefaults = mutation({
+    args: {},
+    handler: async (ctx) => {
+        // Only allow if no statuses exist
+        const textTaskStatuses = await ctx.db.query("customStatuses").withIndex("by_type", q => q.eq("type", "task")).first();
+
+        if (!textTaskStatuses) {
+            const defaultTaskStatuses = [
+                { label: "To Do", slug: "todo", color: "#808080", order: 0, isDefault: true },
+                { label: "In Progress", slug: "in_progress", color: "#3b82f6", order: 1, isDefault: false },
+                { label: "In Review", slug: "in_review", color: "#f59e0b", order: 2, isDefault: false },
+                { label: "Done", slug: "done", color: "#22c55e", order: 3, isDefault: false },
+            ];
+
+            for (const s of defaultTaskStatuses) {
+                await ctx.db.insert("customStatuses", { ...s, type: "task", createdAt: Date.now(), updatedAt: Date.now() });
+            }
+        }
+
+        const projectStatuses = await ctx.db.query("customStatuses").withIndex("by_type", q => q.eq("type", "project")).first();
+        if (!projectStatuses) {
+            const defaultProjectStatuses = [
+                { label: "Draft", slug: "draft", color: "#808080", order: 0, isDefault: true },
+                { label: "Active", slug: "active", color: "#3b82f6", order: 1, isDefault: false },
+                { label: "On Hold", slug: "on_hold", color: "#f59e0b", order: 2, isDefault: false },
+                { label: "Completed", slug: "completed", color: "#22c55e", order: 3, isDefault: false },
+                { label: "Archived", slug: "archived", color: "#64748b", order: 4, isDefault: false },
+            ];
+            for (const s of defaultProjectStatuses) {
+                await ctx.db.insert("customStatuses", { ...s, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
+            }
+        }
+
+        // Priorities
+        const priorities = await ctx.db.query("customPriorities").first();
+        if (!priorities) {
+            const defaultPriorities = [
+                { label: "Low", slug: "low", color: "#22c55e", order: 0, isDefault: false },
+                { label: "Medium", slug: "medium", color: "#3b82f6", order: 1, isDefault: true },
+                { label: "High", slug: "high", color: "#f59e0b", order: 2, isDefault: false },
+                { label: "Critical", slug: "critical", color: "#ef4444", order: 3, isDefault: false },
+            ];
+            for (const p of defaultPriorities) {
+                await ctx.db.insert("customPriorities", { ...p, type: "task", createdAt: Date.now(), updatedAt: Date.now() }); // Default to task type for now or add both
+                await ctx.db.insert("customPriorities", { ...p, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
+            }
+        }
+    }
 });
 
 // Custom Statuses Management
@@ -158,21 +204,52 @@ export const manageCustomStatus = mutation({
     },
     handler: async (ctx, args) => {
         try {
-            // Check admin
-            if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
+            if (args.action === "create") {
+                if (!args.data) throw new Error("Data required for create");
 
-            if (args.action === "create" && args.data) {
+                // Permission check
+                if (args.data.teamId) {
+                    if (!(await checkTeamAdmin(ctx, args.data.teamId))) throw new Error("Unauthorized: Not admin of this team");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized: Only super admin can create global statuses");
+                }
+
                 await ctx.db.insert("customStatuses", {
                     ...args.data,
                     createdAt: Date.now(),
                     updatedAt: Date.now(),
                 });
-            } else if (args.action === "update" && args.id && args.data) {
+            } else if (args.action === "update") {
+                if (!args.id || !args.data) throw new Error("ID and Data required for update");
+                const existing = await ctx.db.get(args.id);
+                if (!existing) throw new Error("Status not found");
+
+                // Permission check
+                if (existing.teamId) {
+                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+                }
+
+                // Prevent moving across teams/global via update
+                if (args.data.teamId !== existing.teamId) throw new Error("Cannot change team scope of a status");
+
                 await ctx.db.patch(args.id, {
                     ...args.data,
                     updatedAt: Date.now(),
                 });
-            } else if (args.action === "delete" && args.id) {
+            } else if (args.action === "delete") {
+                if (!args.id) throw new Error("ID required for delete");
+                const existing = await ctx.db.get(args.id);
+                if (!existing) throw new Error("Status not found");
+
+                // Permission check
+                if (existing.teamId) {
+                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+                }
+
                 await ctx.db.delete(args.id);
             }
         } catch (e: any) {
@@ -199,21 +276,48 @@ export const manageCustomPriority = mutation({
     },
     handler: async (ctx, args) => {
         try {
-            // Check admin
-            if (!(await checkAdmin(ctx))) throw new Error("Unauthorized");
+            if (args.action === "create") {
+                if (!args.data) throw new Error("Data required for create");
 
-            if (args.action === "create" && args.data) {
+                if (args.data.teamId) {
+                    if (!(await checkTeamAdmin(ctx, args.data.teamId))) throw new Error("Unauthorized: Not admin of this team");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized: Only super admin can create global priorities");
+                }
+
                 await ctx.db.insert("customPriorities", {
                     ...args.data,
                     createdAt: Date.now(),
                     updatedAt: Date.now(),
                 });
-            } else if (args.action === "update" && args.id && args.data) {
+            } else if (args.action === "update") {
+                if (!args.id || !args.data) throw new Error("ID and Data required for update");
+                const existing = await ctx.db.get(args.id);
+                if (!existing) throw new Error("Priority not found");
+
+                if (existing.teamId) {
+                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+                }
+
+                if (args.data.teamId !== existing.teamId) throw new Error("Cannot change team scope");
+
                 await ctx.db.patch(args.id, {
                     ...args.data,
                     updatedAt: Date.now(),
                 });
-            } else if (args.action === "delete" && args.id) {
+            } else if (args.action === "delete") {
+                if (!args.id) throw new Error("ID required for delete");
+                const existing = await ctx.db.get(args.id);
+                if (!existing) throw new Error("Priority not found");
+
+                if (existing.teamId) {
+                    if (!(await checkTeamAdmin(ctx, existing.teamId))) throw new Error("Unauthorized");
+                } else {
+                    if (!(await checkSuperAdmin(ctx))) throw new Error("Unauthorized");
+                }
+
                 await ctx.db.delete(args.id);
             }
         } catch (e: any) {
@@ -224,37 +328,40 @@ export const manageCustomPriority = mutation({
 });
 
 export const getCustomStatuses = query({
-    args: { type: v.optional(v.string()) },
+    args: { type: v.optional(v.string()), teamId: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        // Can be public or authed
         const userId = await getAuthUserId(ctx);
         if (!userId) return []; // or throw
 
-        // Filter by type if provided
+        let statuses;
         if (args.type) {
             const type = args.type;
-            return await ctx.db
-                .query("customStatuses")
-                .withIndex("by_type", q => q.eq("type", type))
-                .collect();
+            statuses = await ctx.db.query("customStatuses").withIndex("by_type", q => q.eq("type", type)).collect();
+        } else {
+            statuses = await ctx.db.query("customStatuses").collect();
         }
-        return await ctx.db.query("customStatuses").collect();
+
+        // Return global + team specific
+        return statuses.filter(s => !s.teamId || (args.teamId && s.teamId === args.teamId))
+            .sort((a, b) => a.order - b.order);
     }
 });
 
 export const getCustomPriorities = query({
-    args: { type: v.optional(v.string()) },
+    args: { type: v.optional(v.string()), teamId: v.optional(v.string()) },
     handler: async (ctx, args) => {
         const userId = await getAuthUserId(ctx);
         if (!userId) return [];
 
+        let priorities;
         if (args.type) {
             const type = args.type;
-            return await ctx.db
-                .query("customPriorities")
-                .withIndex("by_type", q => q.eq("type", type))
-                .collect();
+            priorities = await ctx.db.query("customPriorities").withIndex("by_type", q => q.eq("type", type)).collect();
+        } else {
+            priorities = await ctx.db.query("customPriorities").collect();
         }
-        return await ctx.db.query("customPriorities").collect();
+
+        return priorities.filter(p => !p.teamId || (args.teamId && p.teamId === args.teamId))
+            .sort((a, b) => a.order - b.order);
     }
 });

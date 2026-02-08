@@ -16,8 +16,10 @@ import { CreateTaskTemplateDialog } from "./create-task-template-dialog";
 import { UseProjectTemplateDialog } from "./use-project-template-dialog";
 import { UseTaskTemplateDialog } from "./use-task-template-dialog";
 import { Doc } from "@/convex/_generated/dataModel";
+import { useLanguage } from "@/components/language-provider";
 
 export function TemplateManager() {
+    const { t } = useLanguage();
     const projectTemplates = useQuery(api.templates.listProjectTemplates);
     const taskTemplates = useQuery(api.templates.listTaskTemplates);
     const deleteProjectTemplate = useMutation(api.templates.deleteProjectTemplate);
@@ -31,9 +33,9 @@ export function TemplateManager() {
     return (
         <Card className="h-full border-none shadow-none">
             <CardHeader className="px-0 pt-0">
-                <CardTitle>Templates</CardTitle>
+                <CardTitle>{t("templates")}</CardTitle>
                 <CardDescription>
-                    Manage templates for quick project and task creation.
+                    {t("templatesSubtitle")}
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -41,11 +43,11 @@ export function TemplateManager() {
                     <TabsList className="mb-4">
                         <TabsTrigger value="projects" className="gap-2">
                             <Layout className="h-4 w-4" />
-                            Project Templates
+                            {t("createProjectTemplate").replace("Create", "")}
                         </TabsTrigger>
                         <TabsTrigger value="tasks" className="gap-2">
                             <ListTodo className="h-4 w-4" />
-                            Task Templates
+                            {t("createTaskTemplate").replace("Create", "")}
                         </TabsTrigger>
                     </TabsList>
 
@@ -53,17 +55,17 @@ export function TemplateManager() {
                         <div className="flex justify-end">
                             <Button onClick={() => setIsCreateProjectOpen(true)} className="gap-2">
                                 <Plus className="h-4 w-4" />
-                                New Project Template
+                                {t("createProjectTemplate")}
                             </Button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {projectTemplates === undefined ? (
-                                <div className="col-span-full py-8 text-center text-muted-foreground">Loading...</div>
+                                <div className="col-span-full py-8 text-center text-muted-foreground">{t("loading")}</div>
                             ) : projectTemplates.length === 0 ? (
                                 <div className="col-span-full py-12 text-center border rounded-lg border-dashed">
-                                    <p className="text-muted-foreground">No project templates found</p>
-                                    <Button variant="link" onClick={() => setIsCreateProjectOpen(true)}>Create the first one</Button>
+                                    <p className="text-muted-foreground">{t("noProjectTemplates")}</p>
+                                    <Button variant="link" onClick={() => setIsCreateProjectOpen(true)}>{t("createFirstOne")}</Button>
                                 </div>
                             ) : (
                                 projectTemplates.map((template) => (
@@ -72,22 +74,22 @@ export function TemplateManager() {
                                             <div className="flex justify-between items-start">
                                                 <CardTitle className="text-lg">{template.name}</CardTitle>
                                                 <Badge variant={template.priority === "high" ? "destructive" : "secondary"}>
-                                                    {template.priority}
+                                                    {t(template.priority) || template.priority}
                                                 </Badge>
                                             </div>
                                             <CardDescription className="line-clamp-2 min-h-[40px]">
-                                                {template.description || "No description"}
+                                                {template.description || t("noDescription")}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4">
                                                 <div className="flex items-center gap-2">
                                                     <Layout className="h-3 w-3" />
-                                                    <span>{template.tasks.length} Tasks</span>
+                                                    <span>{template.tasks.length} {t("tasksCount")}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Calendar className="h-3 w-3" />
-                                                    <span>{template.estimatedDuration} Days Duration</span>
+                                                    <span>{template.estimatedDuration} {t("daysDuration")}</span>
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
@@ -96,16 +98,16 @@ export function TemplateManager() {
                                                     variant="outline"
                                                     onClick={() => setSelectedProjectTemplate(template)}
                                                 >
-                                                    Use Template
+                                                    {t("useTemplate")}
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     className="text-muted-foreground hover:text-destructive"
                                                     onClick={() => {
-                                                        if (confirm("Are you sure you want to delete this template?")) {
+                                                        if (confirm(t("deleteTemplateConfirm"))) {
                                                             deleteProjectTemplate({ id: template._id });
-                                                            toast.success("Template deleted");
+                                                            toast.success(t("templateDeleted"));
                                                         }
                                                     }}
                                                 >
@@ -123,17 +125,17 @@ export function TemplateManager() {
                         <div className="flex justify-end">
                             <Button onClick={() => setIsCreateTaskOpen(true)} className="gap-2">
                                 <Plus className="h-4 w-4" />
-                                New Task Template
+                                {t("createTaskTemplate")}
                             </Button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {taskTemplates === undefined ? (
-                                <div className="col-span-full py-8 text-center text-muted-foreground">Loading...</div>
+                                <div className="col-span-full py-8 text-center text-muted-foreground">{t("loading")}</div>
                             ) : taskTemplates.length === 0 ? (
                                 <div className="col-span-full py-12 text-center border rounded-lg border-dashed">
-                                    <p className="text-muted-foreground">No task templates found</p>
-                                    <Button variant="link" onClick={() => setIsCreateTaskOpen(true)}>Create the first one</Button>
+                                    <p className="text-muted-foreground">{t("noTaskTemplates")}</p>
+                                    <Button variant="link" onClick={() => setIsCreateTaskOpen(true)}>{t("createFirstOne")}</Button>
                                 </div>
                             ) : (
                                 taskTemplates.map((template) => (
@@ -142,11 +144,11 @@ export function TemplateManager() {
                                             <div className="flex justify-between items-start">
                                                 <CardTitle className="text-lg">{template.title}</CardTitle>
                                                 <Badge variant={template.priority === "high" ? "destructive" : "secondary"}>
-                                                    {template.priority}
+                                                    {t(template.priority) || template.priority}
                                                 </Badge>
                                             </div>
                                             <CardDescription className="line-clamp-2">
-                                                {template.description || "No description"}
+                                                {template.description || t("noDescription")}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent>
@@ -154,7 +156,7 @@ export function TemplateManager() {
                                                 {template.estimatedHours && (
                                                     <div className="flex items-center gap-2">
                                                         <Clock className="h-3 w-3" />
-                                                        <span>{template.estimatedHours} Hours</span>
+                                                        <span>{template.estimatedHours} {t("hours")}</span>
                                                     </div>
                                                 )}
                                                 {template.category && (
@@ -167,16 +169,16 @@ export function TemplateManager() {
                                                     variant="outline"
                                                     onClick={() => setSelectedTaskTemplate(template)}
                                                 >
-                                                    Use Template
+                                                    {t("useTemplate")}
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     className="text-muted-foreground hover:text-destructive"
                                                     onClick={() => {
-                                                        if (confirm("Are you sure you want to delete this template?")) {
+                                                        if (confirm(t("deleteTemplateConfirm"))) {
                                                             deleteTaskTemplate({ id: template._id });
-                                                            toast.success("Template deleted");
+                                                            toast.success(t("templateDeleted"));
                                                         }
                                                     }}
                                                 >
