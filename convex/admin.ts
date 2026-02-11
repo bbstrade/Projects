@@ -156,13 +156,18 @@ export const initializeDefaults = mutation({
         ];
 
         for (const s of defaultTaskStatuses) {
+            // Check for global status (teamId is undefined/null)
             const existing = await ctx.db.query("customStatuses")
                 .withIndex("by_type", q => q.eq("type", "task"))
-                .filter(q => q.eq(q.field("slug"), s.slug))
+                .filter(q => q.and(
+                    q.eq(q.field("slug"), s.slug),
+                    q.eq(q.field("teamId"), undefined)
+                ))
                 .first();
 
             if (!existing) {
-                await ctx.db.insert("customStatuses", { ...s, type: "task", createdAt: Date.now(), updatedAt: Date.now() });
+                await ctx.db.insert("customStatuses", { ...s, type: "task", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
+                console.log(`Inserted global task status: ${s.slug}`);
             }
         }
 
@@ -177,11 +182,15 @@ export const initializeDefaults = mutation({
         for (const s of defaultProjectStatuses) {
             const existing = await ctx.db.query("customStatuses")
                 .withIndex("by_type", q => q.eq("type", "project"))
-                .filter(q => q.eq(q.field("slug"), s.slug))
+                .filter(q => q.and(
+                    q.eq(q.field("slug"), s.slug),
+                    q.eq(q.field("teamId"), undefined)
+                ))
                 .first();
 
             if (!existing) {
-                await ctx.db.insert("customStatuses", { ...s, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
+                await ctx.db.insert("customStatuses", { ...s, type: "project", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
+                console.log(`Inserted global project status: ${s.slug}`);
             }
         }
 
@@ -196,20 +205,26 @@ export const initializeDefaults = mutation({
         for (const p of defaultPriorities) {
             const existingTaskP = await ctx.db.query("customPriorities")
                 .withIndex("by_type", q => q.eq("type", "task"))
-                .filter(q => q.eq(q.field("slug"), p.slug))
+                .filter(q => q.and(
+                    q.eq(q.field("slug"), p.slug),
+                    q.eq(q.field("teamId"), undefined)
+                ))
                 .first();
 
             if (!existingTaskP) {
-                await ctx.db.insert("customPriorities", { ...p, type: "task", createdAt: Date.now(), updatedAt: Date.now() });
+                await ctx.db.insert("customPriorities", { ...p, type: "task", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
             }
 
             const existingProjectP = await ctx.db.query("customPriorities")
                 .withIndex("by_type", q => q.eq("type", "project"))
-                .filter(q => q.eq(q.field("slug"), p.slug))
+                .filter(q => q.and(
+                    q.eq(q.field("slug"), p.slug),
+                    q.eq(q.field("teamId"), undefined)
+                ))
                 .first();
 
             if (!existingProjectP) {
-                await ctx.db.insert("customPriorities", { ...p, type: "project", createdAt: Date.now(), updatedAt: Date.now() });
+                await ctx.db.insert("customPriorities", { ...p, type: "project", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
             }
         }
     }

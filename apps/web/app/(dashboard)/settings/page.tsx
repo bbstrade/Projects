@@ -4,6 +4,7 @@ import { useLanguage } from "@/components/language-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Download, Layout } from "lucide-react";
 import StatusManagement from "@/components/admin/StatusManagement";
+import PriorityManagement from "@/components/admin/PriorityManagement";
 import ProfileTab from "@/components/settings/ProfileTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
 import DataExportTab from "@/components/settings/DataExportTab";
@@ -105,6 +106,7 @@ export default function SettingsPage() {
                                 </p>
                             </div>
                             <StatusManagement />
+                            <PriorityManagement />
                         </div>
                     </TabsContent>
                 </div>
