@@ -27,8 +27,6 @@ const taskSchema = z.object({
     subtasks: z.array(z.string()).optional(),
 });
 
-// ...
-
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
     description: z.string().optional(),
@@ -41,9 +39,10 @@ interface CreateProjectTemplateDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     initialData?: Partial<z.infer<typeof formSchema>> & { tasks?: z.infer<typeof taskSchema>[] };
+    teamId?: string;
 }
 
-export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }: CreateProjectTemplateDialogProps) {
+export function CreateProjectTemplateDialog({ open, onOpenChange, initialData, teamId }: CreateProjectTemplateDialogProps) {
     const { t } = useLanguage();
     const createProjectTemplate = useMutation(api.templates.createProjectTemplate);
 
@@ -140,6 +139,7 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
                 estimatedDuration: parseInt(values.estimatedDuration) || 0,
                 tasks: tasks,
                 isPublic: !!values.isPublic,
+                teamId: teamId,
             });
             toast.success(t("templateCreated"));
             form.reset();
@@ -150,8 +150,6 @@ export function CreateProjectTemplateDialog({ open, onOpenChange, initialData }:
             console.error(error);
         }
     };
-
-    // ...
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -385,7 +385,9 @@ export default defineSchema({
         createdBy: v.id("users"),
         createdAt: v.number(),
         isPublic: v.optional(v.boolean()),
-    }),
+        teamId: v.optional(v.string()),
+    })
+        .index("by_team", ["teamId"]),
 
     taskTemplates: defineTable({
         title: v.string(),
@@ -397,5 +399,7 @@ export default defineSchema({
         createdAt: v.number(),
         category: v.optional(v.string()),
         isPublic: v.optional(v.boolean()),
-    }),
+        teamId: v.optional(v.string()),
+    })
+        .index("by_team", ["teamId"]),
 });

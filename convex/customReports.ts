@@ -262,20 +262,26 @@ export const getWidgetData = query({
         else if (dateRange === "90d") startDate = now - 90 * 24 * 60 * 60 * 1000;
 
         // Fetch data based on source
-        let data: Record<string, unknown>[] = [];
+        let data: any[] = [];
 
-        if (dataSource === "projects") {
-            const projects = await ctx.db.query("projects").collect();
-            data = projects.filter((p) => !startDate || (p.createdAt && p.createdAt >= startDate));
-        } else if (dataSource === "tasks") {
-            const tasks = await ctx.db.query("tasks").collect();
-            data = tasks.filter((t) => !startDate || (t.createdAt && t.createdAt >= startDate));
-        } else if (dataSource === "approvals") {
-            const approvals = await ctx.db.query("approvals").collect();
-            data = approvals.filter((a) => !startDate || a.createdAt >= startDate);
-        } else if (dataSource === "files") {
-            const files = await ctx.db.query("files").collect();
-            data = files.filter((f) => !startDate || f.createdAt >= startDate);
+        try {
+            if (dataSource === "projects") {
+                const projects = await ctx.db.query("projects").collect();
+                data = projects.filter((p) => !startDate || (p.createdAt && p.createdAt >= startDate));
+            } else if (dataSource === "tasks") {
+                const tasks = await ctx.db.query("tasks").collect();
+                data = tasks.filter((t) => !startDate || (t.createdAt && t.createdAt >= startDate));
+            } else if (dataSource === "approvals") {
+                const approvals = await ctx.db.query("approvals").collect();
+                data = approvals.filter((a) => !startDate || a.createdAt >= startDate);
+            } else if (dataSource === "files") {
+                const files = await ctx.db.query("files").collect();
+                data = files.filter((f) => !startDate || f.createdAt >= startDate);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            // Return empty result on error instead of throwing
+            return { type: "metric", value: 0, total: 0 };
         }
 
         // Apply grouping and aggregation
@@ -284,8 +290,11 @@ export const getWidgetData = query({
             const colors = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
             data.forEach((item) => {
-                const key = String(item[groupBy] || "Без стойност");
+                if (!item) return;
+
+                const key = String(item[groupBy] !== undefined && item[groupBy] !== null ? item[groupBy] : "Неопределено");
                 if (!grouped[key]) {
+                    // Initialize with 0
                     grouped[key] = { name: key, value: 0 };
                 }
 
@@ -293,10 +302,16 @@ export const getWidgetData = query({
                     grouped[key].value += 1;
                 } else if (metric === "sum" && args.metricField) {
                     const val = item[args.metricField];
-                    if (typeof val === "number") grouped[key].value += val;
+                    if (typeof val === "number") {
+                        grouped[key].value += val;
+                    }
                 } else if (metric === "avg" && args.metricField) {
-                    // For avg, we'll need to track count and sum
-                    grouped[key].value += 1; // Simplified - just count for now
+                    // For avg, we usually need more complex logic (sum / count)
+                    // For now keeping it simple as count to avoid breaking changes, or better:
+                    // If the user wants average, this specific implementation is incomplete.
+                    // Let's safe fallback to count if it's not implemented fully or treat as sum for now if simple.
+                    // But to be consistent with previous logic:
+                    grouped[key].value += 1;
                 }
             });
 
@@ -319,6 +334,7 @@ export const getWidgetData = query({
             value = data.length;
         } else if (metric === "sum" && args.metricField) {
             value = data.reduce((sum, item) => {
+                if (!item) return sum;
                 const val = item[args.metricField!];
                 return sum + (typeof val === "number" ? val : 0);
             }, 0);

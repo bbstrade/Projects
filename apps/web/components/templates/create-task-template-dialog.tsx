@@ -30,9 +30,10 @@ interface CreateTaskTemplateDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     initialData?: Partial<z.infer<typeof formSchema>> & { subtasks?: string[] };
+    teamId?: string;
 }
 
-export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: CreateTaskTemplateDialogProps) {
+export function CreateTaskTemplateDialog({ open, onOpenChange, initialData, teamId }: CreateTaskTemplateDialogProps) {
     const { t } = useLanguage();
     const createTaskTemplate = useMutation(api.templates.createTaskTemplate);
     const [subtasks, setSubtasks] = useState<string[]>([]);
@@ -98,6 +99,7 @@ export function CreateTaskTemplateDialog({ open, onOpenChange, initialData }: Cr
                 subtasks: subtasks,
                 category: values.category || undefined,
                 isPublic: !!values.isPublic,
+                teamId: teamId,
             });
             toast.success(t("templateCreated"));
             form.reset();

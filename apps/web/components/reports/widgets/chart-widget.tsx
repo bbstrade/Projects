@@ -161,8 +161,10 @@ export function ChartWidget({ type, data, config }: ChartWidgetProps) {
     };
 
     return (
-        <ResponsiveContainer width="100%" height="100%">
-            {renderChart()}
-        </ResponsiveContainer>
+        <div className="w-full h-full min-h-[1px] min-w-[1px]">
+            <ResponsiveContainer width="100%" height="100%">
+                {renderChart()}
+            </ResponsiveContainer>
+        </div>
     );
 }

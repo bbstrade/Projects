@@ -209,6 +209,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             membersCount: "члена",
             viewTeam: "Преглед",
             inviteMember: "Покани член",
+            newTeam: "Нов екип",
+            teamsSearchPlaceholder: "Търсене на екипи...",
+            noTeamsDescription: "Създайте първия си екип за да организирате проектите.",
             // Admin
             adminTitle: "Административен панел",
             adminSubtitle: "Управление на системата и одит",
@@ -550,6 +553,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             membersCount: "members",
             viewTeam: "View",
             inviteMember: "Invite member",
+            newTeam: "New Team",
+            teamsSearchPlaceholder: "Search teams...",
+            noTeamsDescription: "Create your first team to organize projects.",
             // Admin
             adminTitle: "Admin Panel",
             adminSubtitle: "System management and audit",

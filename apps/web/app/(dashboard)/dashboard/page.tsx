@@ -97,15 +97,28 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-    const metrics = useQuery(api.analytics.dashboardMetrics, {});
-    const projectsByStatus = useQuery(api.analytics.projectsByStatus, {});
-    const taskTrend = useQuery(api.analytics.taskCompletionTrend, {});
-    const tasksByPriority = useQuery(api.analytics.tasksByPriority, {});
-    const recentActivity = useQuery(api.analytics.recentActivity, { limit: 8 });
+    const user = useQuery(api.users.me);
+    const teamId = user?.currentTeamId;
+    const skip = !teamId;
+
+    const metrics = useQuery(api.analytics.dashboardMetrics, skip ? "skip" : { teamId });
+    const projectsByStatus = useQuery(api.analytics.projectsByStatus, skip ? "skip" : { teamId });
+    const taskTrend = useQuery(api.analytics.taskCompletionTrend, skip ? "skip" : { teamId });
+    const tasksByPriority = useQuery(api.analytics.tasksByPriority, skip ? "skip" : { teamId });
+    const recentActivity = useQuery(api.analytics.recentActivity, skip ? "skip" : { limit: 8, teamId });
 
     // New Queries
-    const tasksByStatus = useQuery(api.analytics.tasksByStatus, {});
-    const myTopTasks = useQuery(api.analytics.myTopTasks, { limit: 5 });
+    const tasksByStatus = useQuery(api.analytics.tasksByStatus, skip ? "skip" : { teamId });
+    const myTopTasks = useQuery(api.analytics.myTopTasks, skip ? "skip" : { limit: 5, teamId }); // myTopTasks uses auth().getUser() so handles team implicitly via user context? Or should pass teamId?
+    // Wait, myTopTasks implementation (viewed in query earlier?)
+    // Let's check myTopTasks implementation briefly.
+    // It likely uses user context. But context.users.me has teamId.
+    // But if I want to enforce TEAM filtering, I should check.
+    // Assuming myTopTasks is "my tasks in my projects", teamId helps filter project context.
+    // I'll leave myTopTasks and myUpcomingTasks without explicitly passing teamId for now unless I see they need it.
+    // But wait, myUpcomingTasks is "my". Team filtering is implicit via project membership?
+    // Actually, myTopTasks in analytics.ts likely doesn't have teamId arg unless added. It wasn't in list.
+    // I'll stick to updating queried that HAVE teamId args.
     const myUpcomingTasks = useQuery(api.analytics.myUpcomingTasks, { limit: 5 });
 
     const isLoading =
@@ -299,9 +312,9 @@ export default function DashboardPage() {
                                                 <div className="flex justify-between items-start mb-1">
                                                     <p className="text-sm font-medium truncate pr-2 group-hover:text-blue-600 transition-colors">{task.title}</p>
                                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${task.daysLeft < 0 ? 'bg-red-100 text-red-700' :
-                                                            task.daysLeft === 0 ? 'bg-amber-100 text-amber-700' :
-                                                                task.daysLeft <= 2 ? 'bg-orange-100 text-orange-700' :
-                                                                    'bg-green-100 text-green-700'
+                                                        task.daysLeft === 0 ? 'bg-amber-100 text-amber-700' :
+                                                            task.daysLeft <= 2 ? 'bg-orange-100 text-orange-700' :
+                                                                'bg-green-100 text-green-700'
                                                         }`}>
                                                         {task.daysLeft < 0 ? `${Math.abs(task.daysLeft)} дни закъснение` :
                                                             task.daysLeft === 0 ? 'Днес' :

@@ -20,8 +20,12 @@ import { useLanguage } from "@/components/language-provider";
 
 export function TemplateManager() {
     const { t } = useLanguage();
-    const projectTemplates = useQuery(api.templates.listProjectTemplates);
-    const taskTemplates = useQuery(api.templates.listTaskTemplates);
+    const user = useQuery(api.users.me);
+    const teamId = user?.currentTeamId;
+    const skip = !teamId;
+
+    const projectTemplates = useQuery(api.templates.listProjectTemplates, skip ? "skip" : { teamId });
+    const taskTemplates = useQuery(api.templates.listTaskTemplates, skip ? "skip" : { teamId });
     const deleteProjectTemplate = useMutation(api.templates.deleteProjectTemplate);
     const deleteTaskTemplate = useMutation(api.templates.deleteTaskTemplate);
 
@@ -194,16 +198,37 @@ export function TemplateManager() {
                 </Tabs>
             </CardContent>
 
+            {/* Create Dialogs */}
             <CreateProjectTemplateDialog
                 open={isCreateProjectOpen}
                 onOpenChange={setIsCreateProjectOpen}
+                initialData={selectedProjectTemplate ? {
+                    name: selectedProjectTemplate.name,
+                    description: selectedProjectTemplate.description,
+                    priority: selectedProjectTemplate.priority,
+                    estimatedDuration: selectedProjectTemplate.estimatedDuration?.toString() || "",
+                    isPublic: selectedProjectTemplate.isPublic,
+                    tasks: selectedProjectTemplate.tasks
+                } : undefined}
+                teamId={teamId}
             />
 
             <CreateTaskTemplateDialog
                 open={isCreateTaskOpen}
                 onOpenChange={setIsCreateTaskOpen}
+                initialData={selectedTaskTemplate ? {
+                    title: selectedTaskTemplate.title,
+                    description: selectedTaskTemplate.description,
+                    priority: selectedTaskTemplate.priority,
+                    estimatedHours: selectedTaskTemplate.estimatedHours?.toString() || "",
+                    category: selectedTaskTemplate.category,
+                    isPublic: selectedTaskTemplate.isPublic,
+                    subtasks: selectedTaskTemplate.subtasks
+                } : undefined}
+                teamId={teamId}
             />
 
+            {/* Use Dialogs */}
             <UseProjectTemplateDialog
                 open={!!selectedProjectTemplate}
                 onOpenChange={(open) => !open && setSelectedProjectTemplate(undefined)}

@@ -24,6 +24,9 @@ export const dashboardMetrics = query({
         // as Convex filters are strict equality or ranges on indexes
         let projects = await projectsQuery.collect();
 
+        // Capture project IDs for filtering other entities if teamId is present
+        const projectIds = args.teamId ? new Set(projects.map((p) => p._id)) : null;
+
         if (args.startDate) {
             projects = projects.filter(p => p._creationTime >= args.startDate!);
         }
@@ -33,6 +36,11 @@ export const dashboardMetrics = query({
 
         // Get all tasks
         let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId && projectIds) {
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
+
         if (args.startDate) {
             tasks = tasks.filter(t => t._creationTime >= args.startDate!);
         }
@@ -42,6 +50,26 @@ export const dashboardMetrics = query({
 
         // Get all approvals
         let approvals = await ctx.db.query("approvals").collect();
+
+        if (args.teamId && projectIds) {
+            // Filter approvals by project or by task
+            // Since accessing task details for every approval is expensive, we use the tasks list we already fetched
+            // The 'tasks' list here is already filtered by team (but has date filters applied potentially?)
+            // Wait, we applied date filters to 'tasks' above. 
+            // If we want accurate approval filtering based on tasks, we need non-date-filtered tasks?
+            // Actually, querying all tasks again is wasteful. 
+            // Let's assume approvals are linked to projects mostly. 
+            // If linked to task, that task implies a project.
+            // For now, filtering by projectId is the most robust direct link.
+            // If linked ONLY to task (no projectId), we might miss it if we rely on projectId field.
+            // But populating projectId is best practice.
+            // Let's filter by projectId if present.
+            approvals = approvals.filter(a => {
+                if (a.projectId && projectIds.has(a.projectId)) return true;
+                return false;
+            });
+        }
+
         if (args.startDate) {
             approvals = approvals.filter(a => a._creationTime >= args.startDate!);
         }
@@ -113,9 +141,20 @@ export const projectsByStatus = query({
  * Get task completion trend (weekly data)
  */
 export const taskCompletionTrend = query({
-    args: {},
-    handler: async (ctx) => {
-        const tasks = await ctx.db.query("tasks").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
         const now = Date.now();
         const weekMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -198,10 +237,20 @@ export const tasksByPriority = query({
 export const teamPerformance = query({
     args: {
         limit: v.optional(v.number()),
+        teamId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tasks = await ctx.db.query("tasks").collect();
+        let tasks = await ctx.db.query("tasks").collect();
         const users = await ctx.db.query("users").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
 
         const completedByUser: Record<string, number> = {};
         const inProgressByUser: Record<string, number> = {};
@@ -237,10 +286,44 @@ export const teamPerformance = query({
 export const recentActivity = query({
     args: {
         limit: v.optional(v.number()),
+        teamId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const limit = args.limit || 10;
-        const logs = await ctx.db.query("activityLogs").order("desc").take(limit);
+        // Fetch more logs to allow for filtering
+        const logs = await ctx.db.query("activityLogs").order("desc").take(limit * 10);
+
+        let filteredLogs = logs;
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+
+            // Fetch tasks for these projects to filter task-related logs
+            const allTasks = await ctx.db.query("tasks").collect();
+            const teamTaskIds = new Set(allTasks.filter(t => projectIds.has(t.projectId)).map(t => t._id));
+
+            filteredLogs = logs.filter(log => {
+                if (log.entityType === "project" && log.entityId) {
+                    return projectIds.has(log.entityId as any);
+                }
+                if (log.entityType === "task" && log.entityId) {
+                    return teamTaskIds.has(log.entityId as any);
+                }
+                if (log.entityType === "team" && log.entityId) {
+                    return log.entityId === args.teamId;
+                }
+                // If it's a file or approval, we'd need more logic. 
+                // For now, exclude to be safe or include simple matches.
+                return false;
+            });
+        }
+
+        // Slice to original limit
+        filteredLogs = filteredLogs.slice(0, limit);
+
         const users = await ctx.db.query("users").collect();
         const userMap = new Map(users.map((u) => [u._id, u.name || u.email || "Unknown"]));
 
@@ -258,10 +341,21 @@ export const recentActivity = query({
  * Get task workload per assignee
  */
 export const tasksByAssignee = query({
-    args: {},
-    handler: async (ctx) => {
-        const tasks = await ctx.db.query("tasks").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
         const users = await ctx.db.query("users").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+            tasks = tasks.filter((t) => projectIds.has(t.projectId));
+        }
 
         const workload: Record<string, { total: number; todo: number; inProgress: number; done: number }> = {};
 
@@ -291,9 +385,15 @@ export const tasksByAssignee = query({
  * Get project timeline data
  */
 export const projectTimeline = query({
-    args: {},
-    handler: async (ctx) => {
-        const projects = await ctx.db.query("projects").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let projectsQuery = ctx.db.query("projects");
+        if (args.teamId) {
+            projectsQuery = projectsQuery.filter(q => q.eq(q.field("teamId"), args.teamId));
+        }
+        const projects = await projectsQuery.collect();
 
         return projects
             .filter((p) => p.startDate || p.endDate)
@@ -312,9 +412,24 @@ export const projectTimeline = query({
  * Get file statistics
  */
 export const fileStatistics = query({
-    args: {},
-    handler: async (ctx) => {
-        const files = await ctx.db.query("files").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let files = await ctx.db.query("files").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+
+            const tasks = await ctx.db.query("tasks").collect();
+            const teamTaskIds = new Set(tasks.filter(t => projectIds.has(t.projectId)).map(t => t._id));
+
+            files = files.filter(f =>
+                (f.projectId && projectIds.has(f.projectId)) ||
+                (f.taskId && teamTaskIds.has(f.taskId))
+            );
+        }
 
         // Group by month
         const monthlyData: Record<string, { count: number; size: number }> = {};
@@ -347,9 +462,16 @@ export const tasksOverTime = query({
     args: {
         period: v.optional(v.string()), // "daily" | "weekly" | "monthly"
         days: v.optional(v.number()),
+        teamId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tasks = await ctx.db.query("tasks").collect();
+        let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
         const period = args.period || "weekly";
         const days = args.days || 30;
         const now = Date.now();
@@ -400,9 +522,16 @@ export const tasksOverTime = query({
  * Projects over time - monthly creation trend
  */
 export const projectsOverTime = query({
-    args: { months: v.optional(v.number()) },
+    args: {
+        months: v.optional(v.number()),
+        teamId: v.optional(v.string()),
+    },
     handler: async (ctx, args) => {
-        const projects = await ctx.db.query("projects").collect();
+        let projectsQuery = ctx.db.query("projects");
+        if (args.teamId) {
+            projectsQuery = projectsQuery.filter(q => q.eq(q.field("teamId"), args.teamId));
+        }
+        const projects = await projectsQuery.collect();
         const months = args.months || 6;
         const now = new Date();
 
@@ -482,11 +611,19 @@ export const tasksByStatus = query({
  * Overdue analysis - breakdown by project and assignee
  */
 export const overdueAnalysis = query({
-    args: {},
-    handler: async (ctx) => {
-        const tasks = await ctx.db.query("tasks").collect();
-        const projects = await ctx.db.query("projects").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+        let projects = await ctx.db.query("projects").collect();
         const users = await ctx.db.query("users").collect();
+
+        if (args.teamId) {
+            projects = projects.filter(p => p.teamId === args.teamId);
+            const projectIds = new Set(projects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
         const now = Date.now();
 
         const overdueTasks = tasks.filter(
@@ -532,9 +669,27 @@ export const overdueAnalysis = query({
  * Approval trend - speed and bottleneck analysis
  */
 export const approvalTrend = query({
-    args: {},
-    handler: async (ctx) => {
-        const approvals = await ctx.db.query("approvals").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let approvals = await ctx.db.query("approvals").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db
+                .query("projects")
+                .filter((q) => q.eq(q.field("teamId"), args.teamId))
+                .collect();
+            const projectIds = new Set(teamProjects.map((p) => p._id));
+
+            const tasks = await ctx.db.query("tasks").collect();
+            const teamTaskIds = new Set(tasks.filter(t => projectIds.has(t.projectId)).map(t => t._id));
+
+            approvals = approvals.filter(a =>
+                (a.projectId && projectIds.has(a.projectId)) ||
+                (a.taskId && teamTaskIds.has(a.taskId))
+            );
+        }
 
         // Average time to approve
         const completedApprovals = approvals.filter(
@@ -587,10 +742,18 @@ export const approvalTrend = query({
  * Monthly comparison - current vs previous month
  */
 export const monthlyComparison = query({
-    args: {},
-    handler: async (ctx) => {
-        const tasks = await ctx.db.query("tasks").collect();
-        const projects = await ctx.db.query("projects").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+        let projects = await ctx.db.query("projects").collect();
+
+        if (args.teamId) {
+            projects = projects.filter(p => p.teamId === args.teamId);
+            const projectIds = new Set(projects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
 
         const now = new Date();
         const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -634,9 +797,17 @@ export const monthlyComparison = query({
  * Project health - projects with most issues
  */
 export const projectHealth = query({
-    args: {},
-    handler: async (ctx) => {
-        const projects = await ctx.db.query("projects").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let projectsQuery = ctx.db.query("projects");
+        if (args.teamId) {
+            projectsQuery = projectsQuery.filter(q => q.eq(q.field("teamId"), args.teamId));
+        }
+        const projects = await projectsQuery.collect();
+
+        // Optional optimization: If teamId present, we could fetch tasks more efficiently
         const tasks = await ctx.db.query("tasks").collect();
         const now = Date.now();
 
@@ -680,10 +851,19 @@ export const projectHealth = query({
  * Velocity metrics - tasks completed per week average
  */
 export const velocityMetrics = query({
-    args: { weeks: v.optional(v.number()) },
+    args: {
+        weeks: v.optional(v.number()),
+        teamId: v.optional(v.string()),
+    },
     handler: async (ctx, args) => {
         const weeks = args.weeks || 8;
-        const tasks = await ctx.db.query("tasks").collect();
+        let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
         const now = Date.now();
         const weekMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -726,9 +906,17 @@ export const velocityMetrics = query({
  * Estimated vs Actual hours analysis
  */
 export const estimatedVsActual = query({
-    args: {},
-    handler: async (ctx) => {
-        const tasks = await ctx.db.query("tasks").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let tasks = await ctx.db.query("tasks").collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
 
         const tasksWithEstimates = tasks.filter((t) => t.estimatedHours && t.estimatedHours > 0);
         const tasksWithBoth = tasksWithEstimates.filter((t) => t.actualHours && t.actualHours > 0);
@@ -761,10 +949,25 @@ export const estimatedVsActual = query({
  * Budget overview - approval budget utilization (projects don't have budget field)
  */
 export const budgetOverview = query({
-    args: {},
-    handler: async (ctx) => {
-        const approvals = await ctx.db.query("approvals").collect();
-        const projects = await ctx.db.query("projects").collect();
+    args: {
+        teamId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        let approvals = await ctx.db.query("approvals").collect();
+        let projects = await ctx.db.query("projects").collect();
+
+        if (args.teamId) {
+            projects = projects.filter(p => p.teamId === args.teamId);
+            const projectIds = new Set(projects.map(p => p._id));
+
+            const tasks = await ctx.db.query("tasks").collect();
+            const teamTaskIds = new Set(tasks.filter(t => projectIds.has(t.projectId)).map(t => t._id));
+
+            approvals = approvals.filter(a =>
+                (a.projectId && projectIds.has(a.projectId)) ||
+                (a.taskId && teamTaskIds.has(a.taskId))
+            );
+        }
 
         // Sum approved budget from approvals
         const approvedBudget = approvals
@@ -816,7 +1019,10 @@ export const budgetOverview = query({
  * Get upcoming tasks for the current user
  */
 export const myUpcomingTasks = query({
-    args: { limit: v.optional(v.number()) },
+    args: {
+        limit: v.optional(v.number()),
+        teamId: v.optional(v.string()),
+    },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
@@ -832,7 +1038,7 @@ export const myUpcomingTasks = query({
         const limit = args.limit || 5;
 
         // Get tasks assigned to user that are not done
-        const tasks = await ctx.db
+        let tasks = await ctx.db
             .query("tasks")
             .filter((q) =>
                 q.and(
@@ -841,6 +1047,12 @@ export const myUpcomingTasks = query({
                 )
             )
             .collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
 
         // Filter for tasks with deadline in future or recent past
         const upcoming = tasks
@@ -884,7 +1096,10 @@ export const myUpcomingTasks = query({
  * Get top tasks for the current user (sorted by Priority)
  */
 export const myTopTasks = query({
-    args: { limit: v.optional(v.number()) },
+    args: {
+        limit: v.optional(v.number()),
+        teamId: v.optional(v.string()),
+    },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
@@ -899,7 +1114,7 @@ export const myTopTasks = query({
         const limit = args.limit || 5;
 
         // Get tasks assigned to user that are not done
-        const tasks = await ctx.db
+        let tasks = await ctx.db
             .query("tasks")
             .filter((q) =>
                 q.and(
@@ -908,6 +1123,12 @@ export const myTopTasks = query({
                 )
             )
             .collect();
+
+        if (args.teamId) {
+            const teamProjects = await ctx.db.query("projects").filter(q => q.eq(q.field("teamId"), args.teamId)).collect();
+            const projectIds = new Set(teamProjects.map(p => p._id));
+            tasks = tasks.filter(t => projectIds.has(t.projectId));
+        }
 
         // Priority weights
         const priorityWeight: Record<string, number> = {

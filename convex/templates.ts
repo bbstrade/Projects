@@ -24,6 +24,7 @@ export const createProjectTemplate = mutation({
                 estimatedDuration: args.estimatedDuration,
                 tasks: args.tasks,
                 isPublic: args.isPublic,
+                teamId: args.teamId,
                 createdBy: user._id,
                 createdAt: Date.now(),
             });
@@ -35,8 +36,10 @@ export const createProjectTemplate = mutation({
 });
 
 export const listProjectTemplates = query({
-    args: {},
-    handler: async (ctx) => {
+    args: {
+        teamId: v.optional(v.string())
+    },
+    handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
 
@@ -48,9 +51,12 @@ export const listProjectTemplates = query({
         if (!user) return [];
 
         const templates = await ctx.db.query("projectTemplates").collect();
-        // Filter logic: visible if public OR created by user
-        // (For a real shared team environment, we'd check team visibility too, but simple for now)
-        return templates.filter(t => t.isPublic || t.createdBy === user._id);
+        // Filter logic: visible if public OR created by user OR belongs to team
+        return templates.filter(t =>
+            t.isPublic ||
+            t.createdBy === user._id ||
+            (args.teamId && t.teamId === args.teamId)
+        );
     },
 });
 
@@ -168,6 +174,7 @@ export const createTaskTemplate = mutation({
         subtasks: v.optional(v.array(v.string())),
         category: v.optional(v.string()),
         isPublic: v.optional(v.boolean()),
+        teamId: v.optional(v.string()), // Added
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -184,6 +191,9 @@ export const createTaskTemplate = mutation({
             ...args,
             createdBy: user._id,
             createdAt: Date.now(),
+            // args includes teamId if passed (it is in v.any() or schema should effectively allow it if we expanded args properly, 
+            // but wait, defineTable validation? 
+            // The args definition at line 163 needs to include teamId!
         });
     },
 });
@@ -192,8 +202,10 @@ export const createTaskTemplate = mutation({
 
 
 export const listTaskTemplates = query({
-    args: {},
-    handler: async (ctx) => {
+    args: {
+        teamId: v.optional(v.string())
+    },
+    handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
 
@@ -205,7 +217,11 @@ export const listTaskTemplates = query({
         if (!user) return [];
 
         const templates = await ctx.db.query("taskTemplates").collect();
-        return templates.filter(t => t.isPublic || t.createdBy === user._id);
+        return templates.filter(t =>
+            t.isPublic ||
+            t.createdBy === user._id ||
+            (args.teamId && t.teamId === args.teamId)
+        );
     },
 });
 
