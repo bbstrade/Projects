@@ -245,6 +245,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             cannotDeleteGlobalStatus: "Не можете да изтриете глобален статус.",
             noStatuses: "Няма намерени статуси",
             tabTeamSettings: "Настройки на екипа",
+            initializeDefaults: "Зареди стандартни",
+            defaultsInitialized: "Стандартните стойности са заредени",
 
             // Task Detail
             taskDetailTitle: "Детайли за задача",
@@ -561,6 +563,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             cannotDeleteGlobalStatus: "Cannot delete global status.",
             noStatuses: "No statuses found",
             tabTeamSettings: "Team Settings",
+            initializeDefaults: "Load Defaults",
+            defaultsInitialized: "Defaults loaded successfully",
 
             // Task Detail
             taskDetailTitle: "Task Details",

@@ -33,7 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/language-provider";
-import { Loader2, Plus, Pencil, Trash2, GripVertical, Lock } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, GripVertical, Lock, History } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -42,6 +42,7 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
     const statuses = useQuery(api.admin.getCustomStatuses, { type: selectedType, teamId: teamId || undefined });
     const manageStatus = useMutation(api.admin.manageCustomStatus);
+    const initializeDefaults = useMutation(api.admin.initializeDefaults);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStatus, setEditingStatus] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -136,10 +137,32 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
                     <CardTitle>{t("statuses")}</CardTitle>
                     <CardDescription>{t("statusesDesc")}</CardDescription>
                 </div>
-                <Button onClick={() => handleOpenDialog()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t("addStatus")}
-                </Button>
+                <div className="flex gap-2">
+                    {!teamId && (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                setIsLoading(true);
+                                try {
+                                    await initializeDefaults();
+                                    toast.success(t("defaultsInitialized"));
+                                } catch (error) {
+                                    toast.error("Error initializing defaults");
+                                } finally {
+                                    setIsLoading(false);
+                                }
+                            }}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <History className="mr-2 h-4 w-4" />}
+                            {t("initializeDefaults")}
+                        </Button>
+                    )}
+                    <Button onClick={() => handleOpenDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("addStatus")}
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="flex gap-4 mb-4">

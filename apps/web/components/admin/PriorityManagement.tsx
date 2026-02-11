@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Pencil, Trash2, GripVertical, AlertCircle } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, GripVertical, AlertCircle, History } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -33,6 +33,7 @@ export default function PriorityManagement() {
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
     const priorities = useQuery(api.admin.getCustomPriorities, { type: selectedType });
     const managePriority = useMutation(api.admin.manageCustomPriority);
+    const initializeDefaults = useMutation(api.admin.initializeDefaults);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingPriority, setEditingPriority] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -120,10 +121,30 @@ export default function PriorityManagement() {
                     <CardTitle>Приоритети</CardTitle>
                     <CardDescription>Управлявайте нивата на приоритизация за задачи и проекти.</CardDescription>
                 </div>
-                <Button onClick={() => handleOpenDialog()}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Добави приоритет
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={async () => {
+                            setIsLoading(true);
+                            try {
+                                await initializeDefaults();
+                                toast.success("Стандартните стойности са заредени");
+                            } catch (error) {
+                                toast.error("Грешка при инициализация");
+                            } finally {
+                                setIsLoading(false);
+                            }
+                        }}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <History className="mr-2 h-4 w-4" />}
+                        Зареди стандартни
+                    </Button>
+                    <Button onClick={() => handleOpenDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Добави приоритет
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="flex gap-4 mb-4">
