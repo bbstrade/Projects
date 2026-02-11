@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PriorityManagement() {
+    const { t } = useLanguage();
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
     const priorities = useQuery(api.admin.getCustomPriorities, { type: selectedType });
     const managePriority = useMutation(api.admin.manageCustomPriority);
@@ -82,18 +83,18 @@ export default function PriorityManagement() {
                     id: editingPriority._id,
                     data: formData,
                 });
-                toast.success("Приоритетът е обновен успешно");
+                toast.success(t("priorityUpdated"));
             } else {
                 await managePriority({
                     action: "create",
                     data: { ...formData, type: selectedType },
                 });
-                toast.success("Приоритетът е създаден успешно");
+                toast.success(t("priorityCreated"));
             }
             setIsDialogOpen(false);
         } catch (error: any) {
             console.error(error);
-            const errorMessage = error.data?.message || error.message || "Възникна грешка";
+            const errorMessage = error.data?.message || error.message || "Error";
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
@@ -101,12 +102,12 @@ export default function PriorityManagement() {
     };
 
     const handleDelete = async (id: any) => {
-        if (!confirm("Сигурни ли сте, че искате да изтриете този приоритет?")) return;
+        if (!confirm(t("deletePriorityConfirm"))) return;
         try {
             await managePriority({ action: "delete", id });
-            toast.success("Приоритетът е изтрит");
+            toast.success(t("priorityDeleted"));
         } catch (error) {
-            toast.error("Грешка при изтриване");
+            toast.error(t("deleteError"));
         }
     };
 
@@ -118,8 +119,8 @@ export default function PriorityManagement() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Приоритети</CardTitle>
-                    <CardDescription>Управлявайте нивата на приоритизация за задачи и проекти.</CardDescription>
+                    <CardTitle>{t("priorities")}</CardTitle>
+                    <CardDescription>{t("prioritiesDesc")}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -128,9 +129,9 @@ export default function PriorityManagement() {
                             setIsLoading(true);
                             try {
                                 await initializeDefaults();
-                                toast.success("Стандартните стойности са заредени");
+                                toast.success(t("defaultsInitialized"));
                             } catch (error) {
-                                toast.error("Грешка при инициализация");
+                                toast.error(t("errorInitializing"));
                             } finally {
                                 setIsLoading(false);
                             }
@@ -138,11 +139,11 @@ export default function PriorityManagement() {
                         disabled={isLoading}
                     >
                         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <History className="mr-2 h-4 w-4" />}
-                        Зареди стандартни
+                        {t("initializeDefaults")}
                     </Button>
                     <Button onClick={() => handleOpenDialog()}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Добави приоритет
+                        {t("addPriority")}
                     </Button>
                 </div>
             </CardHeader>
@@ -152,13 +153,13 @@ export default function PriorityManagement() {
                         variant={selectedType === "task" ? "default" : "outline"}
                         onClick={() => setSelectedType("task")}
                     >
-                        Задачи
+                        {t("tasksTitle")}
                     </Button>
                     <Button
                         variant={selectedType === "project" ? "default" : "outline"}
                         onClick={() => setSelectedType("project")}
                     >
-                        Проекти
+                        {t("projectsTitle")}
                     </Button>
                 </div>
 
@@ -166,18 +167,18 @@ export default function PriorityManagement() {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[50px]"></TableHead>
-                            <TableHead>Име</TableHead>
+                            <TableHead>{t("startStatusName")}</TableHead>
                             <TableHead>Slug</TableHead>
-                            <TableHead>Цвят</TableHead>
-                            <TableHead>Default</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
+                            <TableHead>{t("color")}</TableHead>
+                            <TableHead>{t("default")}</TableHead>
+                            <TableHead className="text-right">{t("actions")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {priorities.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    Няма дефинирани приоритети за {selectedType === 'task' ? 'задачи' : 'проекти'}
+                                    {t("noPrioritiesFor")} {selectedType === 'task' ? t("tasksTitle").toLowerCase() : t("projectsTitle").toLowerCase()}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -205,7 +206,7 @@ export default function PriorityManagement() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {priority.isDefault && <Badge variant="secondary">Default</Badge>}
+                                        {priority.isDefault && <Badge variant="secondary">{t("default")}</Badge>}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
@@ -227,15 +228,15 @@ export default function PriorityManagement() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingPriority ? "Редактиране на приоритет" : "Нов приоритет"} ({selectedType === 'task' ? 'Задача' : 'Проект'})</DialogTitle>
+                        <DialogTitle>{editingPriority ? t("editPriority") : t("newPriority")} ({selectedType === 'task' ? t("tasksTitle") : t("projectsTitle")})</DialogTitle>
                         <DialogDescription>
-                            Дефинирайте цветове и етикети за приоритет.
+                            {t("definePriorityParams")}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="label" className="text-right">
-                                Име
+                                {t("startStatusName")}
                             </Label>
                             <Input
                                 id="label"
@@ -259,7 +260,7 @@ export default function PriorityManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="color" className="text-right">
-                                Цвят
+                                {t("color")}
                             </Label>
                             <div className="col-span-3 flex items-center gap-2">
                                 <Input
@@ -277,7 +278,7 @@ export default function PriorityManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="order" className="text-right">
-                                Подредба
+                                {t("order")}
                             </Label>
                             <Input
                                 id="order"
@@ -289,7 +290,7 @@ export default function PriorityManagement() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="default" className="text-right">
-                                По подразбиране
+                                {t("default")}
                             </Label>
                             <div className="col-span-3 flex items-center gap-2">
                                 <Switch
@@ -301,10 +302,10 @@ export default function PriorityManagement() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Отказ</Button>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t("cancel")}</Button>
                         <Button onClick={handleSubmit} disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingPriority ? "Запази" : "Създай"}
+                            {editingPriority ? t("save") : t("create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

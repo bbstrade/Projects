@@ -29,7 +29,7 @@ export default function SettingsPage() {
             profile: t("tabProfile"),
             notifications: t("tabNotifications"),
             export: t("tabExport"),
-            tasks: t("tabTasks") || "Tasks & Workflow",
+            tasks: t("tabTasksSettings"),
         }
     };
 
@@ -100,9 +100,9 @@ export default function SettingsPage() {
                     <TabsContent value="tasks" className="m-0 space-y-6">
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-medium">{t("taskSettings") || "Task Settings"}</h3>
+                                <h3 className="text-lg font-medium">{t("taskSettings")}</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {t("taskSettingsDesc") || "Manage custom statuses and priorities for your workspace."}
+                                    {t("taskSettingsDesc")}
                                 </p>
                             </div>
                             <StatusManagement />

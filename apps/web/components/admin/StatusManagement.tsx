@@ -126,7 +126,7 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
             await manageStatus({ action: "delete", id: status._id });
             toast.success(t("statusDeleted"));
         } catch (error) {
-            toast.error("Error deleting status");
+            toast.error(t("deleteError"));
         }
     };
 
@@ -147,7 +147,7 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
                                     await initializeDefaults();
                                     toast.success(t("defaultsInitialized"));
                                 } catch (error) {
-                                    toast.error("Error initializing defaults");
+                                    toast.error(t("errorInitializing"));
                                 } finally {
                                     setIsLoading(false);
                                 }
@@ -213,9 +213,9 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
                                             <div className="flex items-center gap-2">
                                                 {status.label}
                                                 {status.teamId ? (
-                                                    <Badge variant="outline" className="text-[10px]">Team</Badge>
+                                                    <Badge variant="outline" className="text-[10px]">{t("team")}</Badge>
                                                 ) : teamId ? (
-                                                    <Badge variant="secondary" className="text-[10px]">Global</Badge>
+                                                    <Badge variant="secondary" className="text-[10px]">{t("global")}</Badge>
                                                 ) : null}
                                             </div>
                                         </TableCell>
