@@ -207,6 +207,12 @@ export const initializeDefaults = mutation({
             if (!existing) {
                 await ctx.db.insert("customStatuses", { ...s, type: "task", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
                 console.log(`Inserted global task status: ${s.slug}`);
+            } else {
+                // Update label if it differs (to support language switching)
+                if (existing.label !== s.label) {
+                    await ctx.db.patch(existing._id, { label: s.label, updatedAt: Date.now() });
+                    console.log(`Updated global task status label: ${s.slug} -> ${s.label}`);
+                }
             }
         }
 
@@ -230,6 +236,12 @@ export const initializeDefaults = mutation({
             if (!existing) {
                 await ctx.db.insert("customStatuses", { ...s, type: "project", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
                 console.log(`Inserted global project status: ${s.slug}`);
+            } else {
+                // Update label if it differs
+                if (existing.label !== s.label) {
+                    await ctx.db.patch(existing._id, { label: s.label, updatedAt: Date.now() });
+                    console.log(`Updated global project status label: ${s.slug} -> ${s.label}`);
+                }
             }
         }
 
@@ -252,6 +264,10 @@ export const initializeDefaults = mutation({
 
             if (!existingTaskP) {
                 await ctx.db.insert("customPriorities", { ...p, type: "task", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
+            } else {
+                if (existingTaskP.label !== p.label) {
+                    await ctx.db.patch(existingTaskP._id, { label: p.label, updatedAt: Date.now() });
+                }
             }
 
             const existingProjectP = await ctx.db.query("customPriorities")
@@ -264,6 +280,10 @@ export const initializeDefaults = mutation({
 
             if (!existingProjectP) {
                 await ctx.db.insert("customPriorities", { ...p, type: "project", teamId: undefined, createdAt: Date.now(), updatedAt: Date.now() });
+            } else {
+                if (existingProjectP.label !== p.label) {
+                    await ctx.db.patch(existingProjectP._id, { label: p.label, updatedAt: Date.now() });
+                }
             }
         }
     }
