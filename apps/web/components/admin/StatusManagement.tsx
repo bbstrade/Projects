@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function StatusManagement({ teamId }: { teamId?: string }) {
-    const { t } = useLanguage();
+    const { t, lang } = useLanguage();
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
     const statuses = useQuery(api.admin.getCustomStatuses, { type: selectedType, teamId: teamId || undefined });
     const manageStatus = useMutation(api.admin.manageCustomStatus);
@@ -144,7 +144,7 @@ export default function StatusManagement({ teamId }: { teamId?: string }) {
                             onClick={async () => {
                                 setIsLoading(true);
                                 try {
-                                    await initializeDefaults();
+                                    await initializeDefaults({ language: lang });
                                     toast.success(t("defaultsInitialized"));
                                 } catch (error) {
                                     toast.error(t("errorInitializing"));

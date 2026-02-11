@@ -146,13 +146,52 @@ export const updateUserRole = mutation({
 
 // Initialize default statuses and priorities if empty or missing defaults
 export const initializeDefaults = mutation({
-    args: {},
-    handler: async (ctx) => {
+    args: {
+        language: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const lang = args.language === "bg" ? "bg" : "en";
+
+        const translations = {
+            en: {
+                todo: "To Do",
+                in_progress: "In Progress",
+                in_review: "In Review",
+                done: "Done",
+                draft: "Draft",
+                active: "Active",
+                on_hold: "On Hold",
+                completed: "Completed",
+                archived: "Archived",
+                low: "Low",
+                medium: "Medium",
+                high: "High",
+                critical: "Critical",
+            },
+            bg: {
+                todo: "За изпълнение",
+                in_progress: "В процес",
+                in_review: "В преглед",
+                done: "Завършена",
+                draft: "Чернова",
+                active: "Активен",
+                on_hold: "Задържан",
+                completed: "Завършен",
+                archived: "Архивиран",
+                low: "Нисък",
+                medium: "Среден",
+                high: "Висок",
+                critical: "Критичен",
+            },
+        };
+
+        const t = translations[lang];
+
         const defaultTaskStatuses = [
-            { label: "To Do", slug: "todo", color: "#808080", order: 0, isDefault: true },
-            { label: "In Progress", slug: "in_progress", color: "#3b82f6", order: 1, isDefault: false },
-            { label: "In Review", slug: "in_review", color: "#f59e0b", order: 2, isDefault: false },
-            { label: "Done", slug: "done", color: "#22c55e", order: 3, isDefault: false },
+            { label: t.todo, slug: "todo", color: "#808080", order: 0, isDefault: true },
+            { label: t.in_progress, slug: "in_progress", color: "#3b82f6", order: 1, isDefault: false },
+            { label: t.in_review, slug: "in_review", color: "#f59e0b", order: 2, isDefault: false },
+            { label: t.done, slug: "done", color: "#22c55e", order: 3, isDefault: false },
         ];
 
         for (const s of defaultTaskStatuses) {
@@ -172,11 +211,11 @@ export const initializeDefaults = mutation({
         }
 
         const defaultProjectStatuses = [
-            { label: "Draft", slug: "draft", color: "#808080", order: 0, isDefault: true },
-            { label: "Active", slug: "active", color: "#3b82f6", order: 1, isDefault: false },
-            { label: "On Hold", slug: "on_hold", color: "#f59e0b", order: 2, isDefault: false },
-            { label: "Completed", slug: "completed", color: "#22c55e", order: 3, isDefault: false },
-            { label: "Archived", slug: "archived", color: "#64748b", order: 4, isDefault: false },
+            { label: t.draft, slug: "draft", color: "#808080", order: 0, isDefault: true },
+            { label: t.active, slug: "active", color: "#3b82f6", order: 1, isDefault: false },
+            { label: t.on_hold, slug: "on_hold", color: "#f59e0b", order: 2, isDefault: false },
+            { label: t.completed, slug: "completed", color: "#22c55e", order: 3, isDefault: false },
+            { label: t.archived, slug: "archived", color: "#64748b", order: 4, isDefault: false },
         ];
 
         for (const s of defaultProjectStatuses) {
@@ -196,10 +235,10 @@ export const initializeDefaults = mutation({
 
         // Priorities
         const defaultPriorities = [
-            { label: "Low", slug: "low", color: "#22c55e", order: 0, isDefault: false },
-            { label: "Medium", slug: "medium", color: "#3b82f6", order: 1, isDefault: true },
-            { label: "High", slug: "high", color: "#f59e0b", order: 2, isDefault: false },
-            { label: "Critical", slug: "critical", color: "#ef4444", order: 3, isDefault: false },
+            { label: t.low, slug: "low", color: "#22c55e", order: 0, isDefault: false },
+            { label: t.medium, slug: "medium", color: "#3b82f6", order: 1, isDefault: true },
+            { label: t.high, slug: "high", color: "#f59e0b", order: 2, isDefault: false },
+            { label: t.critical, slug: "critical", color: "#ef4444", order: 3, isDefault: false },
         ];
 
         for (const p of defaultPriorities) {

@@ -31,7 +31,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useLanguage } from "@/components/language-provider";
 
 export default function PriorityManagement() {
-    const { t } = useLanguage();
+    const { t, lang } = useLanguage();
     const [selectedType, setSelectedType] = useState<"task" | "project">("task");
     const priorities = useQuery(api.admin.getCustomPriorities, { type: selectedType });
     const managePriority = useMutation(api.admin.manageCustomPriority);
@@ -129,7 +129,7 @@ export default function PriorityManagement() {
                         onClick={async () => {
                             setIsLoading(true);
                             try {
-                                await initializeDefaults();
+                                await initializeDefaults({ language: lang });
                                 toast.success(t("defaultsInitialized"));
                             } catch (error) {
                                 toast.error(t("errorInitializing"));
