@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Pencil, Trash2, GripVertical, AlertCircle, History } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/components/language-provider";
 
 export default function PriorityManagement() {
     const { t } = useLanguage();
